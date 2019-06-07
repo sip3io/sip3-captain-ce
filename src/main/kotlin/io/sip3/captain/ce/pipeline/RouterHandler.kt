@@ -25,7 +25,7 @@ import io.vertx.core.Vertx
  */
 class RouterHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, bulkOperationsEnabled) {
 
-    private val rtcpHandler = RtpHandler(vertx, bulkOperationsEnabled)
+    private val rtcpHandler = RtcpHandler(vertx, bulkOperationsEnabled)
     private val rtpHandler = RtpHandler(vertx, bulkOperationsEnabled)
     private val sipHandler = SipHandler(vertx, bulkOperationsEnabled)
 
