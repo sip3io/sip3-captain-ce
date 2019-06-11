@@ -60,7 +60,7 @@ open class Bootstrap : AbstractVerticle() {
                 logger.error("ConfigRetriever 'getConfig()' failed.", asr.cause())
                 vertx.close()
             } else {
-                val config = asr.result()
+                val config = asr.result().mergeIn(config())
                 logger.info("Configuration:\n ${config.encodePrettily()}")
                 deployMeterRegistries(config)
                 deployVerticles(config)

@@ -77,7 +77,7 @@ class Encoder : AbstractVerticle() {
                     5,                         // Source Port
                     5,                         // Destination Port
                     4,                         // Protocol Code
-                    3 + payloadLength   // Payload
+                    3 + payloadLength          // Payload
 
             ).sum()
 

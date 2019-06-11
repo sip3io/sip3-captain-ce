@@ -2,8 +2,8 @@
 name: sip3-captain
 
 #! Vert.x
-vertx:
-  instances: 1
+#vertx:
+#  instances: 1
 
 #! DPDK
 #dpdk:
@@ -12,23 +12,11 @@ vertx:
 #  bulk-size: 256
 
 #! Pcap (libpcap, WinPcap, Npcap)
-pcap:
-  dir: /tmp/sip3-captain
+#pcap:
+#  dir: /tmp/sip3-captain
 #  dev: eth0
 #  bpf-filter: udp
 #  timeout-millis: 10
-
-#! IPv4
-ipv4:
-  fragment-ttl: 60000
-
-#! RTP
-rtp:
-  bulk-size: 256
-
-#! Encoder
-encoder:
-  bulk-size: 256
 
 #! Sender
 sender:
@@ -40,9 +28,9 @@ sender:
 
 
 #! Metrics
-metrics:
-  logging:
-    step: 30000
+#metrics:
+#  logging:
+#    step: 1000
 #  influxdb:
 #    uri: http://127.0.0.1:8086
 #    db: sip3
