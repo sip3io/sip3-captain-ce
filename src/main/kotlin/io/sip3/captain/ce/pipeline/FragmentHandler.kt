@@ -35,13 +35,15 @@ class FragmentHandler : AbstractVerticle() {
     private lateinit var ipv4Handler: Ipv4Handler
 
     private lateinit var defragmentators: PassiveExpiringMap<String, Defragmentator>
+    private var ttl: Long = 60000
 
     override fun start() {
-        config().getJsonObject("ipv4").let { config ->
-            val ttl = config.getLong("fragment-ttl") ?: 60000
-            defragmentators = PassiveExpiringMap(ttl)
-            vertx.setPeriodic(ttl) { defragmentators.size }
+        config().getJsonObject("ipv4")?.let { config ->
+            config.getLong("fragment-ttl")?.let { ttl = it }
         }
+
+        defragmentators = PassiveExpiringMap(ttl)
+        vertx.setPeriodic(ttl) { defragmentators.size }
 
         ipv4Handler = Ipv4Handler(vertx, false)
 
