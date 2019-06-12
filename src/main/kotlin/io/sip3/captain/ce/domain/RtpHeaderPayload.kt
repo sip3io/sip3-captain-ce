@@ -21,8 +21,17 @@ import io.netty.buffer.Unpooled
 
 class RtpHeaderPayload : Payload {
 
+    var payloadType: Byte = 0
+    var sequenceNumber: Int = 0
+    var timestamp: Long = 0
+    var ssrc: Long = 0
+
     override fun encode(): ByteBuf {
-        // TODO...
-        return Unpooled.EMPTY_BUFFER
+        return Unpooled.buffer(21).apply {
+            writeByte(payloadType.toInt())
+            writeInt(sequenceNumber)
+            writeLong(timestamp)
+            writeLong(ssrc)
+        }
     }
 }

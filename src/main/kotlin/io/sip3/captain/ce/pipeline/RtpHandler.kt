@@ -22,6 +22,7 @@ import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.domain.RtpHeaderPayload
 import io.vertx.core.Vertx
+import kotlin.experimental.and
 
 /**
  * Handles RTP packets
@@ -42,7 +43,13 @@ class RtpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
     override fun onPacket(buffer: ByteBuf, packet: Packet) {
         packet.protocolCode = Packet.TYPE_RTP
         packet.payload = RtpHeaderPayload().apply {
-            // TODO...
+            // Version & P & X & CC
+            buffer.skipBytes(1)
+
+            payloadType = buffer.readByte().and(127)
+            sequenceNumber = buffer.readUnsignedShort()
+            timestamp = buffer.readUnsignedInt()
+            ssrc = buffer.readUnsignedInt()
         }
         packets.add(packet)
 
