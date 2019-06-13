@@ -75,7 +75,7 @@ class EncoderTest : VertxTest() {
                             // Prefix
                             assertArrayEquals(Encoder.PREFIX, buffer.getBytes(0, 7))
                             // Length
-                            assertEquals(74, buffer.getShort(7))
+                            assertEquals(69, buffer.getShort(7))
                             // Milliseconds
                             assertEquals(1, buffer.getByte(9))
                             assertEquals(11, buffer.getShort(10))

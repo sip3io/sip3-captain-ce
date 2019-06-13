@@ -85,7 +85,7 @@ class Encoder : AbstractVerticle() {
                 // Prefix
                 appendBytes(PREFIX)
                 // Length
-                appendShort(packetLength.toShort())
+                appendShort((packetLength - 5).toShort())
                 // Milliseconds
                 appendByte(1)
                 appendShort(11)
