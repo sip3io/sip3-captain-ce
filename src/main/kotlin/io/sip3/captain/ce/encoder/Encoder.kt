@@ -33,10 +33,10 @@ class Encoder : AbstractVerticle() {
     companion object {
 
         val PREFIX = byteArrayOf(
-                0x83.toByte(), // S
-                0x73.toByte(), // I
-                0x80.toByte(), // P
-                0x51.toByte(), // 3
+                0x53.toByte(), // S
+                0x49.toByte(), // I
+                0x50.toByte(), // P
+                0x33.toByte(), // 3
 
                 0x00.toByte(), // Compressed
                 0x01.toByte(), // Type
