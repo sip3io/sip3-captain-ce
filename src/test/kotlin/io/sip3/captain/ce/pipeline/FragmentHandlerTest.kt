@@ -52,14 +52,13 @@ class FragmentHandlerTest : VertxTest() {
     @Test
     fun `Assemble 2 fragments sent in order`() {
         val expectedTimestamp = Timestamp(System.currentTimeMillis() - 10000)
-        val protocolNumberSlotSlot = slot<Int>()
         val packetSlot = slot<Packet>()
+        mockkConstructor(Ipv4Handler::class)
+        every {
+            anyConstructed<Ipv4Handler>().routePacket(any(), capture(packetSlot))
+        } just Runs
         runTest(
                 deploy = {
-                    mockkConstructor(Ipv4Handler::class)
-                    every {
-                        anyConstructed<Ipv4Handler>().onDefragmentedPacket(capture(protocolNumberSlotSlot), any(), capture(packetSlot))
-                    } just Runs
                     vertx.deployTestVerticle(FragmentHandler::class)
                 },
                 execute = {
@@ -78,11 +77,10 @@ class FragmentHandlerTest : VertxTest() {
                 assert = {
                     vertx.executeBlocking<Any>({
                         context.verify {
-                            verify(timeout = 10000) { anyConstructed<Ipv4Handler>().onDefragmentedPacket(any(), any(), any()) }
-                            val protocolNumber = protocolNumberSlotSlot.captured
-                            assertEquals(Ipv4Handler.TYPE_UDP, protocolNumber)
+                            verify(timeout = 10000) { anyConstructed<Ipv4Handler>().routePacket(any(), any()) }
                             val packet = packetSlot.captured
                             assertEquals(expectedTimestamp, packet.timestamp)
+                            assertEquals(Ipv4Handler.TYPE_UDP, packet.protocolNumber)
                         }
                         context.completeNow()
                     }, {})
@@ -93,14 +91,13 @@ class FragmentHandlerTest : VertxTest() {
     @Test
     fun `Assemble 2 fragments sent not in order`() {
         val expectedTimestamp = Timestamp(System.currentTimeMillis() - 10000)
-        val protocolNumberSlotSlot = slot<Int>()
         val packetSlot = slot<Packet>()
+        mockkConstructor(Ipv4Handler::class)
+        every {
+            anyConstructed<Ipv4Handler>().routePacket(any(), capture(packetSlot))
+        } just Runs
         runTest(
                 deploy = {
-                    mockkConstructor(Ipv4Handler::class)
-                    every {
-                        anyConstructed<Ipv4Handler>().onDefragmentedPacket(capture(protocolNumberSlotSlot), any(), capture(packetSlot))
-                    } just Runs
                     vertx.deployTestVerticle(FragmentHandler::class)
                 },
                 execute = {
@@ -119,11 +116,10 @@ class FragmentHandlerTest : VertxTest() {
                 assert = {
                     vertx.executeBlocking<Any>({
                         context.verify {
-                            verify(timeout = 10000) { anyConstructed<Ipv4Handler>().onDefragmentedPacket(any(), any(), any()) }
-                            val protocolNumber = protocolNumberSlotSlot.captured
-                            assertEquals(Ipv4Handler.TYPE_UDP, protocolNumber)
+                            verify(timeout = 10000) { anyConstructed<Ipv4Handler>().routePacket(any(), any()) }
                             val packet = packetSlot.captured
                             assertEquals(expectedTimestamp, packet.timestamp)
+                            assertEquals(Ipv4Handler.TYPE_UDP, packet.protocolNumber)
                         }
                         context.completeNow()
                     }, {})

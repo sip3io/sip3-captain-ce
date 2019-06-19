@@ -72,25 +72,12 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
         } else {
             packet.srcAddr = ipv4Header.srcAddr
             packet.dstAddr = ipv4Header.dstAddr
+            packet.protocolNumber = ipv4Header.protocolNumber
 
             buffer.readerIndex(offset + ipv4Header.headerLength)
             buffer.capacity(offset + ipv4Header.totalLength)
 
-            when (ipv4Header.protocolNumber) {
-                TYPE_UDP -> udpHandler.handle(buffer, packet)
-                TYPE_TCP -> tcpHandler.handle(buffer, packet)
-                TYPE_ICMP -> icmpHandler.handle(buffer, packet)
-                TYPE_IPV4 -> onPacket(buffer, packet)
-            }
-        }
-    }
-
-    fun onDefragmentedPacket(protocolNumber: Int, buffer: ByteBuf, packet: Packet) {
-        when (protocolNumber) {
-            TYPE_UDP -> udpHandler.handle(buffer, packet)
-            TYPE_TCP -> tcpHandler.handle(buffer, packet)
-            TYPE_ICMP -> icmpHandler.handle(buffer, packet)
-            TYPE_IPV4 -> onPacket(buffer, packet)
+            routePacket(buffer, packet)
         }
     }
 
@@ -118,6 +105,15 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
             buffer.readBytes(srcAddr)
             // Destination IP
             buffer.readBytes(dstAddr)
+        }
+    }
+
+    fun routePacket(buffer: ByteBuf, packet: Packet) {
+        when (packet.protocolNumber) {
+            TYPE_UDP -> udpHandler.handle(buffer, packet)
+            TYPE_TCP -> tcpHandler.handle(buffer, packet)
+            TYPE_ICMP -> icmpHandler.handle(buffer, packet)
+            TYPE_IPV4 -> onPacket(buffer, packet)
         }
     }
 }

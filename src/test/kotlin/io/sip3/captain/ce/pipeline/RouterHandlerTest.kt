@@ -54,7 +54,7 @@ class RouterHandlerTest {
     }
 
     @Test
-    fun `Route SIP`() {
+    fun `Route UDP - SIP`() {
         // Init
         mockkConstructor(SipHandler::class)
         val bufferSlot = slot<ByteBuf>()
@@ -63,14 +63,17 @@ class RouterHandlerTest {
             anyConstructed<SipHandler>().handle(capture(bufferSlot), capture(packetSlot))
         } just Runs
         // Execute
+        val packet = Packet().apply {
+            this.protocolNumber = Ipv4Handler.TYPE_UDP
+        }
         val routerHandler = RouterHandler(Vertx.vertx(), false)
-        routerHandler.handle(Unpooled.wrappedBuffer(PACKET_1), Packet())
+        routerHandler.handle(Unpooled.wrappedBuffer(PACKET_1), packet)
         // Assert
         verify { anyConstructed<SipHandler>().handle(any(), any()) }
     }
 
     @Test
-    fun `Route RTP`() {
+    fun `Route UDP - RTP`() {
         // Init
         mockkConstructor(RtpHandler::class)
         val bufferSlot = slot<ByteBuf>()
@@ -79,14 +82,17 @@ class RouterHandlerTest {
             anyConstructed<RtpHandler>().handle(capture(bufferSlot), capture(packetSlot))
         } just Runs
         // Execute
+        val packet = Packet().apply {
+            this.protocolNumber = Ipv4Handler.TYPE_UDP
+        }
         val routerHandler = RouterHandler(Vertx.vertx(), false)
-        routerHandler.handle(Unpooled.wrappedBuffer(PACKET_2), Packet())
+        routerHandler.handle(Unpooled.wrappedBuffer(PACKET_2), packet)
         // Assert
         verify { anyConstructed<RtpHandler>().handle(any(), any()) }
     }
 
     @Test
-    fun `Route RTCP`() {
+    fun `Route UDP - RTCP`() {
         // Init
         mockkConstructor(RtcpHandler::class)
         val bufferSlot = slot<ByteBuf>()
@@ -95,10 +101,51 @@ class RouterHandlerTest {
             anyConstructed<RtcpHandler>().handle(capture(bufferSlot), capture(packetSlot))
         } just Runs
         // Execute
+        val packet = Packet().apply {
+            this.protocolNumber = Ipv4Handler.TYPE_UDP
+        }
         val routerHandler = RouterHandler(Vertx.vertx(), false)
-        routerHandler.handle(Unpooled.wrappedBuffer(PACKET_3), Packet())
+        routerHandler.handle(Unpooled.wrappedBuffer(PACKET_3), packet)
         // Assert
         verify { anyConstructed<RtcpHandler>().handle(any(), any()) }
+    }
+
+    @Test
+    fun `Route TCP - SIP`() {
+        // Init
+        mockkConstructor(SipHandler::class)
+        val bufferSlot = slot<ByteBuf>()
+        val packetSlot = slot<Packet>()
+        every {
+            anyConstructed<SipHandler>().handle(capture(bufferSlot), capture(packetSlot))
+        } just Runs
+        // Execute
+        val packet = Packet().apply {
+            this.protocolNumber = Ipv4Handler.TYPE_TCP
+        }
+        val routerHandler = RouterHandler(Vertx.vertx(), false)
+        routerHandler.handle(Unpooled.wrappedBuffer(PACKET_1), packet)
+        // Assert
+        verify { anyConstructed<SipHandler>().handle(any(), any()) }
+    }
+
+    @Test
+    fun `Route TCP - RTP-like`() {
+        // Init
+        mockkConstructor(SipHandler::class)
+        val bufferSlot = slot<ByteBuf>()
+        val packetSlot = slot<Packet>()
+        every {
+            anyConstructed<SipHandler>().handle(capture(bufferSlot), capture(packetSlot))
+        } just Runs
+        // Execute
+        val packet = Packet().apply {
+            this.protocolNumber = Ipv4Handler.TYPE_TCP
+        }
+        val routerHandler = RouterHandler(Vertx.vertx(), false)
+        routerHandler.handle(Unpooled.wrappedBuffer(PACKET_2), packet)
+        // Assert
+        verify { anyConstructed<SipHandler>().handle(any(), any()) }
     }
 
     @AfterEach
