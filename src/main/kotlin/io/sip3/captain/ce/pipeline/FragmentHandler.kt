@@ -71,8 +71,9 @@ class FragmentHandler : AbstractVerticle() {
                     this.timestamp = defragmentator.timestamp
                     this.srcAddr = header.srcAddr
                     this.dstAddr = header.dstAddr
+                    this.protocolNumber = header.protocolNumber
                 }
-                ipv4Handler.onDefragmentedPacket(header.protocolNumber, buffer, packet)
+                ipv4Handler.routePacket(buffer, packet)
                 defragmentators.remove(key)
             }
         }

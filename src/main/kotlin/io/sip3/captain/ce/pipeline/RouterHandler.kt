@@ -37,6 +37,15 @@ class RouterHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vert
             return
         }
 
+        when (packet.protocolNumber) {
+            Ipv4Handler.TYPE_UDP -> onUdpPacket(buffer, packet)
+            Ipv4Handler.TYPE_TCP -> onTcpPacket(buffer, packet)
+        }
+    }
+
+    fun onUdpPacket(buffer: ByteBuf, packet: Packet) {
+        val offset = buffer.readerIndex()
+
         if (buffer.getUnsignedByte(offset).toInt().shr(6) == 2) {
             // RTP or RTCP packet
             val packetType = buffer.getUnsignedByte(offset + 1).toInt()
@@ -49,5 +58,10 @@ class RouterHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vert
             // SIP packet (as long as we have SIP, RTP and RTCP packets only)
             sipHandler.handle(buffer, packet)
         }
+    }
+
+    fun onTcpPacket(buffer: ByteBuf, packet: Packet) {
+        // SIP packet (as long as we have SIP, RTP and RTCP packets only)
+        sipHandler.handle(buffer, packet)
     }
 }
