@@ -107,7 +107,7 @@ open class Bootstrap : AbstractVerticle() {
                     override fun get(k: String) = null
                     override fun uri() = influxdb.getString("uri")
                     override fun db() = influxdb.getString("db")
-                    override fun step() = Duration.ofMillis(influxdb.getLong("step")!!)
+                    override fun step() = influxdb.getLong("step")?.let { Duration.ofMillis(it) } ?: super.step()
                     override fun batchSize() = influxdb.getInteger("batch-size") ?: super.batchSize()
                     override fun retentionPolicy() = influxdb.getString("retention-policy") ?: super.retentionPolicy()
                     override fun retentionDuration() = influxdb.getString("retention-duration") ?: super.retentionDuration()
