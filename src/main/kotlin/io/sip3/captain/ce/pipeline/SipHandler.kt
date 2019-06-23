@@ -112,11 +112,12 @@ class SipHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
     fun startsWithSipWord(offset: Int, buffer: ByteBuf): Boolean {
         val i = offset + buffer.readerIndex()
         return SIP_WORDS.any { word ->
-            if (i + word.size < buffer.capacity()) {
-                word.forEachIndexed { j, b ->
-                    if (b != buffer.getByte(i + j)) {
-                        return@any false
-                    }
+            if (i + word.size >= buffer.capacity()) {
+                return@any false
+            }
+            word.forEachIndexed { j, b ->
+                if (b != buffer.getByte(i + j)) {
+                    return@any false
                 }
             }
             return@any true

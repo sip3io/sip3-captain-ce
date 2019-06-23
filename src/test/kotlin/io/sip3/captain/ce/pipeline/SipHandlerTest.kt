@@ -32,7 +32,7 @@ class SipHandlerTest : VertxTest() {
         val PACKET_1 = byteArrayOf(
                 0x53.toByte(), 0x49.toByte(), 0x50.toByte(), 0x2f.toByte(), 0x32.toByte(), 0x2e.toByte(), 0x30.toByte(),
                 0x20.toByte(), 0x32.toByte(), 0x30.toByte(), 0x30.toByte(), 0x20.toByte(), 0x4f.toByte(), 0x4b.toByte(),
-                0x0d.toByte(), 0x0a.toByte()
+                0x0d.toByte(), 0x0a.toByte(), 0x0d.toByte(), 0x0a.toByte()
         )
 
         // Payload: SIP (2 messages)
@@ -82,7 +82,7 @@ class SipHandlerTest : VertxTest() {
                             assertEquals(Packet.TYPE_SIP, packet.protocolCode)
                             val buffer = packet.payload.encode()
                             val payloadLength = buffer.capacity() - buffer.readerIndex()
-                            assertEquals(16, payloadLength)
+                            assertEquals(18, payloadLength)
                         }
                         context.completeNow()
                     }
