@@ -102,7 +102,7 @@ open class Bootstrap : AbstractVerticle() {
                 }, Clock.SYSTEM)
                 registry.add(loggingMeterRegistry)
             }
-            config.getJsonObject("influxdb")?.let { influxdb ->
+            meters.getJsonObject("influxdb")?.let { influxdb ->
                 val influxMeterRegistry = InfluxMeterRegistry(object : InfluxConfig {
                     override fun get(k: String) = null
                     override fun uri() = influxdb.getString("uri")
