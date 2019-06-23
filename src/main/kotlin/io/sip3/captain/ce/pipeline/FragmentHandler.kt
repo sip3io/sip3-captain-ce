@@ -102,8 +102,8 @@ class FragmentHandler : AbstractVerticle() {
                 expectedOffset = offset + header.totalLength - header.headerLength
             }
             // Concat all fragments
-            return Unpooled.compositeBuffer().apply {
-                buffers.forEach { (o, b) -> addComponent(b) }
+            return Unpooled.buffer(expectedOffset).apply {
+                buffers.forEach { (o, b) -> writeBytes(b) }
             }
         }
     }
