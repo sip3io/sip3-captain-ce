@@ -22,10 +22,17 @@ class Packet {
 
     companion object {
 
+        // Real-Time Transport Protocol
         const val TYPE_RTCP: Byte = 1
+        // Real-time Transport Control Protocol
         const val TYPE_RTP: Byte = 2
+        // Session Initiation Protocol
         const val TYPE_SIP: Byte = 3
+        // Internet Control Message Protocol
         const val TYPE_ICMP: Byte = 4
+
+        // Real-Time Transport Protocol Report (Internal SIP3 protocol supported in SIP3 `Enterprise Edition` only)
+        const val TYPE_RTPR: Byte = 11
     }
 
     lateinit var timestamp: Timestamp
