@@ -24,6 +24,7 @@ import io.sip3.captain.ce.domain.Packet
 import io.vertx.core.Vertx
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.net.InetAddress
@@ -62,8 +63,12 @@ class Ipv4HandlerTest {
 
         // IPv4 Payload: ICMP
         val PACKET_4 = byteArrayOf(
+                0x45.toByte(), 0x00.toByte(), 0x00.toByte(), 0x38.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(),
+                0x00.toByte(), 0x7c.toByte(), 0x01.toByte(), 0xfa.toByte(), 0x79.toByte(), 0x0a.toByte(), 0x4d.toByte(),
+                0x0f.toByte(), 0x61.toByte(), 0x0a.toByte(), 0x4d.toByte(), 0x1f.toByte(), 0xaa.toByte(), 0x03.toByte(),
+                0x03.toByte(), 0x79.toByte(), 0xc4.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(),
                 0x45.toByte(), 0xa0.toByte(), 0x00.toByte(), 0x1c.toByte(), 0xe8.toByte(), 0xdd.toByte(), 0x00.toByte(),
-                0x00.toByte(), 0x3c.toByte(), 0x01.toByte(), 0x75.toByte(), 0x6e.toByte(), 0x0a.toByte(), 0xfa.toByte(),
+                0x00.toByte(), 0x3c.toByte(), 0x11.toByte(), 0x75.toByte(), 0x6e.toByte(), 0x0a.toByte(), 0xfa.toByte(),
                 0xf4.toByte(), 0x05.toByte(), 0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte(), 0x32.toByte(),
                 0x40.toByte(), 0xe8.toByte(), 0x3c.toByte(), 0x00.toByte(), 0xb4.toByte(), 0x13.toByte(), 0x0b.toByte()
         )
@@ -144,19 +149,20 @@ class Ipv4HandlerTest {
     @Test
     fun `Parse IPv4 - ICMP`() {
         // Init
-        mockkConstructor(IcmpHandler::class)
+        mockkConstructor(UdpHandler::class)
         val bufferSlot = slot<ByteBuf>()
         val packetSlot = slot<Packet>()
         every {
-            anyConstructed<IcmpHandler>().handle(capture(bufferSlot), capture(packetSlot))
+            anyConstructed<UdpHandler>().handle(capture(bufferSlot), capture(packetSlot))
         } just Runs
         // Execute
         val ipv4Handler = Ipv4Handler(Vertx.vertx(), false)
         ipv4Handler.handle(Unpooled.wrappedBuffer(PACKET_4), Packet())
         // Assert
-        verify { anyConstructed<IcmpHandler>().handle(any(), any()) }
+        verify { anyConstructed<UdpHandler>().handle(any(), any()) }
         val buffer = bufferSlot.captured
         val packet = packetSlot.captured
+        assertTrue(packet.rejected)
         val srcAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte()))
         assertEquals(srcAddr, InetAddress.getByAddress(packet.srcAddr))
         val dstAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte()))
