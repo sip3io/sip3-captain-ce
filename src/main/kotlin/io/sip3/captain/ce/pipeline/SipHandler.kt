@@ -38,7 +38,11 @@ class SipHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
                 // RFC 3428
                 "MESSAGE",
                 // RFC 6665
-                "SUBSCRIBE", "NOTIFY"
+                "SUBSCRIBE", "NOTIFY",
+                // RFC 3903
+                "PUBLISH",
+                // RFC 3311
+                "UPDATE"
         ).map { word -> word.toByteArray() }.toList()
 
         private val CR: Byte = 0x0d
