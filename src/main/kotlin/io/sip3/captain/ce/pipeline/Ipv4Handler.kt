@@ -116,7 +116,7 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
             // IP-2-IP encapsulation
             TYPE_IPV4 -> onPacket(buffer, packet)
             // It doesn't make sense to create a separate handler
-            // as long as we need only ICMP containing RTP.
+            // as long as we need only ICMP containing RTP packets.
             TYPE_ICMP -> {
                 // Type
                 val type = buffer.readByte().toInt()
