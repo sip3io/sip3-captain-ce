@@ -39,7 +39,9 @@ class UdpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
         // Checksum
         buffer.skipBytes(2)
 
-        buffer.capacity(offset + length)
+        if (!packet.rejected) {
+            buffer.capacity(offset + length)
+        }
 
         routerHandler.handle(buffer, packet)
     }

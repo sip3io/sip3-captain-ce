@@ -50,18 +50,27 @@ class RouterHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vert
             // RTP or RTCP packet
             val packetType = buffer.getUnsignedByte(offset + 1).toInt()
             if (packetType in 200..211) {
-                rtcpHandler.handle(buffer, packet)
+                // Skip ICMP(RTCP) case
+                if (!packet.rejected) {
+                    rtcpHandler.handle(buffer, packet)
+                }
             } else {
                 rtpHandler.handle(buffer, packet)
             }
         } else {
-            // SIP packet (as long as we have SIP, RTP and RTCP packets only)
-            sipHandler.handle(buffer, packet)
+            // Skip ICMP(SIP) case
+            if (!packet.rejected) {
+                // SIP packet (as long as we have SIP, RTP and RTCP packets only)
+                sipHandler.handle(buffer, packet)
+            }
         }
     }
 
     fun onTcpPacket(buffer: ByteBuf, packet: Packet) {
-        // SIP packet (as long as we have SIP, RTP and RTCP packets only)
-        sipHandler.handle(buffer, packet)
+        // Skip ICMP(SIP) case
+        if (!packet.rejected) {
+            // SIP packet (as long as we have SIP, RTP and RTCP packets only)
+            sipHandler.handle(buffer, packet)
+        }
     }
 }

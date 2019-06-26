@@ -42,4 +42,5 @@ class Packet {
     var dstPort: Int = 0
     var protocolCode: Byte = 0
     lateinit var payload: Payload
+    var rejected: Boolean = false
 }

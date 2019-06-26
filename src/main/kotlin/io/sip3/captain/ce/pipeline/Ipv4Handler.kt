@@ -39,7 +39,6 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
 
     private val tcpHandler = TcpHandler(vertx, bulkOperationsEnabled)
     private val udpHandler = UdpHandler(vertx, bulkOperationsEnabled)
-    private val icmpHandler = IcmpHandler(vertx, bulkOperationsEnabled)
 
     private val packets = mutableListOf<Pair<Ipv4Header, Packet>>()
     private var bulkSize = 1
@@ -75,7 +74,9 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
             packet.protocolNumber = ipv4Header.protocolNumber
 
             buffer.readerIndex(offset + ipv4Header.headerLength)
-            buffer.capacity(offset + ipv4Header.totalLength)
+            if (!packet.rejected) {
+                buffer.capacity(offset + ipv4Header.totalLength)
+            }
 
             routePacket(buffer, packet)
         }
@@ -112,8 +113,24 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
         when (packet.protocolNumber) {
             TYPE_UDP -> udpHandler.handle(buffer, packet)
             TYPE_TCP -> tcpHandler.handle(buffer, packet)
-            TYPE_ICMP -> icmpHandler.handle(buffer, packet)
+            // IP-2-IP encapsulation
             TYPE_IPV4 -> onPacket(buffer, packet)
+            // It doesn't make sense to create a separate handler
+            // as long as we need only ICMP containing RTP packets.
+            TYPE_ICMP -> {
+                // Type
+                val type = buffer.readByte().toInt()
+                // Code
+                val code = buffer.readByte().toInt()
+                // Checksum & Rest of Header
+                buffer.skipBytes(6)
+                // Destination Port Unreachable
+                if (type == 3 && code == 3) {
+                    packet.protocolCode = Packet.TYPE_ICMP
+                    packet.rejected = true
+                    onPacket(buffer, packet)
+                }
+            }
         }
     }
 }
