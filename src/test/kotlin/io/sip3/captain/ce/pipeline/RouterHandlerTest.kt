@@ -148,6 +148,26 @@ class RouterHandlerTest {
         verify { anyConstructed<SipHandler>().handle(any(), any()) }
     }
 
+    @Test
+    fun `Route UDP - rejected RTP`() {
+        // Init
+        mockkConstructor(RtpHandler::class)
+        val bufferSlot = slot<ByteBuf>()
+        val packetSlot = slot<Packet>()
+        every {
+            anyConstructed<RtpHandler>().handle(capture(bufferSlot), capture(packetSlot))
+        } just Runs
+        // Execute
+        var packet = Packet().apply {
+            this.protocolNumber = Ipv4Handler.TYPE_UDP
+            this.rejected = true
+        }
+        val routerHandler = RouterHandler(Vertx.vertx(), false)
+        routerHandler.handle(Unpooled.wrappedBuffer(PACKET_2), packet)
+        // Assert
+        verify { anyConstructed<RtpHandler>().handle(any(), any()) }
+    }
+
     @AfterEach
     fun `Unmock all`() {
         unmockkAll()

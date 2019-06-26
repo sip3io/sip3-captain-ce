@@ -16,14 +16,20 @@
 
 package io.sip3.captain.ce.pipeline
 
+import io.mockk.*
+import io.mockk.junit5.MockKExtension
+import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
-import io.sip3.captain.ce.Routes
-import io.sip3.captain.ce.VertxTest
 import io.sip3.captain.ce.domain.Packet
+import io.vertx.core.Vertx
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 
-class IcmpHandlerTest : VertxTest() {
+@ExtendWith(MockKExtension::class)
+class IcmpHandlerTest {
 
     companion object {
 
@@ -36,25 +42,29 @@ class IcmpHandlerTest : VertxTest() {
 
     @Test
     fun `Parse ICMP - Destination port unreachable`() {
-        runTest(
-                deploy = {
-                    // Do nothing...
-                },
-                execute = {
-                    val icmpHandler = IcmpHandler(vertx, false)
-                    icmpHandler.handle(Unpooled.wrappedBuffer(PACKET_1), Packet())
-                },
-                assert = {
-                    vertx.eventBus().consumer<List<Packet>>(Routes.encoder) { event ->
-                        val packets = event.body()
-                        context.verify {
-                            assertEquals(1, packets.size)
-                            val packet = packets[0]
-                            assertEquals(Packet.TYPE_ICMP, packet.protocolCode)
-                        }
-                        context.completeNow()
-                    }
-                }
-        )
+        // Init
+        mockkConstructor(Ipv4Handler::class)
+        val bufferSlot = slot<ByteBuf>()
+        val packetSlot = slot<Packet>()
+        every {
+            anyConstructed<Ipv4Handler>().handle(capture(bufferSlot), capture(packetSlot))
+        } just Runs
+        // Execute
+        val vertx = Vertx.vertx()
+        val icmpHandler = IcmpHandler(Ipv4Handler(vertx, false), vertx, false)
+        icmpHandler.handle(Unpooled.wrappedBuffer(PACKET_1), Packet())
+        // Assert
+        verify { anyConstructed<Ipv4Handler>().handle(any(), any()) }
+        val buffer = bufferSlot.captured
+        val packet = packetSlot.captured
+        assertTrue(packet.rejected)
+        assertEquals(Packet.TYPE_ICMP, packet.protocolCode)
+        val payloadLength = buffer.capacity() - buffer.readerIndex()
+        assertEquals(8, payloadLength)
+    }
+
+    @AfterEach
+    fun `Unmock all`() {
+        unmockkAll()
     }
 }

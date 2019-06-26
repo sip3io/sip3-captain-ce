@@ -39,7 +39,7 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
 
     private val tcpHandler = TcpHandler(vertx, bulkOperationsEnabled)
     private val udpHandler = UdpHandler(vertx, bulkOperationsEnabled)
-    private val icmpHandler = IcmpHandler(vertx, bulkOperationsEnabled)
+    private val icmpHandler = IcmpHandler(this, vertx, bulkOperationsEnabled)
 
     private val packets = mutableListOf<Pair<Ipv4Header, Packet>>()
     private var bulkSize = 1
@@ -75,7 +75,9 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
             packet.protocolNumber = ipv4Header.protocolNumber
 
             buffer.readerIndex(offset + ipv4Header.headerLength)
-            buffer.capacity(offset + ipv4Header.totalLength)
+            if (!packet.rejected) {
+                buffer.capacity(offset + ipv4Header.totalLength)
+            }
 
             routePacket(buffer, packet)
         }
