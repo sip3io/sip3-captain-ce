@@ -133,14 +133,15 @@ open class Bootstrap : AbstractVerticle() {
     }
 
     fun Vertx.deployVerticle(verticle: KClass<out Verticle>, config: JsonObject, instances: Int = 1) {
-        val options = deploymentOptionsOf(
-                config = config,
-                instances = instances
-        )
-        deployVerticle(verticle.java, options) { asr ->
-            if (asr.failed()) {
-                logger.error("Vertx 'deployVerticle()' failed. Verticle: $verticle", asr.cause())
-                close()
+        (0 until instances).forEach { index ->
+            val options = deploymentOptionsOf(
+                    config = config.copy().put("index", index)
+            )
+            deployVerticle(verticle.java, options) { asr ->
+                if (asr.failed()) {
+                    logger.error("Vertx 'deployVerticle()' failed. Verticle: $verticle", asr.cause())
+                    close()
+                }
             }
         }
     }
