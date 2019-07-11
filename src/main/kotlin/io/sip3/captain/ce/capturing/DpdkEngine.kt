@@ -76,11 +76,14 @@ class DpdkEngine : AbstractVerticle() {
         }
 
         vertx.setPeriodic(1000) {
-            var packetsCapturedSum: Long = 0
-            cores.forEach { (i, core) ->
-                packetsCapturedSum += core.packetsCaptured.getAndSet(0)
-            }
-            packetsCaptured.increment(packetsCapturedSum.toDouble())
+            // Run period task in Vert.x `worker pool` to do not block `event loop`
+            vertx.executeBlocking<Any>({
+                var packetsCapturedSum: Long = 0
+                cores.forEach { (i, core) ->
+                    packetsCapturedSum += core.packetsCaptured.getAndSet(0)
+                }
+                packetsCaptured.increment(packetsCapturedSum.toDouble())
+            }, {})
         }
     }
 
