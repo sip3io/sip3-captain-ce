@@ -16,9 +16,11 @@
 
 package io.sip3.captain.ce.encoder
 
+import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.Routes
 import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Packet
+import io.sip3.captain.ce.util.writeTlv
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.buffer.Buffer
 import mu.KotlinLogging
@@ -36,12 +38,21 @@ class Encoder : AbstractVerticle() {
                 0x53.toByte(), // S
                 0x49.toByte(), // I
                 0x50.toByte(), // P
-                0x33.toByte(), // 3
-
-                0x00.toByte(), // Compressed
-                0x01.toByte(), // Type
-                0x01.toByte()  // Version
+                0x33.toByte()  // 3
         )
+
+        const val COMPRESSED = 0x00 // Compressed
+        const val TYPE = 0x01 // Type
+        const val VERSION = 0x01 // Version
+
+        const val TAG_TIMESTAMP_TIME = 1
+        const val TAG_TIMESTAMP_NANOS = 2
+        const val TAG_SRC_ADDR = 3
+        const val TAG_DST_ADDR = 4
+        const val TAG_SRC_PORT = 5
+        const val TAG_DST_PORT = 6
+        const val TAG_PROTOCOL_CODE = 7
+        const val TAG_PAYLOAD = 8
     }
 
     private val buffers = mutableListOf<Buffer>()
@@ -68,7 +79,8 @@ class Encoder : AbstractVerticle() {
             val payloadLength = packet.payload.encode().capacity()
 
             val packetLength = arrayListOf(
-                    7,                         // Prefix
+                    4,                         // Prefix
+                    3,                         // Compressed & Type & Version
                     2,                         // Length
                     11,                        // Milliseconds
                     7,                         // Nanoseconds
@@ -81,45 +93,28 @@ class Encoder : AbstractVerticle() {
 
             ).sum()
 
-            val buffer = Buffer.buffer(packetLength).apply {
+            val buffer = Unpooled.buffer(packetLength).apply {
                 // Prefix
-                appendBytes(PREFIX)
+                writeBytes(PREFIX)
+                // Compressed & Type & Version
+                writeByte(COMPRESSED)
+                writeByte(TYPE)
+                writeByte(VERSION)
                 // Length
-                appendShort((packetLength - 5).toShort())
-                // Milliseconds
-                appendByte(1)
-                appendShort(11)
-                appendLong(packet.timestamp.time)
-                // Nanoseconds
-                appendByte(2)
-                appendShort(7)
-                appendInt(packet.timestamp.nanos)
-                // Source Address
-                appendByte(3)
-                appendShort((3 + srcAddrLength).toShort())
-                appendBytes(packet.srcAddr)
-                // Destination Address
-                appendByte(4)
-                appendShort((3 + dstAddrLength).toShort())
-                appendBytes(packet.dstAddr)
-                // Source Port
-                appendByte(5)
-                appendShort(5)
-                appendShort(packet.srcPort.toShort())
-                // Destination Port
-                appendByte(6)
-                appendShort(5)
-                appendShort(packet.dstPort.toShort())
-                // Protocol Code
-                appendByte(7)
-                appendShort(4)
-                appendByte(packet.protocolCode)
-                // Payload
-                appendByte(8)
-                appendShort((3 + payloadLength).toShort())
-                appendBuffer(Buffer.buffer(packet.payload.encode()))
+                writeShort(packetLength - 5)
+
+                writeTlv(TAG_TIMESTAMP_TIME, packet.timestamp.time)
+                writeTlv(TAG_TIMESTAMP_NANOS, packet.timestamp.nanos)
+
+                writeTlv(TAG_SRC_ADDR, packet.srcAddr)
+                writeTlv(TAG_DST_ADDR, packet.dstAddr)
+                writeTlv(TAG_SRC_PORT, packet.srcPort.toShort())
+                writeTlv(TAG_DST_PORT, packet.dstPort.toShort())
+
+                writeTlv(TAG_PROTOCOL_CODE, packet.protocolCode)
+                writeTlv(TAG_PAYLOAD, packet.payload.encode())
             }
-            buffers.add(buffer)
+            buffers.add(Buffer.buffer(buffer))
         }
 
         if (buffers.size >= bulkSize) {
