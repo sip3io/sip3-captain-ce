@@ -57,9 +57,7 @@ class EncoderTest : VertxTest() {
                         this.srcPort = srcPort
                         this.dstPort = dstPort
                         protocolCode = Packet.TYPE_ICMP
-                        payload = ByteArrayPayload().apply {
-                            bytes = PACKET_1
-                        }
+                        payload = ByteArrayPayload(PACKET_1)
                     }
                     vertx.eventBus().send(Routes.encoder, listOf(packet), USE_LOCAL_CODEC)
                 },

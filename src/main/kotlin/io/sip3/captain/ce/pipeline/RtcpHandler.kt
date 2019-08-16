@@ -41,10 +41,11 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
 
     override fun onPacket(buffer: ByteBuf, packet: Packet) {
         packet.protocolCode = Packet.TYPE_RTCP
-        packet.payload = ByteArrayPayload().apply {
+        packet.payload = run {
             val slice = buffer.slice()
-            bytes = ByteArray(slice.capacity())
+            val bytes = ByteArray(slice.capacity())
             slice.readBytes(bytes)
+            return@run ByteArrayPayload(bytes)
         }
         packets.add(packet)
 

@@ -57,10 +57,11 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
         val ipv4Header = readIpv4Header(buffer)
 
         if (ipv4Header.moreFragments || ipv4Header.fragmentOffset > 0) {
-            packet.payload = ByteArrayPayload().apply {
+            packet.payload = run {
                 val slice = buffer.slice()
-                bytes = ByteArray(slice.capacity())
+                val bytes = ByteArray(slice.capacity())
                 slice.readBytes(bytes)
+                return@run ByteArrayPayload(bytes)
             }
             packets.add(Pair(ipv4Header, packet))
 

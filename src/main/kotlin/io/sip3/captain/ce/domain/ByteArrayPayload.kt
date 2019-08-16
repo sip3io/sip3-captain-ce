@@ -19,9 +19,7 @@ package io.sip3.captain.ce.domain
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 
-class ByteArrayPayload : Payload {
-
-    lateinit var bytes: ByteArray
+inline class ByteArrayPayload(val bytes: ByteArray) : Payload {
 
     override fun encode(): ByteBuf {
         return Unpooled.wrappedBuffer(bytes)

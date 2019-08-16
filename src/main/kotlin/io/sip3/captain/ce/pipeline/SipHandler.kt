@@ -73,10 +73,11 @@ class SipHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
                         srcPort = packet.srcPort
                         dstPort = packet.dstPort
                         protocolCode = Packet.TYPE_SIP
-                        payload = ByteArrayPayload().apply {
+                        payload = run {
                             val slice = buffer.slice(buffer.readerIndex() + mark, offset - mark)
-                            bytes = ByteArray(slice.capacity())
+                            val bytes = ByteArray(slice.capacity())
                             slice.readBytes(bytes)
+                            return@run ByteArrayPayload(bytes)
                         }
                     }
                     packets.add(p)
@@ -93,10 +94,11 @@ class SipHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
                 srcPort = packet.srcPort
                 dstPort = packet.dstPort
                 protocolCode = Packet.TYPE_SIP
-                payload = ByteArrayPayload().apply {
+                payload = run {
                     val slice = buffer.slice(buffer.readerIndex() + mark, offset - mark)
-                    bytes = ByteArray(slice.capacity())
+                    val bytes = ByteArray(slice.capacity())
                     slice.readBytes(bytes)
+                    return@run ByteArrayPayload(bytes)
                 }
             }
             packets.add(p)
