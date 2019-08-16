@@ -19,6 +19,7 @@ package io.sip3.captain.ce.pipeline
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.Routes
 import io.sip3.captain.ce.VertxTest
+import io.sip3.captain.ce.domain.ByteBufPayload
 import io.sip3.captain.ce.domain.Packet
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -43,7 +44,10 @@ class RtcpHandlerTest : VertxTest() {
                 },
                 execute = {
                     val rtcpHandler = RtcpHandler(vertx, false)
-                    rtcpHandler.handle(Unpooled.wrappedBuffer(PACKET_1), Packet())
+                    var packet = Packet().apply {
+                        this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
+                    }
+                    rtcpHandler.handle(packet)
                 },
                 assert = {
                     vertx.eventBus().consumer<List<Packet>>(Routes.encoder) { event ->

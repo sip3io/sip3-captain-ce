@@ -34,14 +34,16 @@ class EthernetHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(ve
 
     private val ipv4Handler = Ipv4Handler(vertx, bulkOperationsEnabled)
 
-    override fun onPacket(buffer: ByteBuf, packet: Packet) {
+    override fun onPacket(packet: Packet) {
+        val buffer = packet.payload.encode()
+
         // Source MAC and Destination MAC
         buffer.skipBytes(12)
         // Ethernet Type
         val etherType = readEthernetType(buffer)
 
         when (etherType) {
-            TYPE_IPV4 -> ipv4Handler.handle(buffer, packet)
+            TYPE_IPV4 -> ipv4Handler.handle(packet)
         }
     }
 

@@ -18,8 +18,8 @@ package io.sip3.captain.ce.pipeline
 
 import io.mockk.*
 import io.mockk.junit5.MockKExtension
-import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
+import io.sip3.captain.ce.domain.ByteBufPayload
 import io.sip3.captain.ce.domain.Packet
 import io.vertx.core.Vertx
 import org.junit.jupiter.api.AfterEach
@@ -78,18 +78,20 @@ class Ipv4HandlerTest {
     fun `Parse IPv4 - UDP`() {
         // Init
         mockkConstructor(UdpHandler::class)
-        val bufferSlot = slot<ByteBuf>()
         val packetSlot = slot<Packet>()
         every {
-            anyConstructed<UdpHandler>().handle(capture(bufferSlot), capture(packetSlot))
+            anyConstructed<UdpHandler>().handle(capture(packetSlot))
         } just Runs
         // Execute
         val ipv4Handler = Ipv4Handler(Vertx.vertx(), false)
-        ipv4Handler.handle(Unpooled.wrappedBuffer(PACKET_1), Packet())
+        var packet = Packet().apply {
+            this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
+        }
+        ipv4Handler.handle(packet)
         // Assert
-        verify { anyConstructed<UdpHandler>().handle(any(), any()) }
-        val buffer = bufferSlot.captured
-        val packet = packetSlot.captured
+        verify { anyConstructed<UdpHandler>().handle(any()) }
+        packet = packetSlot.captured
+        val buffer = packet.payload.encode()
         val srcAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte()))
         assertEquals(srcAddr, InetAddress.getByAddress(packet.srcAddr))
         val dstAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte()))
@@ -102,18 +104,20 @@ class Ipv4HandlerTest {
     fun `Parse IPv4 - TCP`() {
         // Init
         mockkConstructor(TcpHandler::class)
-        val bufferSlot = slot<ByteBuf>()
         val packetSlot = slot<Packet>()
         every {
-            anyConstructed<TcpHandler>().handle(capture(bufferSlot), capture(packetSlot))
+            anyConstructed<TcpHandler>().handle(capture(packetSlot))
         } just Runs
         // Execute
         val ipv4Handler = Ipv4Handler(Vertx.vertx(), false)
-        ipv4Handler.handle(Unpooled.wrappedBuffer(PACKET_2), Packet())
+        var packet = Packet().apply {
+            this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
+        }
+        ipv4Handler.handle(packet)
         // Assert
-        verify { anyConstructed<TcpHandler>().handle(any(), any()) }
-        val buffer = bufferSlot.captured
-        val packet = packetSlot.captured
+        verify { anyConstructed<TcpHandler>().handle(any()) }
+        packet = packetSlot.captured
+        val buffer = packet.payload.encode()
         val srcAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte()))
         assertEquals(srcAddr, InetAddress.getByAddress(packet.srcAddr))
         val dstAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte()))
@@ -126,18 +130,20 @@ class Ipv4HandlerTest {
     fun `Parse IPv4 - IPv4`() {
         // Init
         mockkConstructor(UdpHandler::class)
-        val bufferSlot = slot<ByteBuf>()
         val packetSlot = slot<Packet>()
         every {
-            anyConstructed<UdpHandler>().handle(capture(bufferSlot), capture(packetSlot))
+            anyConstructed<UdpHandler>().handle(capture(packetSlot))
         } just Runs
         // Execute
         val ipv4Handler = Ipv4Handler(Vertx.vertx(), false)
-        ipv4Handler.handle(Unpooled.wrappedBuffer(PACKET_3), Packet())
+        var packet = Packet().apply {
+            this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_3))
+        }
+        ipv4Handler.handle(packet)
         // Assert
-        verify { anyConstructed<UdpHandler>().handle(any(), any()) }
-        val buffer = bufferSlot.captured
-        val packet = packetSlot.captured
+        verify { anyConstructed<UdpHandler>().handle(any()) }
+        packet = packetSlot.captured
+        val buffer = packet.payload.encode()
         val srcAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte()))
         assertEquals(srcAddr, InetAddress.getByAddress(packet.srcAddr))
         val dstAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte()))
@@ -150,18 +156,20 @@ class Ipv4HandlerTest {
     fun `Parse IPv4 - ICMP`() {
         // Init
         mockkConstructor(UdpHandler::class)
-        val bufferSlot = slot<ByteBuf>()
         val packetSlot = slot<Packet>()
         every {
-            anyConstructed<UdpHandler>().handle(capture(bufferSlot), capture(packetSlot))
+            anyConstructed<UdpHandler>().handle(capture(packetSlot))
         } just Runs
         // Execute
         val ipv4Handler = Ipv4Handler(Vertx.vertx(), false)
-        ipv4Handler.handle(Unpooled.wrappedBuffer(PACKET_4), Packet())
+        var packet = Packet().apply {
+            this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_4))
+        }
+        ipv4Handler.handle(packet)
         // Assert
-        verify { anyConstructed<UdpHandler>().handle(any(), any()) }
-        val buffer = bufferSlot.captured
-        val packet = packetSlot.captured
+        verify { anyConstructed<UdpHandler>().handle(any()) }
+        packet = packetSlot.captured
+        val buffer = packet.payload.encode()
         assertTrue(packet.rejected)
         val srcAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte()))
         assertEquals(srcAddr, InetAddress.getByAddress(packet.srcAddr))

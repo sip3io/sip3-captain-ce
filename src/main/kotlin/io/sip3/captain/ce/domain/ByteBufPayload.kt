@@ -14,23 +14,13 @@
  * limitations under the License.
  */
 
-package io.sip3.captain.ce.pipeline
+package io.sip3.captain.ce.domain
 
-import io.sip3.captain.ce.domain.Packet
-import io.vertx.core.Vertx
-import mu.KotlinLogging
+import io.netty.buffer.ByteBuf
 
-abstract class Handler(val vertx: Vertx, val bulkOperationsEnabled: Boolean = true) {
+inline class ByteBufPayload(val buffer: ByteBuf) : Payload {
 
-    private val logger = KotlinLogging.logger {}
-
-    protected abstract fun onPacket(packet: Packet)
-
-    fun handle(packet: Packet) {
-        try {
-            onPacket(packet)
-        } catch (e: Exception) {
-            logger.error("Handler 'onPacket()' failed.", e)
-        }
+    override fun encode(): ByteBuf {
+        return buffer
     }
 }

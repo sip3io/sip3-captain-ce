@@ -20,6 +20,7 @@ import io.mockk.*
 import io.mockk.junit5.MockKExtension
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.VertxTest
+import io.sip3.captain.ce.domain.ByteBufPayload
 import io.sip3.captain.ce.domain.Packet
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -28,7 +29,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import java.sql.Timestamp
 
 @ExtendWith(MockKExtension::class)
-class FragmentHandlerTest : VertxTest() {
+class Ipv4FragmentHandlerTest : VertxTest() {
 
     companion object {
 
@@ -55,29 +56,29 @@ class FragmentHandlerTest : VertxTest() {
         val packetSlot = slot<Packet>()
         mockkConstructor(Ipv4Handler::class)
         every {
-            anyConstructed<Ipv4Handler>().routePacket(any(), capture(packetSlot))
+            anyConstructed<Ipv4Handler>().routePacket(capture(packetSlot))
         } just Runs
         runTest(
                 deploy = {
-                    vertx.deployTestVerticle(FragmentHandler::class)
+                    vertx.deployTestVerticle(Ipv4FragmentHandler::class)
                 },
                 execute = {
                     val ipv4Handler = Ipv4Handler(vertx, false)
-                    val buffer1 = Unpooled.wrappedBuffer(PACKET_1)
                     val packet1 = Packet().apply {
                         timestamp = expectedTimestamp
+                        payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
                     }
-                    ipv4Handler.handle(buffer1, packet1)
-                    val buffer2 = Unpooled.wrappedBuffer(PACKET_2)
+                    ipv4Handler.handle(packet1)
                     val packet2 = Packet().apply {
                         timestamp = Timestamp(System.currentTimeMillis())
+                        payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
                     }
-                    ipv4Handler.handle(buffer2, packet2)
+                    ipv4Handler.handle(packet2)
                 },
                 assert = {
                     vertx.executeBlocking<Any>({
                         context.verify {
-                            verify(timeout = 10000) { anyConstructed<Ipv4Handler>().routePacket(any(), any()) }
+                            verify(timeout = 10000) { anyConstructed<Ipv4Handler>().routePacket(any()) }
                             val packet = packetSlot.captured
                             assertEquals(expectedTimestamp, packet.timestamp)
                             assertEquals(Ipv4Handler.TYPE_UDP, packet.protocolNumber)
@@ -94,29 +95,29 @@ class FragmentHandlerTest : VertxTest() {
         val packetSlot = slot<Packet>()
         mockkConstructor(Ipv4Handler::class)
         every {
-            anyConstructed<Ipv4Handler>().routePacket(any(), capture(packetSlot))
+            anyConstructed<Ipv4Handler>().routePacket(capture(packetSlot))
         } just Runs
         runTest(
                 deploy = {
-                    vertx.deployTestVerticle(FragmentHandler::class)
+                    vertx.deployTestVerticle(Ipv4FragmentHandler::class)
                 },
                 execute = {
                     val ipv4Handler = Ipv4Handler(vertx, false)
-                    val buffer2 = Unpooled.wrappedBuffer(PACKET_2)
                     val packet2 = Packet().apply {
                         timestamp = expectedTimestamp
+                        payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
                     }
-                    ipv4Handler.handle(buffer2, packet2)
-                    val buffer1 = Unpooled.wrappedBuffer(PACKET_1)
+                    ipv4Handler.handle(packet2)
                     val packet1 = Packet().apply {
                         timestamp = Timestamp(System.currentTimeMillis())
+                        payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
                     }
-                    ipv4Handler.handle(buffer1, packet1)
+                    ipv4Handler.handle(packet1)
                 },
                 assert = {
                     vertx.executeBlocking<Any>({
                         context.verify {
-                            verify(timeout = 10000) { anyConstructed<Ipv4Handler>().routePacket(any(), any()) }
+                            verify(timeout = 10000) { anyConstructed<Ipv4Handler>().routePacket(any()) }
                             val packet = packetSlot.captured
                             assertEquals(expectedTimestamp, packet.timestamp)
                             assertEquals(Ipv4Handler.TYPE_UDP, packet.protocolNumber)

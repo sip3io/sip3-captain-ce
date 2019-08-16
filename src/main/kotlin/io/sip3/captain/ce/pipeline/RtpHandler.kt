@@ -16,7 +16,6 @@
 
 package io.sip3.captain.ce.pipeline
 
-import io.netty.buffer.ByteBuf
 import io.sip3.captain.ce.Routes
 import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Packet
@@ -40,8 +39,10 @@ class RtpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
         }
     }
 
-    override fun onPacket(buffer: ByteBuf, packet: Packet) {
+    override fun onPacket(packet: Packet) {
         packet.protocolCode = Packet.TYPE_RTP
+
+        val buffer = packet.payload.encode()
         packet.payload = RtpHeaderPayload().apply {
             // Version & P & X & CC
             buffer.skipBytes(1)

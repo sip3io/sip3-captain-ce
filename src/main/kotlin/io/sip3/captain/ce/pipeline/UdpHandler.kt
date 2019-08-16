@@ -16,7 +16,6 @@
 
 package io.sip3.captain.ce.pipeline
 
-import io.netty.buffer.ByteBuf
 import io.sip3.captain.ce.domain.Packet
 import io.vertx.core.Vertx
 
@@ -27,8 +26,8 @@ class UdpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
 
     private val routerHandler = RouterHandler(vertx, bulkOperationsEnabled)
 
-    override fun onPacket(buffer: ByteBuf, packet: Packet) {
-        val offset = buffer.readerIndex()
+    override fun onPacket(packet: Packet) {
+        val buffer = packet.payload.encode()
 
         // Source Port
         packet.srcPort = buffer.readUnsignedShort()
@@ -39,10 +38,6 @@ class UdpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
         // Checksum
         buffer.skipBytes(2)
 
-        if (!packet.rejected) {
-            buffer.capacity(offset + length)
-        }
-
-        routerHandler.handle(buffer, packet)
+        routerHandler.handle(packet)
     }
 }

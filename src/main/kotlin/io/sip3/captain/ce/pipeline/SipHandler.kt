@@ -60,7 +60,9 @@ class SipHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
         }
     }
 
-    override fun onPacket(buffer: ByteBuf, packet: Packet) {
+    override fun onPacket(packet: Packet) {
+        val buffer = packet.payload.encode()
+
         var offset = 0
         var mark = -1
         while (offset + buffer.readerIndex() < buffer.capacity()) {

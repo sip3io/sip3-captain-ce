@@ -25,7 +25,7 @@ import io.micrometer.influx.InfluxMeterRegistry
 import io.sip3.captain.ce.capturing.DpdkEngine
 import io.sip3.captain.ce.capturing.PcapEngine
 import io.sip3.captain.ce.encoder.Encoder
-import io.sip3.captain.ce.pipeline.FragmentHandler
+import io.sip3.captain.ce.pipeline.Ipv4FragmentHandler
 import io.sip3.captain.ce.sender.Sender
 import io.vertx.config.ConfigRetriever
 import io.vertx.config.ConfigRetrieverOptions
@@ -121,7 +121,7 @@ open class Bootstrap : AbstractVerticle() {
 
     open fun deployVerticles(config: JsonObject) {
         val instances = config.getJsonObject("vertx")?.getInteger("instances") ?: 1
-        vertx.deployVerticle(FragmentHandler::class, config)
+        vertx.deployVerticle(Ipv4FragmentHandler::class, config)
         vertx.deployVerticle(Encoder::class, config, instances)
         vertx.deployVerticle(Sender::class, config, instances)
         if (config.containsKey("pcap")) {

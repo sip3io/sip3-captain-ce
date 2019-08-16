@@ -16,7 +16,6 @@
 
 package io.sip3.captain.ce.pipeline
 
-import io.netty.buffer.ByteBuf
 import io.sip3.captain.ce.Routes
 import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.ByteArrayPayload
@@ -39,16 +38,18 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
         }
     }
 
-    override fun onPacket(buffer: ByteBuf, packet: Packet) {
+    override fun onPacket(packet: Packet) {
         packet.protocolCode = Packet.TYPE_RTCP
+
+        val buffer = packet.payload.encode()
         packet.payload = run {
             val slice = buffer.slice()
             val bytes = ByteArray(slice.capacity())
             slice.readBytes(bytes)
             return@run ByteArrayPayload(bytes)
         }
-        packets.add(packet)
 
+        packets.add(packet)
         if (packets.size >= bulkSize) {
             vertx.eventBus().send(Routes.encoder, packets.toList(), USE_LOCAL_CODEC)
             packets.clear()

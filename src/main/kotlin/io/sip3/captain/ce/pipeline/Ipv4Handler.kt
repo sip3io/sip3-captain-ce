@@ -51,7 +51,8 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
         }
     }
 
-    override fun onPacket(buffer: ByteBuf, packet: Packet) {
+    override fun onPacket(packet: Packet) {
+        val buffer = packet.payload.encode()
         val offset = buffer.readerIndex()
 
         val ipv4Header = readIpv4Header(buffer)
@@ -75,11 +76,8 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
             packet.protocolNumber = ipv4Header.protocolNumber
 
             buffer.readerIndex(offset + ipv4Header.headerLength)
-            if (!packet.rejected) {
-                buffer.capacity(offset + ipv4Header.totalLength)
-            }
 
-            routePacket(buffer, packet)
+            routePacket(packet)
         }
     }
 
@@ -110,15 +108,16 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
         }
     }
 
-    fun routePacket(buffer: ByteBuf, packet: Packet) {
+    fun routePacket(packet: Packet) {
         when (packet.protocolNumber) {
-            TYPE_UDP -> udpHandler.handle(buffer, packet)
-            TYPE_TCP -> tcpHandler.handle(buffer, packet)
+            TYPE_UDP -> udpHandler.handle(packet)
+            TYPE_TCP -> tcpHandler.handle(packet)
             // IP-2-IP encapsulation
-            TYPE_IPV4 -> onPacket(buffer, packet)
+            TYPE_IPV4 -> onPacket(packet)
             // It doesn't make sense to create a separate handler
             // as long as we need only ICMP containing RTP packets.
             TYPE_ICMP -> {
+                val buffer = packet.payload.encode()
                 // Type
                 val type = buffer.readByte().toInt()
                 // Code
@@ -129,7 +128,7 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
                 if (type == 3 && code == 3) {
                     packet.protocolCode = Packet.TYPE_ICMP
                     packet.rejected = true
-                    onPacket(buffer, packet)
+                    onPacket(packet)
                 }
             }
         }

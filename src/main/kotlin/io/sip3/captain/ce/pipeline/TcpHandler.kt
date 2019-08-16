@@ -16,7 +16,6 @@
 
 package io.sip3.captain.ce.pipeline
 
-import io.netty.buffer.ByteBuf
 import io.sip3.captain.ce.domain.Packet
 import io.vertx.core.Vertx
 
@@ -27,7 +26,9 @@ class TcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
 
     private val routerHandler = RouterHandler(vertx, bulkOperationsEnabled)
 
-    override fun onPacket(buffer: ByteBuf, packet: Packet) {
+    override fun onPacket(packet: Packet) {
+        val buffer = packet.payload.encode()
+
         val offset = buffer.readerIndex()
 
         // Source Port
@@ -43,6 +44,6 @@ class TcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
 
         buffer.readerIndex(offset + headerLength)
 
-        routerHandler.handle(buffer, packet)
+        routerHandler.handle(packet)
     }
 }

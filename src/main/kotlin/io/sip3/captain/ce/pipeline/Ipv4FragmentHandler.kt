@@ -19,6 +19,7 @@ package io.sip3.captain.ce.pipeline
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.Routes
+import io.sip3.captain.ce.domain.ByteBufPayload
 import io.sip3.captain.ce.domain.Ipv4Header
 import io.sip3.captain.ce.domain.Packet
 import io.vertx.core.AbstractVerticle
@@ -28,7 +29,7 @@ import java.net.InetAddress
 import java.sql.Timestamp
 import java.util.*
 
-class FragmentHandler : AbstractVerticle() {
+class Ipv4FragmentHandler : AbstractVerticle() {
 
     private val logger = KotlinLogging.logger {}
 
@@ -48,34 +49,33 @@ class FragmentHandler : AbstractVerticle() {
         ipv4Handler = Ipv4Handler(vertx, false)
 
         vertx.eventBus().consumer<List<Pair<Ipv4Header, Packet>>>(Routes.fragment) { event ->
-            try {
-                val ipv4Packets = event.body()
-                onFragmentedPackets(ipv4Packets)
-            } catch (e: Exception) {
-                logger.error("FragmentHandler 'onFragmentedPackets()' failed.", e)
+            val packets = event.body()
+            packets.forEach { (header, packet) ->
+                try {
+                    onPacket(header, packet)
+                } catch (e: Exception) {
+                    logger.error("Ipv4FragmentHandler 'onPacket()' failed.", e)
+                }
             }
         }
     }
 
-    fun onFragmentedPackets(ipv4Packets: List<Pair<Ipv4Header, Packet>>) {
-        ipv4Packets.forEach { ipv4Packet ->
-            val (header, packet) = ipv4Packet
+    fun onPacket(header: Ipv4Header, packet: Packet) {
+        val srcAddr = InetAddress.getByAddress(header.srcAddr)
+        val dstAddr = InetAddress.getByAddress(header.dstAddr)
+        val key = "${srcAddr.hostAddress}:${dstAddr.hostAddress}:${header.identification}"
 
-            val srcAddr = InetAddress.getByAddress(header.srcAddr)
-            val dstAddr = InetAddress.getByAddress(header.dstAddr)
-            val key = "${srcAddr.hostAddress}:${dstAddr.hostAddress}:${header.identification}"
-
-            var defragmentator = defragmentators.computeIfAbsent(key) { Defragmentator(packet.timestamp) }
-            defragmentator.onFragmentedPacket(header, packet.payload.encode())?.let { buffer ->
-                val packet = Packet().apply {
-                    this.timestamp = defragmentator.timestamp
-                    this.srcAddr = header.srcAddr
-                    this.dstAddr = header.dstAddr
-                    this.protocolNumber = header.protocolNumber
-                }
-                ipv4Handler.routePacket(buffer, packet)
-                defragmentators.remove(key)
+        var defragmentator = defragmentators.computeIfAbsent(key) { Defragmentator(packet.timestamp) }
+        defragmentator.onPacket(header, packet.payload.encode())?.let { buffer ->
+            val packet = Packet().apply {
+                this.timestamp = defragmentator.timestamp
+                this.srcAddr = header.srcAddr
+                this.dstAddr = header.dstAddr
+                this.protocolNumber = header.protocolNumber
+                this.payload = ByteBufPayload(buffer)
             }
+            ipv4Handler.routePacket(packet)
+            defragmentators.remove(key)
         }
     }
 
@@ -85,7 +85,7 @@ class FragmentHandler : AbstractVerticle() {
         private val buffers = TreeMap<Int, ByteBuf>()
         private var lastFragmentReceived = false
 
-        fun onFragmentedPacket(header: Ipv4Header, buffer: ByteBuf): ByteBuf? {
+        fun onPacket(header: Ipv4Header, buffer: ByteBuf): ByteBuf? {
             headers[8 * header.fragmentOffset] = header
             buffers[8 * header.fragmentOffset] = buffer
             lastFragmentReceived = lastFragmentReceived || !header.moreFragments
