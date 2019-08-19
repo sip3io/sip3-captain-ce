@@ -32,44 +32,38 @@ class UdpHandlerTest {
 
     companion object {
 
-        // Payload: UDP
+        // Payload: SIP
         val PACKET_1 = byteArrayOf(
                 0x33.toByte(), 0x40.toByte(), 0xdf.toByte(), 0x98.toByte(), 0x00.toByte(), 0xb4.toByte(), 0x31.toByte(),
-                0x4e.toByte(), 0x80.toByte(), 0x08.toByte(), 0x00.toByte(), 0xb3.toByte(), 0x00.toByte(), 0x00.toByte(),
-                0xf1.toByte(), 0x40.toByte(), 0xa0.toByte(), 0x40.toByte(), 0xb6.toByte(), 0x15.toByte(), 0xd5.toByte(),
-                0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(),
-                0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(),
-                0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(),
-                0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(),
-                0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(),
-                0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(),
-                0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(),
-                0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(),
-                0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(),
-                0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(),
-                0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(),
-                0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(),
-                0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(),
-                0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(),
-                0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(),
-                0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(),
-                0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(),
-                0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(),
-                0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(),
-                0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(),
-                0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(),
-                0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(),
-                0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte()
+                0x4e.toByte(), 0x53.toByte(), 0x49.toByte(), 0x50.toByte(), 0x2f.toByte(), 0x32.toByte(), 0x2e.toByte(),
+                0x30.toByte(), 0x20.toByte(), 0x31.toByte(), 0x30.toByte(), 0x30.toByte(), 0x20.toByte(), 0x54.toByte(),
+                0x72.toByte(), 0x79.toByte(), 0x69.toByte()
+        )
+
+        // Payload: RTP
+        val PACKET_2 = byteArrayOf(
+                0x33.toByte(), 0x40.toByte(), 0xdf.toByte(), 0x98.toByte(), 0x00.toByte(), 0xb4.toByte(), 0x31.toByte(),
+                0x4e.toByte(), 0x80.toByte(), 0x88.toByte(), 0x95.toByte(), 0x91.toByte(), 0xfd.toByte(), 0xe6.toByte(),
+                0xf6.toByte(), 0xf6.toByte(), 0x4a.toByte(), 0xbf.toByte(), 0x30.toByte(), 0x13.toByte(), 0xd5.toByte(),
+                0xd5.toByte(), 0xd5.toByte(), 0xd5.toByte()
+        )
+
+        // Payload: RTCP
+        val PACKET_3 = byteArrayOf(
+                0x33.toByte(), 0x40.toByte(), 0xdf.toByte(), 0x98.toByte(), 0x00.toByte(), 0xb4.toByte(), 0x31.toByte(),
+                0x4e.toByte(), 0x81.toByte(), 0xc8.toByte(), 0x00.toByte(), 0x0c.toByte(), 0x59.toByte(), 0xdb.toByte(),
+                0xe3.toByte(), 0x0c.toByte(), 0x5c.toByte(), 0xac.toByte(), 0xde.toByte(), 0x40.toByte(), 0x00.toByte(),
+                0x0d.toByte(), 0xe7.toByte(), 0xb1.toByte()
         )
     }
 
     @Test
-    fun `Parse UDP`() {
+    fun `Parse UDP - SIP`() {
         // Init
-        mockkConstructor(RouterHandler::class)
+        mockkConstructor(SipHandler::class)
         val packetSlot = slot<Packet>()
         every {
-            anyConstructed<RouterHandler>().handle(capture(packetSlot))
+            anyConstructed<SipHandler>().handle(capture(packetSlot))
         } just Runs
         // Execute
         val udpHandler = UdpHandler(Vertx.vertx(), false)
@@ -78,14 +72,88 @@ class UdpHandlerTest {
         }
         udpHandler.handle(packet)
         // Assert
-        verify { anyConstructed<RouterHandler>().handle(any()) }
+        verify { anyConstructed<SipHandler>().handle(any()) }
         packet = packetSlot.captured
         val buffer = packet.payload.encode()
         assertEquals(13120, packet.srcPort)
         assertEquals(57240, packet.dstPort)
         val payloadLength = buffer.capacity() - buffer.readerIndex()
-        assertEquals(172, payloadLength)
+        assertEquals(16, payloadLength)
     }
+
+    @Test
+    fun `Parse UDP - RTP`() {
+        // Init
+        mockkConstructor(RtpHandler::class)
+        val packetSlot = slot<Packet>()
+        every {
+            anyConstructed<RtpHandler>().handle(capture(packetSlot))
+        } just Runs
+        // Execute
+        val udpHandler = UdpHandler(Vertx.vertx(), false)
+        var packet = Packet().apply {
+            this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
+        }
+        udpHandler.handle(packet)
+        // Assert
+        verify { anyConstructed<RtpHandler>().handle(any()) }
+        packet = packetSlot.captured
+        val buffer = packet.payload.encode()
+        assertEquals(13120, packet.srcPort)
+        assertEquals(57240, packet.dstPort)
+        val payloadLength = buffer.capacity() - buffer.readerIndex()
+        assertEquals(16, payloadLength)
+    }
+
+    @Test
+    fun `Parse UDP - RTCP`() {
+        // Init
+        mockkConstructor(RtcpHandler::class)
+        val packetSlot = slot<Packet>()
+        every {
+            anyConstructed<RtcpHandler>().handle(capture(packetSlot))
+        } just Runs
+        // Execute
+        val udpHandler = UdpHandler(Vertx.vertx(), false)
+        var packet = Packet().apply {
+            this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_3))
+        }
+        udpHandler.handle(packet)
+        // Assert
+        verify { anyConstructed<RtcpHandler>().handle(any()) }
+        packet = packetSlot.captured
+        val buffer = packet.payload.encode()
+        assertEquals(13120, packet.srcPort)
+        assertEquals(57240, packet.dstPort)
+        val payloadLength = buffer.capacity() - buffer.readerIndex()
+        assertEquals(16, payloadLength)
+    }
+
+    @Test
+    fun `Route UDP - rejected RTP`() {
+        // Init
+        mockkConstructor(RtpHandler::class)
+        val packetSlot = slot<Packet>()
+        every {
+            anyConstructed<RtpHandler>().handle(capture(packetSlot))
+        } just Runs
+        // Execute
+        val udpHandler = UdpHandler(Vertx.vertx(), false)
+        var packet = Packet().apply {
+            this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
+            this.rejected = true
+        }
+        udpHandler.handle(packet)
+        // Assert
+        verify { anyConstructed<RtpHandler>().handle(any()) }
+        packet = packetSlot.captured
+        val buffer = packet.payload.encode()
+        assertEquals(13120, packet.srcPort)
+        assertEquals(57240, packet.dstPort)
+        val payloadLength = buffer.capacity() - buffer.readerIndex()
+        assertEquals(16, payloadLength)
+    }
+
 
     @AfterEach
     fun `Unmock all`() {
