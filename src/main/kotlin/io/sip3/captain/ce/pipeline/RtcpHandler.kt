@@ -48,8 +48,8 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
             slice.readBytes(bytes)
             return@run ByteArrayPayload(bytes)
         }
-
         packets.add(packet)
+
         if (packets.size >= bulkSize) {
             vertx.eventBus().send(Routes.encoder, packets.toList(), USE_LOCAL_CODEC)
             packets.clear()

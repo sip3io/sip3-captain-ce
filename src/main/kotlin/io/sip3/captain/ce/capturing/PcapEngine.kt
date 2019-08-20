@@ -132,7 +132,6 @@ class PcapEngine : AbstractVerticle() {
             val packet = Packet().apply {
                 this.timestamp = getTimestamp()
                 this.payload = ByteBufPayload(Unpooled.wrappedBuffer(buffer))
-
             }
             ethernetHandler.handle(packet)
         }))

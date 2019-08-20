@@ -44,6 +44,7 @@ class SipHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
 
         var offset = 0
         var mark = -1
+
         while (offset + buffer.readerIndex() < buffer.capacity()) {
             if (SipUtil.isNewLine(buffer, offset) && SipUtil.startsWithSipWord(buffer, offset)) {
                 if (mark > -1) {
@@ -67,6 +68,7 @@ class SipHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
             }
             offset++
         }
+
         if (mark > -1) {
             val p = Packet().apply {
                 timestamp = packet.timestamp
@@ -84,6 +86,7 @@ class SipHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
             }
             packets.add(p)
         }
+
         if (packets.size >= bulkSize) {
             vertx.eventBus().send(Routes.encoder, packets.toList(), USE_LOCAL_CODEC)
             packets.clear()
