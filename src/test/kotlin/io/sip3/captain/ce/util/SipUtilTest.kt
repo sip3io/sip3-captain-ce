@@ -14,14 +14,26 @@
  * limitations under the License.
  */
 
-package io.sip3.captain.ce.domain
+package io.sip3.captain.ce.util
 
-import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
+import io.sip3.captain.ce.util.SipUtil.CR
+import io.sip3.captain.ce.util.SipUtil.LF
+import io.sip3.captain.ce.util.SipUtil.SIP_WORDS
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 
-inline class ByteArrayPayload(val bytes: ByteArray) : Payload {
+class SipUtilTest {
 
-    override fun encode(): ByteBuf {
-        return Unpooled.wrappedBuffer(bytes)
+    @Test
+    fun `check random SIP word`() {
+        val word = SIP_WORDS.random()
+        assertTrue(SipUtil.startsWithSipWord(Unpooled.wrappedBuffer(word)))
+    }
+
+    @Test
+    fun `check EOL`() {
+        val line = byteArrayOf(CR, LF)
+        assertTrue(SipUtil.isNewLine(Unpooled.wrappedBuffer(line), offset = 2))
     }
 }

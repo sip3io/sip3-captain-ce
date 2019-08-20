@@ -57,9 +57,7 @@ class EncoderTest : VertxTest() {
                         this.srcPort = srcPort
                         this.dstPort = dstPort
                         protocolCode = Packet.TYPE_ICMP
-                        payload = ByteArrayPayload().apply {
-                            bytes = PACKET_1
-                        }
+                        payload = ByteArrayPayload(PACKET_1)
                     }
                     vertx.eventBus().send(Routes.encoder, listOf(packet), USE_LOCAL_CODEC)
                 },
@@ -73,7 +71,13 @@ class EncoderTest : VertxTest() {
 
                             assertEquals(74, buffer.length())
                             // Prefix
-                            assertArrayEquals(Encoder.PREFIX, buffer.getBytes(0, 7))
+                            assertArrayEquals(Encoder.PREFIX, buffer.getBytes(0, 4))
+                            // Compressed
+                            assertEquals(0, buffer.getByte(4))
+                            // Type
+                            assertEquals(1, buffer.getByte(5))
+                            // Version
+                            assertEquals(1, buffer.getByte(6))
                             // Length
                             assertEquals(69, buffer.getShort(7))
                             // Milliseconds

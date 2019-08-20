@@ -18,7 +18,6 @@ package io.sip3.captain.ce.capturing
 
 import io.mockk.*
 import io.mockk.junit5.MockKExtension
-import io.netty.buffer.ByteBuf
 import io.sip3.captain.ce.VertxTest
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.pipeline.EthernetHandler
@@ -49,13 +48,12 @@ class PcapEngineTest : VertxTest() {
         val tempDir = createTempDir()
         val file = tempDir.resolve(PCAP_FILE.name)
         PCAP_FILE.copyTo(file)
-        val bufferSlot = slot<ByteBuf>()
         val packetSlot = slot<Packet>()
         runTest(
                 deploy = {
                     mockkConstructor(EthernetHandler::class)
                     every {
-                        anyConstructed<EthernetHandler>().handle(capture(bufferSlot), capture(packetSlot))
+                        anyConstructed<EthernetHandler>().handle(capture(packetSlot))
                     } just Runs
 
                     vertx.deployTestVerticle(PcapEngine::class, JsonObject().apply {
@@ -72,8 +70,8 @@ class PcapEngineTest : VertxTest() {
                 assert = {
                     vertx.executeBlocking<Any>({
                         context.verify {
-                            verify(timeout = 10000) { anyConstructed<EthernetHandler>().handle(any(), any()) }
-                            val buffer = bufferSlot.captured
+                            verify(timeout = 10000) { anyConstructed<EthernetHandler>().handle(any()) }
+                            val buffer = packetSlot.captured.payload.encode()
                             val received = Buffer.buffer(buffer).toString()
                             assertTrue(received.endsWith(MESSAGE))
                         }
@@ -88,13 +86,12 @@ class PcapEngineTest : VertxTest() {
 
     @Test
     fun `Capture some packets in online mode`() {
-        val bufferSlot = slot<ByteBuf>()
         val packetSlot = slot<Packet>()
         runTest(
                 deploy = {
                     mockkConstructor(EthernetHandler::class)
                     every {
-                        anyConstructed<EthernetHandler>().handle(capture(bufferSlot), capture(packetSlot))
+                        anyConstructed<EthernetHandler>().handle(capture(packetSlot))
                     } just Runs
 
                     vertx.deployTestVerticle(PcapEngine::class, JsonObject().apply {
@@ -114,8 +111,8 @@ class PcapEngineTest : VertxTest() {
                 assert = {
                     vertx.executeBlocking<Any>({
                         context.verify {
-                            verify(timeout = 10000) { anyConstructed<EthernetHandler>().handle(any(), any()) }
-                            val buffer = bufferSlot.captured
+                            verify(timeout = 10000) { anyConstructed<EthernetHandler>().handle(any()) }
+                            val buffer = packetSlot.captured.payload.encode()
                             val received = Buffer.buffer(buffer).toString()
                             assertTrue(received.endsWith(MESSAGE))
                         }

@@ -18,8 +18,8 @@ package io.sip3.captain.ce.pipeline
 
 import io.mockk.*
 import io.mockk.junit5.MockKExtension
-import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
+import io.sip3.captain.ce.domain.ByteBufPayload
 import io.sip3.captain.ce.domain.Packet
 import io.vertx.core.Vertx
 import org.junit.jupiter.api.AfterEach
@@ -46,18 +46,20 @@ class TcpHandlerTest {
     fun `Parse TCP`() {
         // Init
         mockkConstructor(RouterHandler::class)
-        val bufferSlot = slot<ByteBuf>()
         val packetSlot = slot<Packet>()
         every {
-            anyConstructed<RouterHandler>().handle(capture(bufferSlot), capture(packetSlot))
+            anyConstructed<RouterHandler>().handle(capture(packetSlot))
         } just Runs
         // Execute
         val tcpHandler = TcpHandler(Vertx.vertx(), false)
-        tcpHandler.handle(Unpooled.wrappedBuffer(PACKET_1), Packet())
+        var packet = Packet().apply {
+            this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
+        }
+        tcpHandler.handle(packet)
         // Assert
-        verify { anyConstructed<RouterHandler>().handle(any(), any()) }
-        val buffer = bufferSlot.captured
-        val packet = packetSlot.captured
+        verify { anyConstructed<RouterHandler>().handle(any()) }
+        packet = packetSlot.captured
+        val buffer = packet.payload.encode()
         assertEquals(48348, packet.srcPort)
         assertEquals(5060, packet.dstPort)
         val payloadLength = buffer.capacity() - buffer.readerIndex()

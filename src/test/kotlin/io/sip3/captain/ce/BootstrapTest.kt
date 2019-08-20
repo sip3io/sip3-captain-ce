@@ -57,7 +57,13 @@ class BootstrapTest : VertxTest() {
                                 context.verify {
                                     assertEquals(989, buffer.length())
                                     // Prefix
-                                    assertArrayEquals(Encoder.PREFIX, buffer.getBytes(0, 7))
+                                    assertArrayEquals(Encoder.PREFIX, buffer.getBytes(0, 4))
+                                    // Compressed
+                                    assertEquals(0, buffer.getByte(4))
+                                    // Type
+                                    assertEquals(1, buffer.getByte(5))
+                                    // Version
+                                    assertEquals(1, buffer.getByte(6))
                                     // Length
                                     assertEquals(984, buffer.getShort(7))
                                     // Milliseconds

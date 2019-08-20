@@ -16,38 +16,17 @@
 
 package io.sip3.captain.ce.pipeline
 
-import io.netty.buffer.ByteBuf
 import io.sip3.captain.ce.Routes
 import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.ByteArrayPayload
 import io.sip3.captain.ce.domain.Packet
+import io.sip3.captain.ce.util.SipUtil
 import io.vertx.core.Vertx
 
 /**
  * Handles SIP packets
  */
 class SipHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, bulkOperationsEnabled) {
-
-    companion object {
-
-        private val SIP_WORDS = arrayOf(
-                // RFC 3261
-                "SIP/2.0 ", "INVITE", "REGISTER", "ACK", "CANCEL", "BYE", "OPTIONS",
-                // RFC 3262
-                "PRACK",
-                // RFC 3428
-                "MESSAGE",
-                // RFC 6665
-                "SUBSCRIBE", "NOTIFY",
-                // RFC 3903
-                "PUBLISH",
-                // RFC 3311
-                "UPDATE"
-        ).map { word -> word.toByteArray() }.toList()
-
-        private val CR: Byte = 0x0d
-        private val LF: Byte = 0x0a
-    }
 
     private val packets = mutableListOf<Packet>()
     private var bulkSize = 1
@@ -60,11 +39,14 @@ class SipHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
         }
     }
 
-    override fun onPacket(buffer: ByteBuf, packet: Packet) {
+    override fun onPacket(packet: Packet) {
+        val buffer = packet.payload.encode()
+
         var offset = 0
         var mark = -1
+
         while (offset + buffer.readerIndex() < buffer.capacity()) {
-            if (isNewLine(offset, buffer) && startsWithSipWord(offset, buffer)) {
+            if (SipUtil.isNewLine(buffer, offset) && SipUtil.startsWithSipWord(buffer, offset)) {
                 if (mark > -1) {
                     val p = Packet().apply {
                         timestamp = packet.timestamp
@@ -73,10 +55,11 @@ class SipHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
                         srcPort = packet.srcPort
                         dstPort = packet.dstPort
                         protocolCode = Packet.TYPE_SIP
-                        payload = ByteArrayPayload().apply {
+                        payload = run {
                             val slice = buffer.slice(buffer.readerIndex() + mark, offset - mark)
-                            bytes = ByteArray(slice.capacity())
+                            val bytes = ByteArray(slice.capacity())
                             slice.readBytes(bytes)
+                            return@run ByteArrayPayload(bytes)
                         }
                     }
                     packets.add(p)
@@ -85,6 +68,7 @@ class SipHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
             }
             offset++
         }
+
         if (mark > -1) {
             val p = Packet().apply {
                 timestamp = packet.timestamp
@@ -93,38 +77,19 @@ class SipHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
                 srcPort = packet.srcPort
                 dstPort = packet.dstPort
                 protocolCode = Packet.TYPE_SIP
-                payload = ByteArrayPayload().apply {
+                payload = run {
                     val slice = buffer.slice(buffer.readerIndex() + mark, offset - mark)
-                    bytes = ByteArray(slice.capacity())
+                    val bytes = ByteArray(slice.capacity())
                     slice.readBytes(bytes)
+                    return@run ByteArrayPayload(bytes)
                 }
             }
             packets.add(p)
         }
+
         if (packets.size >= bulkSize) {
             vertx.eventBus().send(Routes.encoder, packets.toList(), USE_LOCAL_CODEC)
             packets.clear()
-        }
-    }
-
-    fun isNewLine(offset: Int, buffer: ByteBuf): Boolean {
-        if (offset < 2) return true
-        val i = buffer.readerIndex() + offset
-        return buffer.getByte(i - 2) == CR && buffer.getByte(i - 1) == LF
-    }
-
-    fun startsWithSipWord(offset: Int, buffer: ByteBuf): Boolean {
-        val i = offset + buffer.readerIndex()
-        return SIP_WORDS.any { word ->
-            if (i + word.size >= buffer.capacity()) {
-                return@any false
-            }
-            word.forEachIndexed { j, b ->
-                if (b != buffer.getByte(i + j)) {
-                    return@any false
-                }
-            }
-            return@any true
         }
     }
 }

@@ -19,6 +19,7 @@ package io.sip3.captain.ce.pipeline
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.Routes
 import io.sip3.captain.ce.VertxTest
+import io.sip3.captain.ce.domain.ByteBufPayload
 import io.sip3.captain.ce.domain.Packet
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -63,15 +64,15 @@ class SipHandlerTest : VertxTest() {
                 },
                 execute = {
                     val sipHandler = SipHandler(vertx, false)
-                    val buffer = Unpooled.wrappedBuffer(PACKET_1)
                     val packet = Packet().apply {
                         timestamp = Timestamp(System.currentTimeMillis())
                         srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
                         dstAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
                         srcPort = 5060
                         dstPort = 5060
+                        payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
                     }
-                    sipHandler.handle(buffer, packet)
+                    sipHandler.handle(packet)
                 },
                 assert = {
                     vertx.eventBus().consumer<List<Packet>>(Routes.encoder) { event ->
@@ -98,15 +99,15 @@ class SipHandlerTest : VertxTest() {
                 },
                 execute = {
                     val sipHandler = SipHandler(vertx, false)
-                    val buffer = Unpooled.wrappedBuffer(PACKET_2)
                     val packet = Packet().apply {
                         timestamp = Timestamp(System.currentTimeMillis())
                         srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
                         dstAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
                         srcPort = 5060
                         dstPort = 5060
+                        payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
                     }
-                    sipHandler.handle(buffer, packet)
+                    sipHandler.handle(packet)
                 },
                 assert = {
                     vertx.eventBus().consumer<List<Packet>>(Routes.encoder) { event ->

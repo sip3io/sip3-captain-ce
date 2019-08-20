@@ -18,8 +18,8 @@ package io.sip3.captain.ce.pipeline
 
 import io.mockk.*
 import io.mockk.junit5.MockKExtension
-import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
+import io.sip3.captain.ce.domain.ByteBufPayload
 import io.sip3.captain.ce.domain.Packet
 import io.vertx.core.Vertx
 import org.junit.jupiter.api.AfterEach
@@ -57,115 +57,115 @@ class RouterHandlerTest {
     fun `Route UDP - SIP`() {
         // Init
         mockkConstructor(SipHandler::class)
-        val bufferSlot = slot<ByteBuf>()
         val packetSlot = slot<Packet>()
         every {
-            anyConstructed<SipHandler>().handle(capture(bufferSlot), capture(packetSlot))
+            anyConstructed<SipHandler>().handle(capture(packetSlot))
         } just Runs
         // Execute
+        val routerHandler = RouterHandler(Vertx.vertx(), false)
         val packet = Packet().apply {
             this.protocolNumber = Ipv4Handler.TYPE_UDP
+            this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
         }
-        val routerHandler = RouterHandler(Vertx.vertx(), false)
-        routerHandler.handle(Unpooled.wrappedBuffer(PACKET_1), packet)
+        routerHandler.handle(packet)
         // Assert
-        verify { anyConstructed<SipHandler>().handle(any(), any()) }
+        verify { anyConstructed<SipHandler>().handle(any()) }
     }
 
     @Test
     fun `Route UDP - RTP`() {
         // Init
         mockkConstructor(RtpHandler::class)
-        val bufferSlot = slot<ByteBuf>()
         val packetSlot = slot<Packet>()
         every {
-            anyConstructed<RtpHandler>().handle(capture(bufferSlot), capture(packetSlot))
+            anyConstructed<RtpHandler>().handle(capture(packetSlot))
         } just Runs
         // Execute
+        val routerHandler = RouterHandler(Vertx.vertx(), false)
         val packet = Packet().apply {
             this.protocolNumber = Ipv4Handler.TYPE_UDP
+            this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
         }
-        val routerHandler = RouterHandler(Vertx.vertx(), false)
-        routerHandler.handle(Unpooled.wrappedBuffer(PACKET_2), packet)
+        routerHandler.handle(packet)
         // Assert
-        verify { anyConstructed<RtpHandler>().handle(any(), any()) }
+        verify { anyConstructed<RtpHandler>().handle(any()) }
     }
 
     @Test
     fun `Route UDP - RTCP`() {
         // Init
         mockkConstructor(RtcpHandler::class)
-        val bufferSlot = slot<ByteBuf>()
         val packetSlot = slot<Packet>()
         every {
-            anyConstructed<RtcpHandler>().handle(capture(bufferSlot), capture(packetSlot))
+            anyConstructed<RtcpHandler>().handle(capture(packetSlot))
         } just Runs
         // Execute
+        val routerHandler = RouterHandler(Vertx.vertx(), false)
         val packet = Packet().apply {
             this.protocolNumber = Ipv4Handler.TYPE_UDP
+            this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_3))
         }
-        val routerHandler = RouterHandler(Vertx.vertx(), false)
-        routerHandler.handle(Unpooled.wrappedBuffer(PACKET_3), packet)
+        routerHandler.handle(packet)
         // Assert
-        verify { anyConstructed<RtcpHandler>().handle(any(), any()) }
+        verify { anyConstructed<RtcpHandler>().handle(any()) }
     }
 
     @Test
     fun `Route TCP - SIP`() {
         // Init
         mockkConstructor(SipHandler::class)
-        val bufferSlot = slot<ByteBuf>()
         val packetSlot = slot<Packet>()
         every {
-            anyConstructed<SipHandler>().handle(capture(bufferSlot), capture(packetSlot))
+            anyConstructed<SipHandler>().handle(capture(packetSlot))
         } just Runs
         // Execute
+        val routerHandler = RouterHandler(Vertx.vertx(), false)
         val packet = Packet().apply {
             this.protocolNumber = Ipv4Handler.TYPE_TCP
+            this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
         }
-        val routerHandler = RouterHandler(Vertx.vertx(), false)
-        routerHandler.handle(Unpooled.wrappedBuffer(PACKET_1), packet)
+        routerHandler.handle(packet)
         // Assert
-        verify { anyConstructed<SipHandler>().handle(any(), any()) }
+        verify { anyConstructed<SipHandler>().handle(any()) }
     }
 
     @Test
     fun `Route TCP - RTP-like`() {
         // Init
         mockkConstructor(SipHandler::class)
-        val bufferSlot = slot<ByteBuf>()
         val packetSlot = slot<Packet>()
         every {
-            anyConstructed<SipHandler>().handle(capture(bufferSlot), capture(packetSlot))
+            anyConstructed<SipHandler>().handle(capture(packetSlot))
         } just Runs
         // Execute
+        val routerHandler = RouterHandler(Vertx.vertx(), false)
         val packet = Packet().apply {
             this.protocolNumber = Ipv4Handler.TYPE_TCP
+            this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
         }
-        val routerHandler = RouterHandler(Vertx.vertx(), false)
-        routerHandler.handle(Unpooled.wrappedBuffer(PACKET_2), packet)
+        routerHandler.handle(packet)
         // Assert
-        verify { anyConstructed<SipHandler>().handle(any(), any()) }
+        verify { anyConstructed<SipHandler>().handle(any()) }
     }
 
     @Test
     fun `Route UDP - rejected RTP`() {
         // Init
         mockkConstructor(RtpHandler::class)
-        val bufferSlot = slot<ByteBuf>()
         val packetSlot = slot<Packet>()
         every {
-            anyConstructed<RtpHandler>().handle(capture(bufferSlot), capture(packetSlot))
+            anyConstructed<RtpHandler>().handle(capture(packetSlot))
         } just Runs
         // Execute
+        val routerHandler = RouterHandler(Vertx.vertx(), false)
         var packet = Packet().apply {
             this.protocolNumber = Ipv4Handler.TYPE_UDP
+            this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
             this.rejected = true
         }
-        val routerHandler = RouterHandler(Vertx.vertx(), false)
-        routerHandler.handle(Unpooled.wrappedBuffer(PACKET_2), packet)
+        routerHandler.handle(packet)
         // Assert
-        verify { anyConstructed<RtpHandler>().handle(any(), any()) }
+        verify { anyConstructed<RtpHandler>().handle(any()) }
     }
 
     @AfterEach

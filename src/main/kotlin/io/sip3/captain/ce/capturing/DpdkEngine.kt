@@ -19,6 +19,7 @@ package io.sip3.captain.ce.capturing
 import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.Metrics
 import io.netty.buffer.Unpooled
+import io.sip3.captain.ce.domain.ByteBufPayload
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.pipeline.EthernetHandler
 import io.vertx.core.AbstractVerticle
@@ -108,8 +109,9 @@ class DpdkEngine : AbstractVerticle() {
                 }
                 val packet = Packet().apply {
                     this.timestamp = timestamp
+                    this.payload = ByteBufPayload(Unpooled.wrappedBuffer(buffer))
                 }
-                core.ethernetHandler.handle(Unpooled.wrappedBuffer(buffer), packet)
+                core.ethernetHandler.handle(packet)
             }
         }
     }

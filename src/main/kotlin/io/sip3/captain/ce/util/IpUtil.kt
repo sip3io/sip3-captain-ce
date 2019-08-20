@@ -14,23 +14,20 @@
  * limitations under the License.
  */
 
-package io.sip3.captain.ce.pipeline
+package io.sip3.captain.ce.util
 
-import io.sip3.captain.ce.domain.Packet
-import io.vertx.core.Vertx
-import mu.KotlinLogging
+object IpUtil {
 
-abstract class Handler(val vertx: Vertx, val bulkOperationsEnabled: Boolean = true) {
-
-    private val logger = KotlinLogging.logger {}
-
-    protected abstract fun onPacket(packet: Packet)
-
-    fun handle(packet: Packet) {
-        try {
-            onPacket(packet)
-        } catch (e: Exception) {
-            logger.error("Handler 'onPacket()' failed.", e)
+    fun convertToInt(addr: ByteArray): Int {
+        if (addr.size != 4) {
+            throw UnsupportedOperationException("Can't convert ${addr.size} bytes address to Int")
         }
+
+        var number = 0
+        repeat(4) { i ->
+            number = (number shl 8) + addr[i]
+        }
+
+        return number
     }
 }

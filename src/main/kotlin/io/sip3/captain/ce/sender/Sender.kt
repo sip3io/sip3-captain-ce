@@ -95,7 +95,7 @@ class Sender : AbstractVerticle() {
                                     }
                                 }
                     } else {
-                        logger.error("SenderVerticle 'openTcpConnection()' failed.", asr.cause())
+                        logger.error("Sender 'openTcpConnection()' failed.", asr.cause())
                         reconnectionTimeout?.let { timeout ->
                             vertx.setTimer(timeout) { openTcpConnection() }
                         }

@@ -29,7 +29,8 @@ class RouterHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vert
     private val rtpHandler = RtpHandler(vertx, bulkOperationsEnabled)
     private val sipHandler = SipHandler(vertx, bulkOperationsEnabled)
 
-    override fun onPacket(buffer: ByteBuf, packet: Packet) {
+    override fun onPacket(packet: Packet) {
+        val buffer = packet.payload.encode()
         val offset = buffer.readerIndex()
 
         // Filter packets with the size smaller than minimal RTP/RTCP or SIP
@@ -52,16 +53,16 @@ class RouterHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vert
             if (packetType in 200..211) {
                 // Skip ICMP(RTCP) case
                 if (!packet.rejected) {
-                    rtcpHandler.handle(buffer, packet)
+                    rtcpHandler.handle(packet)
                 }
             } else {
-                rtpHandler.handle(buffer, packet)
+                rtpHandler.handle(packet)
             }
         } else {
             // Skip ICMP(SIP) case
             if (!packet.rejected) {
                 // SIP packet (as long as we have SIP, RTP and RTCP packets only)
-                sipHandler.handle(buffer, packet)
+                sipHandler.handle(packet)
             }
         }
     }
@@ -70,7 +71,7 @@ class RouterHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vert
         // Skip ICMP(SIP) case
         if (!packet.rejected) {
             // SIP packet (as long as we have SIP, RTP and RTCP packets only)
-            sipHandler.handle(buffer, packet)
+            sipHandler.handle(packet)
         }
     }
 }

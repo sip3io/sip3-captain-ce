@@ -16,7 +16,6 @@
 
 package io.sip3.captain.ce.pipeline
 
-import io.netty.buffer.ByteBuf
 import io.sip3.captain.ce.domain.Packet
 import io.vertx.core.Vertx
 
@@ -25,24 +24,46 @@ import io.vertx.core.Vertx
  */
 class UdpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, bulkOperationsEnabled) {
 
-    private val routerHandler = RouterHandler(vertx, bulkOperationsEnabled)
+    private val rtcpHandler = RtcpHandler(vertx, bulkOperationsEnabled)
+    private val rtpHandler = RtpHandler(vertx, bulkOperationsEnabled)
+    private val sipHandler = SipHandler(vertx, bulkOperationsEnabled)
 
-    override fun onPacket(buffer: ByteBuf, packet: Packet) {
-        val offset = buffer.readerIndex()
+    override fun onPacket(packet: Packet) {
+        val buffer = packet.payload.encode()
 
         // Source Port
         packet.srcPort = buffer.readUnsignedShort()
         // Destination Port
         packet.dstPort = buffer.readUnsignedShort()
         // Length
-        val length = buffer.readUnsignedShort()
+        buffer.skipBytes(2)
         // Checksum
         buffer.skipBytes(2)
 
-        if (!packet.rejected) {
-            buffer.capacity(offset + length)
+        val offset = buffer.readerIndex()
+
+        // Filter packets with the size smaller than minimal RTP/RTCP or SIP
+        if (buffer.capacity() - offset < 8) {
+            return
         }
 
-        routerHandler.handle(buffer, packet)
+        if (buffer.getUnsignedByte(offset).toInt().shr(6) == 2) {
+            // RTP or RTCP packet
+            val packetType = buffer.getUnsignedByte(offset + 1).toInt()
+            if (packetType in 200..211) {
+                // Skip ICMP(RTCP) case
+                if (!packet.rejected) {
+                    rtcpHandler.handle(packet)
+                }
+            } else {
+                rtpHandler.handle(packet)
+            }
+        } else {
+            // Skip ICMP(SIP) case
+            if (!packet.rejected) {
+                // SIP packet (as long as we have SIP, RTP and RTCP packets only)
+                sipHandler.handle(packet)
+            }
+        }
     }
 }

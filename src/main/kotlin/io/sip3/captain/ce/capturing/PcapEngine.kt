@@ -19,6 +19,7 @@ package io.sip3.captain.ce.capturing
 import io.micrometer.core.instrument.DistributionSummary
 import io.micrometer.core.instrument.Metrics
 import io.netty.buffer.Unpooled
+import io.sip3.captain.ce.domain.ByteBufPayload
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.pipeline.EthernetHandler
 import io.vertx.core.AbstractVerticle
@@ -36,6 +37,11 @@ import java.util.concurrent.Executors
 class PcapEngine : AbstractVerticle() {
 
     private val logger = KotlinLogging.logger {}
+
+    companion object {
+
+        const val SNAP_LENGTH = 65535
+    }
 
     var dir: String? = null
     var dev: String? = null
@@ -99,7 +105,7 @@ class PcapEngine : AbstractVerticle() {
     private fun online() {
         val handle = PcapHandle.Builder(dev)
                 .promiscuousMode(PcapNetworkInterface.PromiscuousMode.PROMISCUOUS)
-                .snaplen(65535)
+                .snaplen(SNAP_LENGTH)
                 .apply {
                     timeoutMillis?.let { timeoutMillis(it) }
                 }
@@ -125,8 +131,9 @@ class PcapEngine : AbstractVerticle() {
 
             val packet = Packet().apply {
                 this.timestamp = getTimestamp()
+                this.payload = ByteBufPayload(Unpooled.wrappedBuffer(buffer))
             }
-            ethernetHandler.handle(Unpooled.wrappedBuffer(buffer), packet)
+            ethernetHandler.handle(packet)
         }))
     }
 }
