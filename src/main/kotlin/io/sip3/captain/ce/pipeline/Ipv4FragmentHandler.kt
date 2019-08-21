@@ -48,7 +48,7 @@ class Ipv4FragmentHandler : AbstractVerticle() {
 
         ipv4Handler = Ipv4Handler(vertx, false)
 
-        vertx.eventBus().consumer<List<Pair<Ipv4Header, Packet>>>(Routes.fragment) { event ->
+        vertx.eventBus().localConsumer<List<Pair<Ipv4Header, Packet>>>(Routes.fragment) { event ->
             val packets = event.body()
             packets.forEach { (header, packet) ->
                 try {

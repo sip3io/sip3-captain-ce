@@ -63,3 +63,19 @@ fun ByteBuf.writeTlv(tag: Int, value: Any) {
         }
     }
 }
+
+fun ByteBuf.readBytes(index: Int, length: Int): ByteArray {
+    val slice = slice(index, length)
+    val bytes = ByteArray(slice.capacity())
+    slice.readBytes(bytes)
+
+    return bytes
+}
+
+fun ByteBuf.readBytes(): ByteArray {
+    val slice = slice()
+    val bytes = ByteArray(slice.capacity())
+    slice.readBytes(bytes)
+
+    return bytes
+}

@@ -17,6 +17,7 @@
 package io.sip3.captain.ce.pipeline
 
 import io.sip3.captain.ce.domain.Packet
+import io.sip3.captain.ce.util.SipUtil
 import io.vertx.core.Vertx
 
 /**
@@ -47,22 +48,25 @@ class UdpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
             return
         }
 
-        if (buffer.getUnsignedByte(offset).toInt().shr(6) == 2) {
+        when {
             // RTP or RTCP packet
-            val packetType = buffer.getUnsignedByte(offset + 1).toInt()
-            if (packetType in 200..211) {
-                // Skip ICMP(RTCP) case
-                if (!packet.rejected) {
-                    rtcpHandler.handle(packet)
+            buffer.getUnsignedByte(offset).toInt().shr(6) == 2 -> {
+                val packetType = buffer.getUnsignedByte(offset + 1).toInt()
+                if (packetType in 200..211) {
+                    // Skip ICMP(RTCP) packet
+                    if (!packet.rejected) {
+                        rtcpHandler.handle(packet)
+                    }
+                } else {
+                    rtpHandler.handle(packet)
                 }
-            } else {
-                rtpHandler.handle(packet)
             }
-        } else {
-            // Skip ICMP(SIP) case
-            if (!packet.rejected) {
-                // SIP packet (as long as we have SIP, RTP and RTCP packets only)
-                sipHandler.handle(packet)
+            // SIP packet
+            SipUtil.startsWithSipWord(buffer) -> {
+                // Skip ICMP packet
+                if (!packet.rejected) {
+                    sipHandler.handle(packet)
+                }
             }
         }
     }
