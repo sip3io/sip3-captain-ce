@@ -29,7 +29,7 @@ class ByteBufUtilTest {
     }
 
     @Test
-    fun `write byte as tlv`() {
+    fun `Write byte as tlv`() {
         val byteValue = 1.toByte()
 
         createBuffer(byteValue, 4).also { buffer ->
@@ -38,7 +38,7 @@ class ByteBufUtilTest {
     }
 
     @Test
-    fun `write short as tlv`() {
+    fun `Write short as tlv`() {
         val shortValue = 2.toShort()
 
         createBuffer(shortValue, 5).also { buffer ->
@@ -47,7 +47,7 @@ class ByteBufUtilTest {
     }
 
     @Test
-    fun `write int as tlv`() {
+    fun `Write int as tlv`() {
         val intValue = 3
 
         createBuffer(intValue, 7).also { buffer ->
@@ -56,7 +56,7 @@ class ByteBufUtilTest {
     }
 
     @Test
-    fun `write long as tlv`() {
+    fun `Write long as tlv`() {
         val longValue = 4L
 
         createBuffer(longValue, 11).also { buffer ->
@@ -65,7 +65,7 @@ class ByteBufUtilTest {
     }
 
     @Test
-    fun `write float as tlv`() {
+    fun `Write float as tlv`() {
         val floatValue = 5.0F
 
         createBuffer(floatValue, 7).also { buffer ->
@@ -74,7 +74,7 @@ class ByteBufUtilTest {
     }
 
     @Test
-    fun `write ByteArray as tlv`() {
+    fun `Write ByteArray as tlv`() {
         val byteArrayValue = byteArrayOf(0x08, 0x08, 0x08, 0x0C)
 
         createBuffer(byteArrayValue, 7).also { buffer ->
@@ -85,7 +85,7 @@ class ByteBufUtilTest {
     }
 
     @Test
-    fun `write ByteBuf as tlv`() {
+    fun `Write ByteBuf as tlv`() {
         val byteArray = byteArrayOf(0x01, 0x02, 0x03, 0x04)
         val byteBufValue = Unpooled.wrappedBuffer(byteArray)
 
@@ -97,7 +97,7 @@ class ByteBufUtilTest {
     }
 
     @Test
-    fun `check write for unsupported value type`() {
+    fun `Check write for unsupported value type`() {
         assertThrows(IllegalArgumentException::class.java) {
             Unpooled.buffer(1).apply {
                 writeTlv(TAG, "string value")
@@ -106,7 +106,7 @@ class ByteBufUtilTest {
     }
 
     @Test
-    fun `read specific ByteBuffer bytes into ByteArray`() {
+    fun `Read specific ByteBuffer bytes into ByteArray`() {
         val byteArray = byteArrayOf(0x01, 0x02, 0x03, 0x04)
         val byteBufValue = Unpooled.wrappedBuffer(byteArray)
 
@@ -116,7 +116,7 @@ class ByteBufUtilTest {
     }
 
     @Test
-    fun `read remaining ByteBuffer bytes into ByteArray`() {
+    fun `Read remaining ByteBuffer bytes into ByteArray`() {
         val byteArray = byteArrayOf(0x01, 0x02, 0x03, 0x04)
         val byteBufValue = Unpooled.wrappedBuffer(byteArray)
 
