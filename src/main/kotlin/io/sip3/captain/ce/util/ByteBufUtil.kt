@@ -79,3 +79,7 @@ fun ByteBuf.readBytes(): ByteArray {
 
     return bytes
 }
+
+fun ByteBuf.remainingCapacity(): Int {
+    return capacity() - readerIndex()
+}

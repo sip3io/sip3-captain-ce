@@ -125,6 +125,16 @@ class ByteBufUtilTest {
         }
     }
 
+    @Test
+    fun `Retrieve remaining ByteBuffer capacity`() {
+        val byteArray = byteArrayOf(0x01, 0x02, 0x03, 0x04)
+        val byteBufValue = Unpooled.wrappedBuffer(byteArray)
+
+        createBuffer(byteBufValue, 7).also { buffer ->
+            assertEquals(4, buffer.remainingCapacity())
+        }
+    }
+
     /**
      * Returns buffer with readerIndex on start of value.
      */
