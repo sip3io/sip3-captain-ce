@@ -20,7 +20,7 @@ object IpUtil {
 
     fun convertToInt(addr: ByteArray): Int {
         if (addr.size != 4) {
-            throw UnsupportedOperationException("Can't convert ${addr.size} bytes address to Int")
+            throw UnsupportedOperationException("Can't convert ${addr.size}bytes address to Int")
         }
 
         var number = 0
