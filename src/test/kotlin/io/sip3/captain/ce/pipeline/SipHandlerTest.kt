@@ -21,6 +21,7 @@ import io.sip3.captain.ce.Routes
 import io.sip3.captain.ce.VertxTest
 import io.sip3.captain.ce.domain.ByteBufPayload
 import io.sip3.captain.ce.domain.Packet
+import io.sip3.captain.ce.util.remainingCapacity
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.sql.Timestamp
@@ -82,8 +83,7 @@ class SipHandlerTest : VertxTest() {
                             val packet = packets[0]
                             assertEquals(Packet.TYPE_SIP, packet.protocolCode)
                             val buffer = packet.payload.encode()
-                            val payloadLength = buffer.capacity() - buffer.readerIndex()
-                            assertEquals(18, payloadLength)
+                            assertEquals(18, buffer.remainingCapacity())
                         }
                         context.completeNow()
                     }
@@ -117,8 +117,7 @@ class SipHandlerTest : VertxTest() {
                             packets.forEach { packet ->
                                 assertEquals(Packet.TYPE_SIP, packet.protocolCode)
                                 val buffer = packet.payload.encode()
-                                val payloadLength = buffer.capacity() - buffer.readerIndex()
-                                assertEquals(51, payloadLength)
+                                assertEquals(51, buffer.remainingCapacity())
                             }
                         }
                         context.completeNow()

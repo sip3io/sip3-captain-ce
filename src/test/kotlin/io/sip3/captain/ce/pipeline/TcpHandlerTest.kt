@@ -19,51 +19,126 @@ package io.sip3.captain.ce.pipeline
 import io.mockk.*
 import io.mockk.junit5.MockKExtension
 import io.netty.buffer.Unpooled
+import io.sip3.captain.ce.Routes
+import io.sip3.captain.ce.USE_LOCAL_CODEC
+import io.sip3.captain.ce.VertxTest
 import io.sip3.captain.ce.domain.ByteBufPayload
 import io.sip3.captain.ce.domain.Packet
-import io.vertx.core.Vertx
+import io.sip3.captain.ce.util.remainingCapacity
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(MockKExtension::class)
-class TcpHandlerTest {
+class TcpHandlerTest : VertxTest() {
 
     companion object {
 
-        // Payload: TCP
+        // Payload: TCP (SIP message)
         val PACKET_1 = byteArrayOf(
-                0xbc.toByte(), 0xdc.toByte(), 0x13.toByte(), 0xc4.toByte(), 0x05.toByte(), 0x73.toByte(), 0x86.toByte(),
-                0xff.toByte(), 0xa9.toByte(), 0x5b.toByte(), 0xa4.toByte(), 0x02.toByte(), 0x80.toByte(), 0x10.toByte(),
-                0x05.toByte(), 0x90.toByte(), 0x63.toByte(), 0xfb.toByte(), 0x00.toByte(), 0x00.toByte(), 0x01.toByte(),
-                0x01.toByte(), 0x08.toByte(), 0x0a.toByte(), 0x72.toByte(), 0xec.toByte(), 0x85.toByte(), 0x8e.toByte(),
-                0x06.toByte(), 0xe1.toByte(), 0xdc.toByte(), 0x87.toByte()
+                0x13.toByte(), 0xc4.toByte(), 0x9d.toByte(), 0x70.toByte(), 0xd3.toByte(), 0x7e.toByte(), 0xa1.toByte(),
+                0xba.toByte(), 0x47.toByte(), 0x16.toByte(), 0xd2.toByte(), 0x7e.toByte(), 0x80.toByte(), 0x18.toByte(),
+                0x80.toByte(), 0x00.toByte(), 0xf3.toByte(), 0xf6.toByte(), 0x00.toByte(), 0x00.toByte(), 0x01.toByte(),
+                0x01.toByte(), 0x08.toByte(), 0x0a.toByte(), 0x18.toByte(), 0x92.toByte(), 0x7a.toByte(), 0x0a.toByte(),
+                0x86.toByte(), 0x37.toByte(), 0x26.toByte(), 0xb0.toByte(), 0x53.toByte(), 0x49.toByte(), 0x50.toByte(),
+                0x2f.toByte(), 0x32.toByte(), 0x2e.toByte(), 0x30.toByte(), 0x20.toByte(), 0x31.toByte(), 0x30.toByte(),
+                0x30.toByte(), 0x20.toByte(), 0x54.toByte(), 0x72.toByte(), 0x79.toByte(), 0x69.toByte(), 0x6e.toByte(),
+                0x67.toByte(), 0x0a.toByte(), 0x0d.toByte(), 0x0a.toByte()
+        )
+
+        // Payload: TCP (SIP message)
+        val PACKET_2 = byteArrayOf(
+                0x13.toByte(), 0xc4.toByte(), 0x9d.toByte(), 0x70.toByte(), 0xd3.toByte(), 0x7e.toByte(), 0xa1.toByte(),
+                0xa7.toByte(), 0x47.toByte(), 0x16.toByte(), 0xd2.toByte(), 0x7e.toByte(), 0x80.toByte(), 0x18.toByte(),
+                0x80.toByte(), 0x00.toByte(), 0xf3.toByte(), 0xf6.toByte(), 0x00.toByte(), 0x00.toByte(), 0x01.toByte(),
+                0x01.toByte(), 0x08.toByte(), 0x0a.toByte(), 0x18.toByte(), 0x92.toByte(), 0x7a.toByte(), 0x0a.toByte(),
+                0x86.toByte(), 0x37.toByte(), 0x26.toByte(), 0xb0.toByte(), 0x53.toByte(), 0x49.toByte(), 0x50.toByte(),
+                0x2f.toByte(), 0x32.toByte(), 0x2e.toByte(), 0x30.toByte(), 0x20.toByte(), 0x31.toByte(), 0x30.toByte(),
+                0x30.toByte(), 0x20.toByte(), 0x54.toByte(), 0x72.toByte(), 0x79.toByte(), 0x69.toByte(), 0x6e.toByte(),
+                0x67.toByte(), 0x0a.toByte()
+        )
+
+        // Payload: TCP (SIP message)
+        val PACKET_3 = byteArrayOf(
+                0x13.toByte(), 0xc4.toByte(), 0x9d.toByte(), 0x70.toByte(), 0xd3.toByte(), 0x7e.toByte(), 0xa1.toByte(),
+                0xba.toByte(), 0x47.toByte(), 0x16.toByte(), 0xd2.toByte(), 0x7e.toByte(), 0x80.toByte(), 0x18.toByte(),
+                0x80.toByte(), 0x00.toByte(), 0xf3.toByte(), 0xf6.toByte(), 0x00.toByte(), 0x00.toByte(), 0x01.toByte(),
+                0x01.toByte(), 0x08.toByte(), 0x0a.toByte(), 0x18.toByte(), 0x92.toByte(), 0x7a.toByte(), 0x0a.toByte(),
+                0x86.toByte(), 0x37.toByte(), 0x26.toByte(), 0xb0.toByte(), 0x0d.toByte(), 0x0a.toByte()
         )
     }
 
     @Test
-    fun `Parse TCP`() {
-        // Init
-        mockkConstructor(RouterHandler::class)
+    fun `Parse TCP - SIP message fits in single packet`() {
         val packetSlot = slot<Packet>()
+        mockkConstructor(SipHandler::class)
         every {
-            anyConstructed<RouterHandler>().handle(capture(packetSlot))
+            anyConstructed<SipHandler>().handle(capture(packetSlot))
         } just Runs
-        // Execute
-        val tcpHandler = TcpHandler(Vertx.vertx(), false)
-        var packet = Packet().apply {
-            this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
-        }
-        tcpHandler.handle(packet)
-        // Assert
-        verify { anyConstructed<RouterHandler>().handle(any()) }
-        packet = packetSlot.captured
-        val buffer = packet.payload.encode()
-        assertEquals(48348, packet.srcPort)
-        assertEquals(5060, packet.dstPort)
-        val payloadLength = buffer.capacity() - buffer.readerIndex()
-        assertEquals(0, payloadLength)
+        runTest(
+                deploy = {
+                    vertx.deployTestVerticle(TcpHandler::class)
+                },
+                execute = {
+                    val packet = Packet().apply {
+                        srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
+                        payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
+                    }
+                    vertx.eventBus().send(Routes.tcp, listOf(packet), USE_LOCAL_CODEC)
+                },
+                assert = {
+                    vertx.executeBlocking<Any>({
+                        context.verify {
+                            verify(timeout = 10000) { anyConstructed<SipHandler>().handle(any()) }
+                            val packet = packetSlot.captured
+                            assertEquals(5060, packet.srcPort)
+                            assertEquals(40304, packet.dstPort)
+                            val buffer = packet.payload.encode()
+                            assertEquals(21, buffer.remainingCapacity())
+                        }
+                        context.completeNow()
+                    }, {})
+                }
+        )
+    }
+
+    @Test
+    fun `Parse TCP - Single SIP message is split between 2 packets`() {
+        val packetSlot = slot<Packet>()
+        mockkConstructor(SipHandler::class)
+        every {
+            anyConstructed<SipHandler>().handle(capture(packetSlot))
+        } just Runs
+        runTest(
+                deploy = {
+                    vertx.deployTestVerticle(TcpHandler::class)
+                },
+                execute = {
+                    val packet1 = Packet().apply {
+                        srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
+                        payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
+                    }
+                    val packet2 = Packet().apply {
+                        srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
+                        payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_3))
+                    }
+                    vertx.eventBus().send(Routes.tcp, listOf(packet1, packet2), USE_LOCAL_CODEC)
+                },
+                assert = {
+                    vertx.executeBlocking<Any>({
+                        context.verify {
+                            verify(timeout = 10000) { anyConstructed<SipHandler>().handle(any()) }
+                            val packet = packetSlot.captured
+                            assertEquals(5060, packet.srcPort)
+                            assertEquals(40304, packet.dstPort)
+                            val buffer = packet.payload.encode()
+                            assertEquals(21, buffer.remainingCapacity())
+                        }
+                        context.completeNow()
+                    }, {})
+                }
+        )
     }
 
     @AfterEach

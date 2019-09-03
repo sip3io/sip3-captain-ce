@@ -18,6 +18,12 @@ name: sip3-captain
 #  bpf-filter: udp
 #  timeout-millis: 10
 
+#! TCP
+#tcp:
+#  expiration-delay: 1000
+#  aggregation-timeout: 1000
+#  idle-connection-timeout: 300000
+
 #! Sender
 sender:
   uri: udp://127.0.0.1:15060
