@@ -25,7 +25,8 @@ object IpUtil {
 
         var number = 0
         repeat(4) { i ->
-            number = (number shl 8) + addr[i]
+            val octet = addr[i].toInt() and 0xff
+            number = (number shl 8) or octet
         }
 
         return number
