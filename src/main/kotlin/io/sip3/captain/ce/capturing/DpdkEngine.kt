@@ -20,11 +20,11 @@ import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.Metrics
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.domain.ByteBufPayload
-import io.sip3.captain.ce.domain.DpdkPacket
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.pipeline.EthernetHandler
 import io.vertx.core.AbstractVerticle
 import mu.KotlinLogging
+import java.nio.ByteBuffer
 import java.sql.Timestamp
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicLong
@@ -73,7 +73,7 @@ class DpdkEngine : AbstractVerticle() {
                 bind(port, rxQueueSize, bulkSize)
             } catch (e: Exception) {
                 logger.error("Got exception...", e)
-                System.exit(-1)
+                exitProcess(-1)
             }
         }
 
@@ -90,25 +90,27 @@ class DpdkEngine : AbstractVerticle() {
     }
 
     @Synchronized
-    fun initDpdkCore(coreId: Int, packets: Array<DpdkPacket>) {
+    fun initDpdkCore(coreId: Int, buffers: Array<ByteBuffer>) {
         cores[coreId] = Core().apply {
             this.packetsCaptured = AtomicLong(0)
-            this.packets = packets
+            this.buffers = buffers
             this.ethernetHandler = EthernetHandler(vertx, true)
         }
     }
 
-    fun onDpdkPackets(coreId: Int, packetsReceived: Long) {
+    fun onDpdkPackets(coreId: Int, sec: Long, usec: Int, packetsReceived: Long) {
+        val timestamp = Timestamp(sec * 1000 + usec / 1000).apply { nanos += usec % 1000 }
+
         cores[coreId]?.let { core ->
             core.packetsCaptured.addAndGet(packetsReceived)
 
-            core.packets.forEachIndexed { i, p ->
+            core.buffers.forEachIndexed { i, buffer ->
                 if (i >= packetsReceived) {
                     return@forEachIndexed
                 }
                 val packet = Packet().apply {
-                    this.timestamp = Timestamp(p.sec * 1000 + p.usec / 1000).apply { nanos = p.usec % 1000 }
-                    this.payload = ByteBufPayload(Unpooled.wrappedBuffer(p.buffer))
+                    this.timestamp = timestamp
+                    this.payload = ByteBufPayload(Unpooled.wrappedBuffer(buffer))
                 }
                 core.ethernetHandler.handle(packet)
             }
@@ -122,8 +124,7 @@ class DpdkEngine : AbstractVerticle() {
     class Core {
 
         lateinit var packetsCaptured: AtomicLong
-        lateinit var packets: Array<DpdkPacket>
-
+        lateinit var buffers: Array<ByteBuffer>
         lateinit var ethernetHandler: EthernetHandler
     }
 }

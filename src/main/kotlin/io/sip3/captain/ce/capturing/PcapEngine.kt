@@ -30,6 +30,7 @@ import org.springframework.boot.devtools.filewatch.ChangedFiles
 import org.springframework.boot.devtools.filewatch.FileSystemWatcher
 import java.io.File
 import java.util.concurrent.Executors
+import kotlin.system.exitProcess
 
 /**
  * Libpcap, WinPcap and Npcap capture engine
@@ -117,7 +118,7 @@ class PcapEngine : AbstractVerticle() {
                 handle.loop()
             } catch (e: Exception) {
                 logger.error("Got exception...", e)
-                System.exit(-1)
+                exitProcess(-1)
             }
         }
     }
