@@ -35,7 +35,7 @@ class TcpHandlerTest : VertxTest() {
 
     companion object {
 
-        // Payload: TCP (SIP message)
+        // Payload: TCP (SIP message - entire)
         val PACKET_1 = byteArrayOf(
                 0x13.toByte(), 0xc4.toByte(), 0x9d.toByte(), 0x70.toByte(), 0xd3.toByte(), 0x7e.toByte(), 0xa1.toByte(),
                 0xba.toByte(), 0x47.toByte(), 0x16.toByte(), 0xd2.toByte(), 0x7e.toByte(), 0x80.toByte(), 0x18.toByte(),
@@ -47,7 +47,7 @@ class TcpHandlerTest : VertxTest() {
                 0x67.toByte(), 0x0a.toByte(), 0x0d.toByte(), 0x0a.toByte()
         )
 
-        // Payload: TCP (SIP message)
+        // Payload: TCP (SIP message - part 1)
         val PACKET_2 = byteArrayOf(
                 0x13.toByte(), 0xc4.toByte(), 0x9d.toByte(), 0x70.toByte(), 0xd3.toByte(), 0x7e.toByte(), 0xa1.toByte(),
                 0xa7.toByte(), 0x47.toByte(), 0x16.toByte(), 0xd2.toByte(), 0x7e.toByte(), 0x80.toByte(), 0x18.toByte(),
@@ -59,7 +59,7 @@ class TcpHandlerTest : VertxTest() {
                 0x67.toByte(), 0x0a.toByte()
         )
 
-        // Payload: TCP (SIP message)
+        // Payload: TCP (SIP message - part 2)
         val PACKET_3 = byteArrayOf(
                 0x13.toByte(), 0xc4.toByte(), 0x9d.toByte(), 0x70.toByte(), 0xd3.toByte(), 0x7e.toByte(), 0xa1.toByte(),
                 0xba.toByte(), 0x47.toByte(), 0x16.toByte(), 0xd2.toByte(), 0x7e.toByte(), 0x80.toByte(), 0x18.toByte(),
