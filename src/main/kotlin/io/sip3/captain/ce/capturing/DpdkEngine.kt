@@ -28,6 +28,7 @@ import mu.KotlinLogging
 import java.sql.Timestamp
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicLong
+import kotlin.system.exitProcess
 
 /**
  * DPDK capture engine
@@ -41,7 +42,7 @@ class DpdkEngine : AbstractVerticle() {
             System.loadLibrary("sip3-dpdk")
         } catch (t: Throwable) {
             logger.error("System 'loadLibrary()' failed. Make sure that you are using SIP3 Captain `Enterprise Edition`.", t)
-            System.exit(-1)
+            exitProcess(-1)
         }
     }
 
