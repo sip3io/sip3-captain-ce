@@ -102,13 +102,13 @@ class DpdkEngine : AbstractVerticle() {
         cores[coreId]?.let { core ->
             core.packetsCaptured.addAndGet(packetsReceived)
 
-            core.packets.forEachIndexed { i, packet ->
+            core.packets.forEachIndexed { i, p ->
                 if (i >= packetsReceived) {
                     return@forEachIndexed
                 }
                 val packet = Packet().apply {
-                    this.timestamp = Timestamp(packet.sec * 1000 + packet.usec / 1000).apply { nanos = packet.usec % 1000 }
-                    this.payload = ByteBufPayload(Unpooled.wrappedBuffer(packet.buffer))
+                    this.timestamp = Timestamp(p.sec * 1000 + p.usec / 1000).apply { nanos = p.usec % 1000 }
+                    this.payload = ByteBufPayload(Unpooled.wrappedBuffer(p.buffer))
                 }
                 core.ethernetHandler.handle(packet)
             }
