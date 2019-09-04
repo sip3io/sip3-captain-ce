@@ -26,13 +26,13 @@ import org.junit.jupiter.api.Test
 class SipUtilTest {
 
     @Test
-    fun `check random SIP word`() {
+    fun `Сheck random SIP word`() {
         val word = SIP_WORDS.random()
         assertTrue(SipUtil.startsWithSipWord(Unpooled.wrappedBuffer(word)))
     }
 
     @Test
-    fun `check EOL`() {
+    fun `Сheck EOL`() {
         val line = byteArrayOf(CR, LF)
         assertTrue(SipUtil.isNewLine(Unpooled.wrappedBuffer(line), offset = 2))
     }

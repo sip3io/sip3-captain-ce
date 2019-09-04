@@ -14,21 +14,12 @@
  * limitations under the License.
  */
 
-package io.sip3.captain.ce.util
+package io.sip3.captain.ce.domain
 
-object IpUtil {
+class TcpSegment {
 
-    fun convertToInt(addr: ByteArray): Int {
-        if (addr.size != 4) {
-            throw UnsupportedOperationException("Can't convert ${addr.size}bytes address to Int")
-        }
-
-        var number = 0
-        repeat(4) { i ->
-            val octet = addr[i].toInt() and 0xff
-            number = (number shl 8) or octet
-        }
-
-        return number
-    }
+    var sequenceNumber: Long = 0
+    lateinit var packet: Packet
+    var payloadLength = 0
+    val timestamp = System.currentTimeMillis()
 }

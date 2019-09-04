@@ -22,6 +22,7 @@ import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.ByteArrayPayload
 import io.sip3.captain.ce.domain.Ipv4Header
 import io.sip3.captain.ce.domain.Packet
+import io.sip3.captain.ce.util.readBytes
 import io.vertx.core.Vertx
 
 /**
@@ -37,11 +38,11 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
         const val TYPE_IPV4 = 0x04
     }
 
-    private val tcpHandler = TcpHandler(vertx, bulkOperationsEnabled)
-    private val udpHandler = UdpHandler(vertx, bulkOperationsEnabled)
-
-    private val packets = mutableListOf<Pair<Ipv4Header, Packet>>()
+    private val ipv4Packets = mutableListOf<Pair<Ipv4Header, Packet>>()
+    private val tcpPackets = mutableListOf<Packet>()
     private var bulkSize = 1
+
+    private val udpHandler = UdpHandler(vertx, bulkOperationsEnabled)
 
     init {
         if (bulkOperationsEnabled) {
@@ -58,17 +59,12 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
         val ipv4Header = readIpv4Header(buffer)
 
         if (ipv4Header.moreFragments || ipv4Header.fragmentOffset > 0) {
-            packet.payload = run {
-                val slice = buffer.slice()
-                val bytes = ByteArray(slice.capacity())
-                slice.readBytes(bytes)
-                return@run ByteArrayPayload(bytes)
-            }
-            packets.add(Pair(ipv4Header, packet))
+            packet.payload = ByteArrayPayload(buffer.readBytes())
+            ipv4Packets.add(Pair(ipv4Header, packet))
 
-            if (packets.size >= bulkSize) {
-                vertx.eventBus().send(Routes.fragment, packets.toList(), USE_LOCAL_CODEC)
-                packets.clear()
+            if (ipv4Packets.size >= bulkSize) {
+                vertx.eventBus().send(Routes.fragment, ipv4Packets.toList(), USE_LOCAL_CODEC)
+                ipv4Packets.clear()
             }
         } else {
             packet.srcAddr = ipv4Header.srcAddr
@@ -110,12 +106,22 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
 
     fun routePacket(packet: Packet) {
         when (packet.protocolNumber) {
+            // UDP:
             TYPE_UDP -> udpHandler.handle(packet)
-            TYPE_TCP -> tcpHandler.handle(packet)
-            // IP-2-IP encapsulation
-            TYPE_IPV4 -> onPacket(packet)
-            // It doesn't make sense to create a separate handler
-            // as long as we need only ICMP containing RTP packets.
+            // TCP:
+            TYPE_TCP -> {
+                packet.payload = run {
+                    val buffer = packet.payload.encode()
+                    return@run ByteArrayPayload(buffer.readBytes())
+                }
+                tcpPackets.add(packet)
+
+                if (tcpPackets.size >= bulkSize) {
+                    vertx.eventBus().send(Routes.tcp, tcpPackets.toList(), USE_LOCAL_CODEC)
+                    tcpPackets.clear()
+                }
+            }
+            // ICMP:
             TYPE_ICMP -> {
                 val buffer = packet.payload.encode()
                 // Type
@@ -131,6 +137,8 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
                     onPacket(packet)
                 }
             }
+            // IPv4:
+            TYPE_IPV4 -> onPacket(packet)
         }
     }
 }
