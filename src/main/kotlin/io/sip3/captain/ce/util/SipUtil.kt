@@ -32,7 +32,11 @@ object SipUtil {
             // RFC 3903
             "PUBLISH",
             // RFC 3311
-            "UPDATE"
+            "UPDATE",
+            // RFC 3515
+            "REFER",
+            // RFC 2976
+            "INFO"
     ).map { word -> word.toByteArray() }.toList()
 
     const val CR: Byte = 0x0d
