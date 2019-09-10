@@ -20,8 +20,8 @@ name: sip3-captain
 
 #! TCP
 #tcp:
-#  expiration-delay: 1000
-#  aggregation-timeout: 1000
+#  expiration-delay: 100
+#  aggregation-timeout: 100
 #  idle-connection-timeout: 300000
 
 #! Sender
