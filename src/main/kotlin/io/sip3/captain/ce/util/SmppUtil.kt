@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf
 
 object SmppUtil {
 
-    private val COMMANDS = setOf(
+    val COMMANDS = setOf(
             0x80000000,             // CMD_ID_GENERIC_NACK
             0x00000001, 0x80000001, // CMD_ID_BIND_RECEIVER
             0x00000002, 0x80000002, // CMD_ID_BIND_TRANSMITTER
@@ -26,16 +26,23 @@ object SmppUtil {
     )
 
     fun isPdu(buffer: ByteBuf): Boolean {
-        if (buffer.remainingCapacity() < 16) {
+        if (!checkMinPduLength(buffer)) {
             return false
         }
 
         val offset = buffer.readerIndex()
 
-        // Command Length & Command ID
-        val commandLength = buffer.getUnsignedInt(offset).toInt()
-        val commandId = buffer.getUnsignedInt(offset + 4)
+        val length = buffer.getUnsignedInt(offset).toInt()
+        val command = buffer.getUnsignedInt(offset + 4)
 
-        return commandLength == buffer.remainingCapacity() && COMMANDS.contains(commandId)
+        return buffer.remainingCapacity() == length && isPduCommand(command)
+    }
+
+    fun checkMinPduLength(buffer: ByteBuf): Boolean {
+        return buffer.remainingCapacity() >= 16
+    }
+
+    fun isPduCommand(commandId: Long): Boolean {
+        return COMMANDS.contains(commandId)
     }
 }

@@ -20,7 +20,7 @@ import io.sip3.captain.ce.Routes
 import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.ByteArrayPayload
 import io.sip3.captain.ce.domain.Packet
-import io.sip3.captain.ce.util.readBytes
+import io.sip3.captain.ce.util.getBytes
 import io.vertx.core.Vertx
 
 /**
@@ -43,7 +43,7 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
         packet.protocolCode = Packet.TYPE_RTCP
 
         val buffer = packet.payload.encode()
-        packet.payload = ByteArrayPayload(buffer.readBytes())
+        packet.payload = ByteArrayPayload(buffer.getBytes())
         packets.add(packet)
 
         if (packets.size >= bulkSize) {

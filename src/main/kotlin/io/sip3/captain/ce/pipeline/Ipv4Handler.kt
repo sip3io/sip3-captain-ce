@@ -22,7 +22,7 @@ import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.ByteArrayPayload
 import io.sip3.captain.ce.domain.Ipv4Header
 import io.sip3.captain.ce.domain.Packet
-import io.sip3.captain.ce.util.readBytes
+import io.sip3.captain.ce.util.getBytes
 import io.vertx.core.Vertx
 
 /**
@@ -59,7 +59,7 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
         val ipv4Header = readIpv4Header(buffer)
 
         if (ipv4Header.moreFragments || ipv4Header.fragmentOffset > 0) {
-            packet.payload = ByteArrayPayload(buffer.readBytes())
+            packet.payload = ByteArrayPayload(buffer.getBytes())
             ipv4Packets.add(Pair(ipv4Header, packet))
 
             if (ipv4Packets.size >= bulkSize) {
@@ -112,7 +112,7 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
             TYPE_TCP -> {
                 packet.payload = run {
                     val buffer = packet.payload.encode()
-                    return@run ByteArrayPayload(buffer.readBytes())
+                    return@run ByteArrayPayload(buffer.getBytes())
                 }
                 tcpPackets.add(packet)
 
