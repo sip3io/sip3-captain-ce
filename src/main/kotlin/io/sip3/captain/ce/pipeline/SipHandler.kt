@@ -21,7 +21,7 @@ import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.ByteArrayPayload
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.util.SipUtil
-import io.sip3.captain.ce.util.readBytes
+import io.sip3.captain.ce.util.getBytes
 import io.vertx.core.Vertx
 
 /**
@@ -57,7 +57,7 @@ class SipHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
                         dstPort = packet.dstPort
                         protocolCode = Packet.TYPE_SIP
                         payload = run {
-                            val bytes = buffer.readBytes(buffer.readerIndex() + mark, offset - mark)
+                            val bytes = buffer.getBytes(buffer.readerIndex() + mark, offset - mark)
                             return@run ByteArrayPayload(bytes)
                         }
                     }
@@ -77,7 +77,7 @@ class SipHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
                 dstPort = packet.dstPort
                 protocolCode = Packet.TYPE_SIP
                 payload = run {
-                    val bytes = buffer.readBytes(buffer.readerIndex() + mark, offset - mark)
+                    val bytes = buffer.getBytes(buffer.readerIndex() + mark, offset - mark)
                     return@run ByteArrayPayload(bytes)
                 }
             }

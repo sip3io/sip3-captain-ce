@@ -64,7 +64,7 @@ fun ByteBuf.writeTlv(tag: Int, value: Any) {
     }
 }
 
-fun ByteBuf.readBytes(index: Int, length: Int): ByteArray {
+fun ByteBuf.getBytes(index: Int, length: Int): ByteArray {
     val slice = slice(index, length)
     val bytes = ByteArray(slice.capacity())
     slice.readBytes(bytes)
@@ -72,7 +72,7 @@ fun ByteBuf.readBytes(index: Int, length: Int): ByteArray {
     return bytes
 }
 
-fun ByteBuf.readBytes(): ByteArray {
+fun ByteBuf.getBytes(): ByteArray {
     val slice = slice()
     val bytes = ByteArray(slice.capacity())
     slice.readBytes(bytes)

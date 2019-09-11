@@ -16,6 +16,7 @@
 
 package io.sip3.captain.ce.pipeline
 
+import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.Routes
 import io.sip3.captain.ce.domain.ByteBufPayload
@@ -23,6 +24,7 @@ import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.domain.TcpSegment
 import io.sip3.captain.ce.util.IpUtil
 import io.sip3.captain.ce.util.SipUtil
+import io.sip3.captain.ce.util.SmppUtil
 import io.sip3.captain.ce.util.remainingCapacity
 import io.vertx.core.AbstractVerticle
 import mu.KotlinLogging
@@ -99,7 +101,10 @@ class TcpHandler : AbstractVerticle() {
         var connection = connections[connectionId]
         if (connection == null) {
             connection = when {
-                SipUtil.startsWithSipWord(buffer) -> SipConnection()
+                SipUtil.startsWithSipWord(buffer) ->
+                    TcpConnection(SipHandler(vertx, false)) { buffer: ByteBuf -> SipUtil.startsWithSipWord(buffer) }
+                SmppUtil.isPdu(buffer) ->
+                    TcpConnection(SmppHandler(vertx, false)) { buffer: ByteBuf -> SmppUtil.isPdu(buffer) }
                 else -> return
             }
             connections[connectionId] = connection
@@ -116,7 +121,7 @@ class TcpHandler : AbstractVerticle() {
     private fun processTcpConnections() {
         val now = System.currentTimeMillis()
 
-        connections.filterValues { true }.forEach { (connectionId, connection) ->
+        connections.toMap().forEach { (connectionId, connection) ->
             when {
                 connection.lastUpdated + idleConnectionTimeout < now -> connections.remove(connectionId)
                 else -> connection.processTcpSegments()
@@ -124,24 +129,15 @@ class TcpHandler : AbstractVerticle() {
         }
     }
 
-    interface TcpConnection {
+    // Important! To make `TcpConnection` code easier we decided to ignore a very rare scenario:
+    // 1. Application packet is split into separate segments. Last segment got over MAX sequence number.
+    inner class TcpConnection(val handler: Handler, val assert: (buffer: ByteBuf) -> Boolean) {
 
-        var lastUpdated: Long
+        var lastUpdated = System.currentTimeMillis()
 
-        fun onTcpSegment(sequenceNumber: Long, packet: Packet)
-        fun processTcpSegments()
-    }
-
-    // Important! To make `SipConnection` code easier we decided to ignore a very scenario:
-    // 1. SIP packet is split into separate segments. Sequence number of one of them gets over MAX value.
-    inner class SipConnection : TcpConnection {
-
-        override var lastUpdated = System.currentTimeMillis()
-
-        private val handler = SipHandler(vertx, false)
         private val segments = TreeMap<Long, TcpSegment>()
 
-        override fun onTcpSegment(sequenceNumber: Long, packet: Packet) {
+        fun onTcpSegment(sequenceNumber: Long, packet: Packet) {
             val buffer = packet.payload.encode()
 
             // Add to segments map
@@ -153,12 +149,12 @@ class TcpHandler : AbstractVerticle() {
             segments[sequenceNumber] = segment
 
             // Check previous segment if current segment starts from SIP word
-            if (SipUtil.startsWithSipWord(buffer)) {
+            if (assert.invoke(buffer)) {
                 processPreviousTcpSegment(segment)
             }
         }
 
-        override fun processTcpSegments() {
+        fun processTcpSegments() {
             val sequenceNumbers = mutableListOf<Long>()
             walkThroughTcpSegments(sequenceNumbers)
 
@@ -188,24 +184,24 @@ class TcpHandler : AbstractVerticle() {
         }
 
         private fun walkThroughTcpSegments(sequenceNumbers: MutableList<Long>, nextSequenceNumber: Long = -1) {
-            val (seq, segment) = segments.ceilingEntry(nextSequenceNumber) ?: return
+            val (sequenceNumber, segment) = segments.ceilingEntry(nextSequenceNumber) ?: return
 
-            if (nextSequenceNumber == -1L || nextSequenceNumber == seq) {
-                sequenceNumbers.add(seq)
-                walkThroughTcpSegments(sequenceNumbers, seq + segment.payloadLength)
+            if (nextSequenceNumber == -1L || nextSequenceNumber == sequenceNumber) {
+                sequenceNumbers.add(sequenceNumber)
+                walkThroughTcpSegments(sequenceNumbers, sequenceNumber + segment.payloadLength)
             }
         }
 
         private fun processPreviousTcpSegment(currentSegment: TcpSegment) {
-            val (seq, segment) = segments.lowerEntry(currentSegment.sequenceNumber) ?: return
+            val (sequenceNumber, segment) = segments.lowerEntry(currentSegment.sequenceNumber) ?: return
 
-            if (seq + segment.payloadLength == currentSegment.sequenceNumber) {
+            if (sequenceNumber + segment.payloadLength == currentSegment.sequenceNumber) {
                 val packet = segment.packet
                 val buffer = packet.payload.encode()
 
-                if (SipUtil.startsWithSipWord(buffer)) {
+                if (assert.invoke(buffer)) {
                     handler.handle(packet)
-                    segments.remove(seq)
+                    segments.remove(sequenceNumber)
                 }
             }
         }

@@ -106,22 +106,22 @@ class ByteBufUtilTest {
     }
 
     @Test
-    fun `Read specific ByteBuffer bytes into ByteArray`() {
+    fun `Retrieve specific ByteBuffer bytes into ByteArray`() {
         val byteArray = byteArrayOf(0x01, 0x02, 0x03, 0x04)
         val byteBufValue = Unpooled.wrappedBuffer(byteArray)
 
         createBuffer(byteBufValue, 7).also { buffer ->
-            assertArrayEquals(byteArray, buffer.readBytes(3, 4))
+            assertArrayEquals(byteArray, buffer.getBytes(3, 4))
         }
     }
 
     @Test
-    fun `Read remaining ByteBuffer bytes into ByteArray`() {
+    fun `Retrieve remaining ByteBuffer bytes into ByteArray`() {
         val byteArray = byteArrayOf(0x01, 0x02, 0x03, 0x04)
         val byteBufValue = Unpooled.wrappedBuffer(byteArray)
 
         createBuffer(byteBufValue, 7).also { buffer ->
-            assertArrayEquals(byteArray, buffer.readBytes())
+            assertArrayEquals(byteArray, buffer.getBytes())
         }
     }
 
