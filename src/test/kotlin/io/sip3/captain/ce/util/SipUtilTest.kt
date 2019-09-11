@@ -26,9 +26,10 @@ import org.junit.jupiter.api.Test
 class SipUtilTest {
 
     @Test
-    fun `Сheck random SIP word`() {
-        val word = SIP_WORDS.random()
-        assertTrue(SipUtil.startsWithSipWord(Unpooled.wrappedBuffer(word)))
+    fun `Сheck SIP words`() {
+        for (word in SIP_WORDS) {
+            assertTrue(SipUtil.startsWithSipWord(Unpooled.wrappedBuffer(word)))
+        }
     }
 
     @Test

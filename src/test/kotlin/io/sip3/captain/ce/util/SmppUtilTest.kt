@@ -32,8 +32,9 @@ class SmppUtilTest {
     }
 
     @Test
-    fun `Check random PDU command`() {
-        val commnadId = SmppUtil.COMMANDS.random()
-        assertTrue(SmppUtil.isPduCommand(commnadId))
+    fun `Check PDU commands`() {
+        for (command in SmppUtil.COMMANDS) {
+            assertTrue(SmppUtil.isPduCommand(command))
+        }
     }
 }
