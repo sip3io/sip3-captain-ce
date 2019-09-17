@@ -52,6 +52,13 @@ class EthernetHandlerTest {
                 0x01.toByte(), 0x55.toByte(), 0x81.toByte(), 0x00.toByte(), 0x01.toByte(), 0x55.toByte(), 0x08.toByte(),
                 0x00.toByte()
         )
+
+        // Header: Ethernet LinuxCookedCapture
+        val PACKET_4 = byteArrayOf(
+                0x00.toByte(), 0x00.toByte(), 0x03.toByte(), 0x0a.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(),
+                0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(),
+                0x08.toByte(), 0x00.toByte()
+        )
     }
 
     @Test
@@ -112,6 +119,26 @@ class EthernetHandlerTest {
         verify { anyConstructed<Ipv4Handler>().handle(any()) }
         val buffer = packetSlot.captured.payload.encode()
         assertEquals(22, buffer.readerIndex())
+    }
+
+    @Test
+    fun `Parse LinuxCookedCapture - IPv4`() {
+        // Init
+        mockkConstructor(Ipv4Handler::class)
+        val packetSlot = slot<Packet>()
+        every {
+            anyConstructed<Ipv4Handler>().handle(capture(packetSlot))
+        } just Runs
+        // Execute
+        val ethernetHandler = EthernetHandler(Vertx.vertx(), false)
+        val packet = Packet().apply {
+            this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_4))
+        }
+        ethernetHandler.handle(packet)
+        // Assert
+        verify { anyConstructed<Ipv4Handler>().handle(any()) }
+        val buffer = packetSlot.captured.payload.encode()
+        assertEquals(16, buffer.readerIndex())
     }
 
     @AfterEach

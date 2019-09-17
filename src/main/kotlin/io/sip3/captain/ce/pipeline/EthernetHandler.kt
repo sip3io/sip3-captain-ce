@@ -30,6 +30,7 @@ class EthernetHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(ve
         const val TYPE_IPV4 = 0x0800
         const val TYPE_802_1_Q = 0x8100
         const val TYPE_802_1_AD = 0x88a8
+        const val TYPE_LINUX_COOKED_CAPTURE = 0x0000
     }
 
     private val ipv4Handler = Ipv4Handler(vertx, bulkOperationsEnabled)
@@ -50,11 +51,15 @@ class EthernetHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(ve
     private fun readEthernetType(buffer: ByteBuf): Int {
         // Ethernet Type or TPI
         val ethernetType = buffer.readUnsignedShort()
-        if (ethernetType == TYPE_802_1_AD || ethernetType == TYPE_802_1_Q) {
-            // TCI
-            buffer.skipBytes(2)
-            return readEthernetType(buffer)
+
+        return when (ethernetType) {
+            TYPE_802_1_AD, TYPE_802_1_Q -> {
+                // TCI
+                buffer.skipBytes(2)
+                readEthernetType(buffer)
+            }
+            TYPE_LINUX_COOKED_CAPTURE -> readEthernetType(buffer)
+            else -> ethernetType
         }
-        return ethernetType
     }
 }
