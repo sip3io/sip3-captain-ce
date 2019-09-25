@@ -168,7 +168,7 @@ class TcpHandler : AbstractVerticle() {
                         val segment = segments.remove(sequenceNumber)
                         if (segment != null) {
                             val payload = segment.packet.payload
-                            compositeBuffer.addComponent(payload.encode())
+                            compositeBuffer.addComponent(true, payload.encode())
                         }
                     }
 
