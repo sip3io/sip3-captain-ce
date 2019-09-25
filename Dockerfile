@@ -7,11 +7,11 @@ RUN apk update && \
     apk add libpcap && \
     apk add openssl
 
-ENV SERVICE_NAME sip3-captain-ce
+ENV SERVICE_NAME sip3-captain
 ENV HOME /opt/$SERVICE_NAME
 
 ENV EXECUTABLE_FILE $HOME/$SERVICE_NAME.jar
-ADD target/$SERVICE_NAME.jar $EXECUTABLE_FILE
+ADD target/$SERVICE_NAME*.jar $EXECUTABLE_FILE
 
 ENV CONFIG_FILE $HOME/application.yml
 ADD src/main/resources/application.yml $CONFIG_FILE
