@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package io.sip3.captain.ce
+package io.sip3.captain.ce.domain
 
-object Routes {
+class SdpSession {
 
-    const val fragment = "fragment"
-    const val tcp = "tcp"
-    const val rtp = "rtp"
-    const val rtcp = "rtcp"
-    const val sender = "sender"
-    const val encoder = "encoder"
-    const val rtp_session = "rtp-session"
+    var id: Long = 0
+    var timestamp: Long = 0
+
+    var payloadType: Byte = 0
+    var clockRate = 0
+    var codecIe = 0F
+    var codecBpl = 0F
 }

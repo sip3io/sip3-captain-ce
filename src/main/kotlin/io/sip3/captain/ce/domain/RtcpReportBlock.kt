@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package io.sip3.captain.ce
+package io.sip3.captain.ce.domain
 
-object Routes {
+class RtcpReportBlock {
 
-    const val fragment = "fragment"
-    const val tcp = "tcp"
-    const val rtp = "rtp"
-    const val rtcp = "rtcp"
-    const val sender = "sender"
-    const val encoder = "encoder"
-    const val rtp_session = "rtp-session"
+    var ssrc: Long = 0
+    var fractionLost: Short = 0
+    var cumulativePacketLost: Long = 0
+    var extendedSeqNumber: Long = 0
+    var interarrivalJitter: Long = 0
+
+    var lsrTimestamp: Long = 0
+    var dlsrTimestamp: Long = 0
 }

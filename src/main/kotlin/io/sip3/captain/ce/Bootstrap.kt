@@ -27,7 +27,9 @@ import io.sip3.captain.ce.capturing.PcapEngine
 import io.sip3.captain.ce.encoder.Encoder
 import io.sip3.captain.ce.pipeline.Ipv4FragmentHandler
 import io.sip3.captain.ce.pipeline.TcpHandler
+import io.sip3.captain.ce.rtcp.RtcpCollector
 import io.sip3.captain.ce.sender.Sender
+import io.sip3.captain.ee.socket.ManagementSocket
 import io.vertx.config.ConfigRetriever
 import io.vertx.config.ConfigRetrieverOptions
 import io.vertx.config.ConfigStoreOptions
@@ -126,11 +128,17 @@ open class Bootstrap : AbstractVerticle() {
         vertx.deployVerticle(TcpHandler::class, config)
         vertx.deployVerticle(Encoder::class, config, instances)
         vertx.deployVerticle(Sender::class, config, instances)
+        if (config.containsKey("management")) {
+            vertx.deployVerticle(ManagementSocket::class, config)
+        }
         if (config.containsKey("pcap")) {
             vertx.deployVerticle(PcapEngine::class, config)
         }
         if (config.containsKey("dpdk")) {
             vertx.deployVerticle(DpdkEngine::class, config)
+        }
+        if (config.containsKey("rtcp")) {
+            vertx.deployVerticle(RtcpCollector::class, config)
         }
     }
 

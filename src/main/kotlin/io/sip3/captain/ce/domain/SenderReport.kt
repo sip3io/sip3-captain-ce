@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 
-package io.sip3.captain.ce
+package io.sip3.captain.ce.domain
 
-object Routes {
+class SenderReport {
 
-    const val fragment = "fragment"
-    const val tcp = "tcp"
-    const val rtp = "rtp"
-    const val rtcp = "rtcp"
-    const val sender = "sender"
-    const val encoder = "encoder"
-    const val rtp_session = "rtp-session"
+    val packetType = 200
+    var reportCount: Byte = 0
+    var length: Int = 0
+    var senderSsrc: Long = 0
+
+    var ntpTimestampMsw: Long = 0
+    var ntpTimestampLsw: Long = 0
+    val ntpTimestamp by lazy {
+        (((ntpTimestampMsw and 0x0000FFFF) shl 16) or ((ntpTimestampLsw and 0xFFFF0000) shr 16)) and 0xFFFF_FFFF
+    }
+    var rtpTimestamp: Long = 0
+
+    var senderPacketCount: Long = 0
+
+    var reportBlocks = mutableListOf<RtcpReportBlock>()
 }

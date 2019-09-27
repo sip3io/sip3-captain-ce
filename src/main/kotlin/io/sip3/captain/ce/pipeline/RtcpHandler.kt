@@ -47,7 +47,7 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
         packets.add(packet)
 
         if (packets.size >= bulkSize) {
-            vertx.eventBus().send(Routes.encoder, packets.toList(), USE_LOCAL_CODEC)
+            vertx.eventBus().send(Routes.rtcp, packets.toList(), USE_LOCAL_CODEC)
             packets.clear()
         }
     }
