@@ -12,8 +12,8 @@ name: sip3-captain
 #  bulk-size: 256
 
 #! Pcap (libpcap, WinPcap, Npcap)
-#pcap:
-#  dir: /tmp/sip3-captain
+pcap:
+  dir: /tmp/sip3-captain
 #  dev: eth0
 #  bpf-filter: udp
 #  timeout-millis: 10

@@ -18,9 +18,9 @@ package io.sip3.captain.ce.encoder
 
 import io.sip3.captain.ce.Routes
 import io.sip3.captain.ce.USE_LOCAL_CODEC
-import io.sip3.captain.ce.VertxTest
 import io.sip3.captain.ce.domain.ByteArrayPayload
 import io.sip3.captain.ce.domain.Packet
+import io.sip3.commons.vertx.test.VertxTest
 import io.vertx.core.buffer.Buffer
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals

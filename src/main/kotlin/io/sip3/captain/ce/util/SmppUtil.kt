@@ -17,6 +17,7 @@
 package io.sip3.captain.ce.util
 
 import io.netty.buffer.ByteBuf
+import io.sip3.commons.util.remainingCapacity
 
 object SmppUtil {
 

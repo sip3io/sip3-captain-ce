@@ -18,10 +18,10 @@ package io.sip3.captain.ce.pipeline
 
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.Routes
-import io.sip3.captain.ce.VertxTest
 import io.sip3.captain.ce.domain.ByteBufPayload
 import io.sip3.captain.ce.domain.Packet
-import io.sip3.captain.ce.util.remainingCapacity
+import io.sip3.commons.util.remainingCapacity
+import io.sip3.commons.vertx.test.VertxTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.sql.Timestamp

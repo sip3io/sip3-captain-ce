@@ -18,6 +18,7 @@ package io.sip3.captain.ce
 
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.encoder.Encoder
+import io.sip3.commons.vertx.test.VertxTest
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.datagram.listenAwait
 import org.junit.jupiter.api.Assertions.assertArrayEquals

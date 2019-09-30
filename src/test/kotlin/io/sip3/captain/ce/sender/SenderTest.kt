@@ -18,7 +18,7 @@ package io.sip3.captain.ce.sender
 
 import io.sip3.captain.ce.Routes
 import io.sip3.captain.ce.USE_LOCAL_CODEC
-import io.sip3.captain.ce.VertxTest
+import io.sip3.commons.vertx.test.VertxTest
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.datagram.listenAwait

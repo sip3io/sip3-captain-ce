@@ -22,10 +22,10 @@ import io.sip3.captain.ce.Routes
 import io.sip3.captain.ce.domain.ByteBufPayload
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.domain.TcpSegment
-import io.sip3.captain.ce.util.IpUtil
 import io.sip3.captain.ce.util.SipUtil
 import io.sip3.captain.ce.util.SmppUtil
-import io.sip3.captain.ce.util.remainingCapacity
+import io.sip3.commons.util.IpUtil
+import io.sip3.commons.util.remainingCapacity
 import io.vertx.core.AbstractVerticle
 import mu.KotlinLogging
 import java.util.*
