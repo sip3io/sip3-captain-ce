@@ -28,7 +28,9 @@ import io.vertx.kotlin.core.eventbus.deliveryOptionsOf
 
 val USE_LOCAL_CODEC = deliveryOptionsOf(codecName = "local", localOnly = true)
 
-open class Bootstrap : AbstractBootstrap(configLocations = listOf("config.location")) {
+open class Bootstrap : AbstractBootstrap() {
+
+    override val configLocations = listOf("config.location")
 
     override fun deployVerticles(config: JsonObject) {
         // Read `vertx.instances`
