@@ -16,7 +16,6 @@
 
 package io.sip3.captain.ce.capturing
 
-import io.micrometer.core.instrument.DistributionSummary
 import io.micrometer.core.instrument.Metrics
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.domain.ByteBufPayload
@@ -49,9 +48,7 @@ class PcapEngine : AbstractVerticle() {
     var bpfFilter: String? = null
     var timeoutMillis: Int? = null
 
-    private val packetsCaptured = DistributionSummary.builder("packets_captured")
-            .tag("source", "pcap")
-            .register(Metrics.globalRegistry)
+    private val packetsCaptured = Metrics.counter("packets_captured", "source", "pcap")
 
     private lateinit var ethernetHandler: EthernetHandler
 
@@ -79,7 +76,7 @@ class PcapEngine : AbstractVerticle() {
         // Standard java `WatchService` is not capable to see changes in mounted volumes,
         // that's why we use `FileSystemWatcher` from spring-boot-devtools.
         val watcher = FileSystemWatcher()
-        watcher.addSourceFolder(File(dir))
+        watcher.addSourceFolder(File(dir!!))
         watcher.addListener { changedFiles ->
             changedFiles.flatMap(ChangedFiles::getFiles)
                     .map(ChangedFile::getFile)
@@ -128,7 +125,7 @@ class PcapEngine : AbstractVerticle() {
             setFilter(it, BpfProgram.BpfCompileMode.OPTIMIZE)
         }
         loop(0, (RawPacketListener { buffer ->
-            packetsCaptured.record(buffer.size.toDouble())
+            packetsCaptured.increment()
 
             val packet = Packet().apply {
                 this.timestamp = getTimestamp()

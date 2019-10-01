@@ -16,7 +16,6 @@
 
 package io.sip3.captain.ce.capturing
 
-import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.Metrics
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.domain.ByteBufPayload
@@ -54,9 +53,7 @@ class DpdkEngine : AbstractVerticle() {
     var rxQueueSize: Int = 1
     var bulkSize: Int = 1
 
-    private val packetsCaptured = Counter.builder("packets_captured")
-            .tag("source", "dpdk")
-            .register(Metrics.globalRegistry)
+    private val packetsCaptured = Metrics.counter("packets_captured", "source", "dpdk")
 
     private val cores = mutableMapOf<Int, Core>()
 
@@ -81,7 +78,7 @@ class DpdkEngine : AbstractVerticle() {
             // Run period task in Vert.x `worker pool` to do not block `event loop`
             vertx.executeBlocking<Any>({
                 var packetsCapturedSum: Long = 0
-                cores.forEach { (i, core) ->
+                cores.forEach { (_, core) ->
                     packetsCapturedSum += core.packetsCaptured.getAndSet(0)
                 }
                 packetsCaptured.increment(packetsCapturedSum.toDouble())

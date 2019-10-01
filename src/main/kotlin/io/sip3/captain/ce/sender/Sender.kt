@@ -16,7 +16,6 @@
 
 package io.sip3.captain.ce.sender
 
-import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.Metrics
 import io.sip3.captain.ce.Routes
 import io.vertx.core.AbstractVerticle
@@ -43,7 +42,7 @@ class Sender : AbstractVerticle() {
     var udp: DatagramSocket? = null
     var tcp: NetSocket? = null
 
-    private val packetsSent = Counter.builder("packets_sent").register(Metrics.globalRegistry)
+    private val packetsSent = Metrics.counter("packets_sent")
 
     override fun start() {
         config().getJsonObject("sender").let { config ->
