@@ -50,7 +50,7 @@ class RtcpHandlerTest : VertxTest() {
                     rtcpHandler.handle(packet)
                 },
                 assert = {
-                    vertx.eventBus().consumer<List<Packet>>(Routes.encoder) { event ->
+                    vertx.eventBus().consumer<List<Packet>>(Routes.rtcp) { event ->
                         val packets = event.body()
                         context.verify {
                             assertEquals(1, packets.size)

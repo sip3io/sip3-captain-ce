@@ -25,6 +25,7 @@ import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.pcap4j.core.Pcaps
@@ -32,6 +33,7 @@ import java.io.File
 import java.net.InetAddress
 
 @ExtendWith(MockKExtension::class)
+@Disabled
 class PcapEngineTest : VertxTest() {
 
     companion object {

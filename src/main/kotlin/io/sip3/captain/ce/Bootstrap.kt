@@ -23,6 +23,7 @@ import io.sip3.captain.ce.pipeline.Ipv4FragmentHandler
 import io.sip3.captain.ce.pipeline.TcpHandler
 import io.sip3.captain.ce.rtcp.RtcpCollector
 import io.sip3.captain.ce.sender.Sender
+import io.sip3.captain.ce.socket.ManagementSocket
 import io.sip3.commons.vertx.AbstractBootstrap
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.eventbus.deliveryOptionsOf

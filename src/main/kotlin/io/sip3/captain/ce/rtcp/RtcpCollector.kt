@@ -56,7 +56,7 @@ class RtcpCollector : AbstractVerticle() {
         }
 
         // Consumer for sdpSession info from remote host
-        vertx.eventBus().localConsumer<SdpSession>(Routes.rtp_session) { event ->
+        vertx.eventBus().localConsumer<SdpSession>(Routes.sdp) { event ->
             try {
                 val sdpSession = event.body()
                 onSdpSession(sdpSession)

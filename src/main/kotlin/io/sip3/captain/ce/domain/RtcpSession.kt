@@ -16,7 +16,7 @@
 
 package io.sip3.captain.ce.domain
 
-import io.sip3.captain.ce.util.IpUtil
+import io.sip3.commons.util.IpUtil
 import java.sql.Timestamp
 
 class RtcpSession {

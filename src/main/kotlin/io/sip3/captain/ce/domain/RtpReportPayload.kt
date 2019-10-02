@@ -18,7 +18,7 @@ package io.sip3.captain.ce.domain
 
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
-import io.sip3.captain.ce.util.writeTlv
+import io.sip3.commons.util.writeTlv
 
 class RtpReportPayload : Payload {
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.sip3.captain.ee.socket
+package io.sip3.captain.ce.socket
 
 import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.Routes
@@ -116,7 +116,7 @@ class ManagementSocket : AbstractVerticle() {
             TYPE_SDP_SESSION -> {
                 val payload = message.getJsonObject("payload")
                 val sdpSession: SdpSession = payload.mapTo(SdpSession::class.java)
-                vertx.eventBus().publish(Routes.rtp_session, sdpSession, USE_LOCAL_CODEC)
+                vertx.eventBus().publish(Routes.sdp, sdpSession, USE_LOCAL_CODEC)
             }
             else -> logger.error("Unknown message type. Message: ${message.encodePrettily()}")
         }
