@@ -20,7 +20,7 @@ import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.Routes
 import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Packet
-import io.sip3.captain.ce.util.writeTlv
+import io.sip3.commons.util.writeTlv
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.buffer.Buffer
 import mu.KotlinLogging

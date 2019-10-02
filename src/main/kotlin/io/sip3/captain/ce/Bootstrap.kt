@@ -16,12 +16,6 @@
 
 package io.sip3.captain.ce
 
-import io.micrometer.core.instrument.Clock
-import io.micrometer.core.instrument.Metrics
-import io.micrometer.core.instrument.logging.LoggingMeterRegistry
-import io.micrometer.core.instrument.logging.LoggingRegistryConfig
-import io.micrometer.influx.InfluxConfig
-import io.micrometer.influx.InfluxMeterRegistry
 import io.sip3.captain.ce.capturing.DpdkEngine
 import io.sip3.captain.ce.capturing.PcapEngine
 import io.sip3.captain.ce.encoder.Encoder
@@ -29,101 +23,20 @@ import io.sip3.captain.ce.pipeline.Ipv4FragmentHandler
 import io.sip3.captain.ce.pipeline.TcpHandler
 import io.sip3.captain.ce.rtcp.RtcpCollector
 import io.sip3.captain.ce.sender.Sender
-import io.sip3.captain.ee.socket.ManagementSocket
-import io.vertx.config.ConfigRetriever
-import io.vertx.config.ConfigRetrieverOptions
-import io.vertx.config.ConfigStoreOptions
-import io.vertx.core.AbstractVerticle
-import io.vertx.core.Verticle
-import io.vertx.core.Vertx
-import io.vertx.core.buffer.Buffer
-import io.vertx.core.eventbus.MessageCodec
+import io.sip3.commons.vertx.AbstractBootstrap
 import io.vertx.core.json.JsonObject
-import io.vertx.kotlin.config.configRetrieverOptionsOf
-import io.vertx.kotlin.config.configStoreOptionsOf
-import io.vertx.kotlin.core.deploymentOptionsOf
 import io.vertx.kotlin.core.eventbus.deliveryOptionsOf
-import mu.KotlinLogging
-import java.time.Duration
-import kotlin.reflect.KClass
 
 val USE_LOCAL_CODEC = deliveryOptionsOf(codecName = "local", localOnly = true)
 
-open class Bootstrap : AbstractVerticle() {
+open class Bootstrap : AbstractBootstrap() {
 
-    private val logger = KotlinLogging.logger {}
+    override val configLocations = listOf("config.location")
 
-    override fun start() {
-        // By design Vert.x has default codecs for byte arrays, strings and JSON objects only.
-        // Define `local` codec to avoid serialization costs within the application.
-        vertx.registerLocalCodec()
-        // Read configuration and deploy verticles.
-        ConfigRetriever.create(vertx, configRetrieverOptions()).getConfig { asr ->
-            if (asr.failed()) {
-                logger.error("ConfigRetriever 'getConfig()' failed.", asr.cause())
-                vertx.close()
-            } else {
-                val config = asr.result().mergeIn(config())
-                logger.info("Configuration:\n ${config.encodePrettily()}")
-                deployMeterRegistries(config)
-                deployVerticles(config)
-            }
-        }
-    }
-
-    fun configRetrieverOptions(): ConfigRetrieverOptions {
-        val configStoreOptions = mutableListOf<ConfigStoreOptions>()
-        configStoreOptions.apply {
-            var options = configStoreOptionsOf(
-                    type = "file",
-                    format = "yaml",
-                    config = JsonObject().put("path", "application.yml")
-            )
-            add(options)
-            System.getProperty("config.location")?.let { path ->
-                options = configStoreOptionsOf(
-                        type = "file",
-                        format = "yaml",
-                        config = JsonObject().put("path", path)
-                )
-                add(options)
-            }
-        }
-        return configRetrieverOptionsOf(stores = configStoreOptions)
-    }
-
-    open fun deployMeterRegistries(config: JsonObject) {
-        val registry = Metrics.globalRegistry
-        config.getString("name")?.let { name ->
-            registry.config().commonTags("name", name)
-        }
-        config.getJsonObject("metrics")?.let { meters ->
-            meters.getJsonObject("logging")?.let { logging ->
-                val loggingMeterRegistry = LoggingMeterRegistry(object : LoggingRegistryConfig {
-                    override fun get(k: String) = null
-                    override fun step() = Duration.ofMillis(logging.getLong("step"))
-                }, Clock.SYSTEM)
-                registry.add(loggingMeterRegistry)
-            }
-            meters.getJsonObject("influxdb")?.let { influxdb ->
-                val influxMeterRegistry = InfluxMeterRegistry(object : InfluxConfig {
-                    override fun get(k: String) = null
-                    override fun uri() = influxdb.getString("uri")
-                    override fun db() = influxdb.getString("db")
-                    override fun step() = influxdb.getLong("step")?.let { Duration.ofMillis(it) } ?: super.step()
-                    override fun batchSize() = influxdb.getInteger("batch-size") ?: super.batchSize()
-                    override fun retentionPolicy() = influxdb.getString("retention-policy") ?: super.retentionPolicy()
-                    override fun retentionDuration() = influxdb.getString("retention-duration") ?: super.retentionDuration()
-                    override fun retentionShardDuration() = influxdb.getString("retention-shard-duration") ?: super.retentionShardDuration()
-                    override fun retentionReplicationFactor() = influxdb.getInteger("retention-replication-factor") ?: super.retentionReplicationFactor()
-                }, Clock.SYSTEM)
-                registry.add(influxMeterRegistry)
-            }
-        }
-    }
-
-    open fun deployVerticles(config: JsonObject) {
+    override fun deployVerticles(config: JsonObject) {
+        // Read `vertx.instances`
         val instances = config.getJsonObject("vertx")?.getInteger("instances") ?: 1
+        // Deploy verticles
         vertx.deployVerticle(Ipv4FragmentHandler::class, config)
         vertx.deployVerticle(TcpHandler::class, config)
         vertx.deployVerticle(Encoder::class, config, instances)
@@ -141,29 +54,4 @@ open class Bootstrap : AbstractVerticle() {
             vertx.deployVerticle(RtcpCollector::class, config)
         }
     }
-
-    fun Vertx.deployVerticle(verticle: KClass<out Verticle>, config: JsonObject, instances: Int = 1) {
-        (0 until instances).forEach { index ->
-            val options = deploymentOptionsOf(
-                    config = config.copy().put("index", index)
-            )
-            deployVerticle(verticle.java, options) { asr ->
-                if (asr.failed()) {
-                    logger.error("Vertx 'deployVerticle()' failed. Verticle: $verticle", asr.cause())
-                    close()
-                }
-            }
-        }
-    }
-}
-
-fun Vertx.registerLocalCodec() {
-    eventBus().unregisterCodec("local")
-    eventBus().registerCodec(object : MessageCodec<Any, Any> {
-        override fun decodeFromWire(pos: Int, buffer: Buffer?) = throw NotImplementedError()
-        override fun encodeToWire(buffer: Buffer?, s: Any?) = throw NotImplementedError()
-        override fun transform(s: Any?) = s
-        override fun name() = "local"
-        override fun systemCodecID(): Byte = -1
-    })
 }

@@ -16,28 +16,11 @@
     </parent>
 
     <dependencies>
-        <!-- Kotlin -->
+        <!-- SIP3 -->
         <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-osgi-bundle</artifactId>
-        </dependency>
-
-        <!-- Vert.x -->
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-lang-kotlin</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-lang-kotlin-coroutines</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-config</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-config-yaml</artifactId>
+            <groupId>io.sip3.commons</groupId>
+            <artifactId>sip3-commons</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <!-- Pcap4j -->
@@ -50,16 +33,6 @@
             <artifactId>pcap4j-core</artifactId>
         </dependency>
 
-        <!-- Micrometer -->
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-registry-influx</artifactId>
-        </dependency>
-
         <!-- Utils -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -70,26 +43,7 @@
             <artifactId>commons-collections4</artifactId>
         </dependency>
 
-        <!-- Logging -->
-        <dependency>
-            <groupId>io.github.microutils</groupId>
-            <artifactId>kotlin-logging</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>log4j-over-slf4j</artifactId>
-        </dependency>
-
         <!-- Test -->
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-junit5</artifactId>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>io.mockk</groupId>
             <artifactId>mockk</artifactId>

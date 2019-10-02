@@ -18,9 +18,9 @@ package io.sip3.captain.ce.capturing
 
 import io.mockk.*
 import io.mockk.junit5.MockKExtension
-import io.sip3.captain.ce.VertxTest
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.pipeline.EthernetHandler
+import io.sip3.commons.vertx.test.VertxTest
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.AfterEach
