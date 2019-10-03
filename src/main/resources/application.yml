@@ -32,7 +32,6 @@ sender:
 #    key-store: ...
 #    key-store-password: ...
 
-
 #! Metrics
 #metrics:
 #  logging:
