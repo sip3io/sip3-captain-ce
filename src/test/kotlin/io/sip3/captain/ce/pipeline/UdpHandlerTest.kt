@@ -19,8 +19,8 @@ package io.sip3.captain.ce.pipeline
 import io.mockk.*
 import io.mockk.junit5.MockKExtension
 import io.netty.buffer.Unpooled
-import io.sip3.captain.ce.domain.ByteBufPayload
 import io.sip3.captain.ce.domain.Packet
+import io.sip3.captain.ce.domain.payload.ByteBufPayload
 import io.sip3.commons.util.remainingCapacity
 import io.vertx.core.Vertx
 import org.junit.jupiter.api.AfterEach

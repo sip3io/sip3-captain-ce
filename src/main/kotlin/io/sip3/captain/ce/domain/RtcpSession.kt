@@ -56,5 +56,4 @@ class RtcpSession {
         val dstAddr = IpUtil.convertToInt(dstAddr).toLong()
         ((dstAddr shl 32) or dstPort.toLong()) - 1
     }
-
 }

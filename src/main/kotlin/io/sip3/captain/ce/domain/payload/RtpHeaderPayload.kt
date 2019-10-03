@@ -14,14 +14,24 @@
  * limitations under the License.
  */
 
-package io.sip3.captain.ce.domain
+package io.sip3.captain.ce.domain.payload
 
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 
-inline class ByteArrayPayload(val bytes: ByteArray) : Payload {
+class RtpHeaderPayload : Payload {
+
+    var payloadType: Byte = 0
+    var sequenceNumber: Int = 0
+    var timestamp: Long = 0
+    var ssrc: Long = 0
 
     override fun encode(): ByteBuf {
-        return Unpooled.wrappedBuffer(bytes)
+        return Unpooled.buffer(21).apply {
+            writeByte(payloadType.toInt())
+            writeInt(sequenceNumber)
+            writeLong(timestamp)
+            writeLong(ssrc)
+        }
     }
 }

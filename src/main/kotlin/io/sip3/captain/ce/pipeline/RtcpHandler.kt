@@ -18,8 +18,8 @@ package io.sip3.captain.ce.pipeline
 
 import io.sip3.captain.ce.Routes
 import io.sip3.captain.ce.USE_LOCAL_CODEC
-import io.sip3.captain.ce.domain.ByteArrayPayload
 import io.sip3.captain.ce.domain.Packet
+import io.sip3.captain.ce.domain.payload.ByteArrayPayload
 import io.sip3.commons.util.getBytes
 import io.vertx.core.Vertx
 

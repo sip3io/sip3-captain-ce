@@ -19,9 +19,9 @@ package io.sip3.captain.ce.pipeline
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.Routes
-import io.sip3.captain.ce.domain.ByteBufPayload
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.domain.TcpSegment
+import io.sip3.captain.ce.domain.payload.ByteBufPayload
 import io.sip3.captain.ce.util.SipUtil
 import io.sip3.captain.ce.util.SmppUtil
 import io.sip3.commons.util.IpUtil

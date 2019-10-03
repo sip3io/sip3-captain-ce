@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.sip3.captain.ce.domain
+package io.sip3.captain.ce.domain.payload
 
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled

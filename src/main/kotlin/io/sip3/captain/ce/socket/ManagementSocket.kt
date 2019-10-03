@@ -16,8 +16,8 @@
 
 package io.sip3.captain.ce.socket
 
-import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.Routes
+import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.SdpSession
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.datagram.DatagramSocket
@@ -49,6 +49,7 @@ class ManagementSocket : AbstractVerticle() {
         config().getJsonObject("management").let { config ->
             config.getString("schema")?.let { schemaValue ->
                 schema = schemaValue
+                // TODO: Let's use Kotlin `require()` - looks nice IMO
                 if (schema != "udp") {
                     throw IllegalArgumentException("Unknown schema: '$schema'")
                 }
@@ -56,7 +57,7 @@ class ManagementSocket : AbstractVerticle() {
 
             config.getString("local-host")?.let { localHost ->
                 localUri = URI("$schema://$localHost")
-
+                // TODO: Let's use Kotlin `require()` - looks nice IMO
                 if (localUri.port == -1 || localUri.host == null) {
                     throw IllegalArgumentException("local-host")
                 }
@@ -64,7 +65,7 @@ class ManagementSocket : AbstractVerticle() {
 
             config.getString("remote-host")?.let { remoteHost ->
                 remoteUri = URI("$schema://$remoteHost")
-
+                // TODO: Let's use Kotlin `require()` - looks nice IMO
                 if (remoteUri.port == -1 || remoteUri.host == null) {
                     throw IllegalArgumentException("remote-host")
                 }

@@ -19,9 +19,9 @@ package io.sip3.captain.ce.pipeline
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.Routes
-import io.sip3.captain.ce.domain.ByteBufPayload
 import io.sip3.captain.ce.domain.Ipv4Header
 import io.sip3.captain.ce.domain.Packet
+import io.sip3.captain.ce.domain.payload.ByteBufPayload
 import io.vertx.core.AbstractVerticle
 import mu.KotlinLogging
 import org.apache.commons.collections4.map.PassiveExpiringMap

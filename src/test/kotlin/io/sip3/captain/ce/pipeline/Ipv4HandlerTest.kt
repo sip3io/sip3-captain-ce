@@ -20,8 +20,8 @@ import io.mockk.*
 import io.mockk.junit5.MockKExtension
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.Routes
-import io.sip3.captain.ce.domain.ByteBufPayload
 import io.sip3.captain.ce.domain.Packet
+import io.sip3.captain.ce.domain.payload.ByteBufPayload
 import io.sip3.commons.util.remainingCapacity
 import io.sip3.commons.vertx.test.VertxTest
 import io.vertx.core.Vertx

@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package io.sip3.captain.ce.domain
+package io.sip3.captain.ce.domain.payload
 
 import io.netty.buffer.ByteBuf
 
-inline class ByteBufPayload(val buffer: ByteBuf) : Payload {
+interface Payload {
 
-    override fun encode(): ByteBuf {
-        return buffer
-    }
+    fun encode(): ByteBuf
 }
