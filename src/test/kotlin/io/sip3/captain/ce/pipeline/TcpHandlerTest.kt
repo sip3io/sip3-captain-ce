@@ -22,7 +22,8 @@ import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.Routes
 import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Packet
-import io.sip3.captain.ce.domain.payload.ByteBufPayload
+import io.sip3.commons.domain.payload.ByteBufPayload
+import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.remainingCapacity
 import io.sip3.commons.vertx.test.VertxTest
 import org.junit.jupiter.api.AfterEach
@@ -105,7 +106,7 @@ class TcpHandlerTest : VertxTest() {
                             val packet = packetSlot.captured
                             assertEquals(5060, packet.srcPort)
                             assertEquals(40304, packet.dstPort)
-                            val buffer = packet.payload.encode()
+                            val buffer = (packet.payload as Encodable).encode()
                             assertEquals(21, buffer.remainingCapacity())
                         }
                         context.completeNow()
@@ -143,7 +144,7 @@ class TcpHandlerTest : VertxTest() {
                             val packet = packetSlot.captured
                             assertEquals(5060, packet.srcPort)
                             assertEquals(40304, packet.dstPort)
-                            val buffer = packet.payload.encode()
+                            val buffer = (packet.payload as Encodable).encode()
                             assertEquals(21, buffer.remainingCapacity())
                         }
                         context.completeNow()
@@ -177,7 +178,7 @@ class TcpHandlerTest : VertxTest() {
                             val packet = packetSlot.captured
                             assertEquals(5060, packet.srcPort)
                             assertEquals(40304, packet.dstPort)
-                            val buffer = packet.payload.encode()
+                            val buffer = (packet.payload as Encodable).encode()
                             assertEquals(16, buffer.remainingCapacity())
                         }
                         context.completeNow()

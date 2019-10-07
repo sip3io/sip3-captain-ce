@@ -16,6 +16,7 @@
 
 package io.sip3.captain.ce.domain
 
+import io.sip3.commons.domain.SdpSession
 import io.sip3.commons.util.IpUtil
 import java.sql.Timestamp
 
@@ -27,33 +28,22 @@ class RtcpSession {
     var dstPort: Int = 0
     lateinit var srcAddr: ByteArray
     var srcPort: Int = 0
-    var ssrc: Long = 0
-    var packetType: Byte = -1
-    var payloadType: Int = -1
-
-    // Counters
-    var rtcpPacketCount: Int = 0
-    var receivedPacketCount: Int = 0
-    var lostPacketCount: Int = 0
 
     // Jitter
     var lastJitter = 0F
-    var minJitter = Float.MAX_VALUE
-    var maxJitter = 0F
-    var jitterSum = 0F
 
-    lateinit var firstReport: RtcpReportBlock
-    lateinit var lastReport: RtcpReportBlock
+    lateinit var previousReport: RtcpReportBlock
+    var lastNtpTimestamp: Long = 0
     var lastPacketTimestamp: Long = 0
 
     // SDP session
     var sdpSession: SdpSession? = null
     val srcSdpSessionId: Long by lazy {
         val srcAddrAsLong = IpUtil.convertToInt(srcAddr).toLong()
-        ((srcAddrAsLong shl 32) or srcPort.toLong()) - 1
+        ((srcAddrAsLong shl 32) or (srcPort - 1).toLong())
     }
     val dstSdpSessionId: Long by lazy {
         val dstAddr = IpUtil.convertToInt(dstAddr).toLong()
-        ((dstAddr shl 32) or dstPort.toLong()) - 1
+        ((dstAddr shl 32) or (dstPort - 1).toLong())
     }
 }

@@ -18,6 +18,7 @@ package io.sip3.captain.ce.pipeline
 
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.util.SipUtil
+import io.sip3.commons.domain.payload.Encodable
 import io.vertx.core.Vertx
 
 /**
@@ -30,7 +31,7 @@ class UdpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
     private val sipHandler = SipHandler(vertx, bulkOperationsEnabled)
 
     override fun onPacket(packet: Packet) {
-        val buffer = packet.payload.encode()
+        val buffer = (packet.payload as Encodable).encode()
 
         // Source Port
         packet.srcPort = buffer.readUnsignedShort()

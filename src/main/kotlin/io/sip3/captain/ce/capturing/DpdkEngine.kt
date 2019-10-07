@@ -19,8 +19,8 @@ package io.sip3.captain.ce.capturing
 import io.micrometer.core.instrument.Metrics
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.domain.Packet
-import io.sip3.captain.ce.domain.payload.ByteBufPayload
 import io.sip3.captain.ce.pipeline.EthernetHandler
+import io.sip3.commons.domain.payload.ByteBufPayload
 import io.vertx.core.AbstractVerticle
 import mu.KotlinLogging
 import java.nio.ByteBuffer

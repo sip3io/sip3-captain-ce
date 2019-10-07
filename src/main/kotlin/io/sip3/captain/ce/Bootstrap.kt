@@ -21,7 +21,6 @@ import io.sip3.captain.ce.capturing.PcapEngine
 import io.sip3.captain.ce.encoder.Encoder
 import io.sip3.captain.ce.pipeline.Ipv4FragmentHandler
 import io.sip3.captain.ce.pipeline.TcpHandler
-import io.sip3.captain.ce.rtcp.RtcpCollector
 import io.sip3.captain.ce.sender.Sender
 import io.sip3.captain.ce.socket.ManagementSocket
 import io.sip3.commons.vertx.AbstractBootstrap
@@ -50,9 +49,6 @@ open class Bootstrap : AbstractBootstrap() {
         }
         if (config.containsKey("dpdk")) {
             vertx.deployVerticle(DpdkEngine::class, config)
-        }
-        if (config.containsKey("rtcp")) {
-            vertx.deployVerticle(RtcpCollector::class, config)
         }
     }
 }

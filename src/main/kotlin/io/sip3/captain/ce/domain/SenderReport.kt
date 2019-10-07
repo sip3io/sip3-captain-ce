@@ -16,19 +16,20 @@
 
 package io.sip3.captain.ce.domain
 
+import org.apache.commons.net.ntp.TimeStamp
+
 class SenderReport {
 
     val packetType = 200
-    var reportCount: Byte = 0
+    var reportBlockCount: Byte = 0
     var length: Int = 0
     var senderSsrc: Long = 0
 
     var ntpTimestampMsw: Long = 0
     var ntpTimestampLsw: Long = 0
     val ntpTimestamp by lazy {
-        (((ntpTimestampMsw and 0x0000FFFF) shl 16) or ((ntpTimestampLsw and 0xFFFF0000) shr 16)) and 0xFFFF_FFFF
+        TimeStamp("${ntpTimestampMsw.toString(16)}.${ntpTimestampLsw.toString(16)}").time
     }
-    var rtpTimestamp: Long = 0
 
     var senderPacketCount: Long = 0
 

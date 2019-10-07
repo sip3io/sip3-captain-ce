@@ -19,8 +19,9 @@ package io.sip3.captain.ce.pipeline
 import io.sip3.captain.ce.Routes
 import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Packet
-import io.sip3.captain.ce.domain.payload.ByteArrayPayload
 import io.sip3.captain.ce.util.SmppUtil
+import io.sip3.commons.domain.payload.ByteArrayPayload
+import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.getBytes
 import io.sip3.commons.util.remainingCapacity
 import io.vertx.core.Vertx
@@ -42,7 +43,7 @@ class SmppHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
     }
 
     override fun onPacket(packet: Packet) {
-        val buffer = packet.payload.encode()
+        val buffer = (packet.payload as Encodable).encode()
 
         if (SmppUtil.checkMinPduLength(buffer)) {
             val offset = buffer.readerIndex()

@@ -21,7 +21,8 @@ import io.mockk.junit5.MockKExtension
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.Routes
 import io.sip3.captain.ce.domain.Packet
-import io.sip3.captain.ce.domain.payload.ByteBufPayload
+import io.sip3.commons.domain.payload.ByteBufPayload
+import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.remainingCapacity
 import io.sip3.commons.vertx.test.VertxTest
 import io.vertx.core.Vertx
@@ -94,7 +95,7 @@ class Ipv4HandlerTest : VertxTest() {
         // Assert
         verify { anyConstructed<UdpHandler>().handle(any()) }
         packet = packetSlot.captured
-        val buffer = packet.payload.encode()
+        val buffer = (packet.payload as Encodable).encode()
         val srcAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte()))
         assertEquals(srcAddr, InetAddress.getByAddress(packet.srcAddr))
         val dstAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte()))
@@ -121,7 +122,7 @@ class Ipv4HandlerTest : VertxTest() {
                         context.verify {
                             assertEquals(1, packets.size)
                             val packet = packets[0]
-                            val buffer = packet.payload.encode()
+                            val buffer = (packet.payload as Encodable).encode()
                             val srcAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte()))
                             assertEquals(srcAddr, InetAddress.getByAddress(packet.srcAddr))
                             val dstAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte()))
@@ -151,7 +152,7 @@ class Ipv4HandlerTest : VertxTest() {
         // Assert
         verify { anyConstructed<UdpHandler>().handle(any()) }
         packet = packetSlot.captured
-        val buffer = packet.payload.encode()
+        val buffer = (packet.payload as Encodable).encode()
         val srcAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte()))
         assertEquals(srcAddr, InetAddress.getByAddress(packet.srcAddr))
         val dstAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte()))
@@ -176,7 +177,7 @@ class Ipv4HandlerTest : VertxTest() {
         // Assert
         verify { anyConstructed<UdpHandler>().handle(any()) }
         packet = packetSlot.captured
-        val buffer = packet.payload.encode()
+        val buffer = (packet.payload as Encodable).encode()
         assertTrue(packet.rejected)
         val srcAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte()))
         assertEquals(srcAddr, InetAddress.getByAddress(packet.srcAddr))

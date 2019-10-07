@@ -21,9 +21,10 @@ import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.Routes
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.domain.TcpSegment
-import io.sip3.captain.ce.domain.payload.ByteBufPayload
 import io.sip3.captain.ce.util.SipUtil
 import io.sip3.captain.ce.util.SmppUtil
+import io.sip3.commons.domain.payload.ByteBufPayload
+import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.IpUtil
 import io.sip3.commons.util.remainingCapacity
 import io.vertx.core.AbstractVerticle
@@ -71,7 +72,7 @@ class TcpHandler : AbstractVerticle() {
     }
 
     fun onPacket(packet: Packet) {
-        val buffer = packet.payload.encode()
+        val buffer = (packet.payload as Encodable).encode()
 
         val offset = buffer.readerIndex()
         // Source Port
@@ -138,7 +139,7 @@ class TcpHandler : AbstractVerticle() {
         private val segments = TreeMap<Long, TcpSegment>()
 
         fun onTcpSegment(sequenceNumber: Long, packet: Packet) {
-            val buffer = packet.payload.encode()
+            val buffer = (packet.payload as Encodable).encode()
 
             // Add to segments map
             val segment = TcpSegment().apply {
@@ -167,7 +168,7 @@ class TcpHandler : AbstractVerticle() {
                     sequenceNumbers.forEach { sequenceNumber ->
                         val segment = segments.remove(sequenceNumber)
                         if (segment != null) {
-                            val payload = segment.packet.payload
+                            val payload = segment.packet.payload as Encodable
                             compositeBuffer.addComponent(true, payload.encode())
                         }
                     }
@@ -197,7 +198,7 @@ class TcpHandler : AbstractVerticle() {
 
             if (sequenceNumber + segment.payloadLength == currentSegment.sequenceNumber) {
                 val packet = segment.packet
-                val buffer = packet.payload.encode()
+                val buffer = (packet.payload as Encodable).encode()
 
                 if (assert.invoke(buffer)) {
                     handler.handle(packet)
