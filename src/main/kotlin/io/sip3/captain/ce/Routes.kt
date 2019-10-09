@@ -21,7 +21,6 @@ object Routes {
     const val fragment = "fragment"
     const val tcp = "tcp"
     const val rtp = "rtp"
-    const val rtcp = "rtcp"
     const val sdp = "sdp"
     const val sender = "sender"
     const val encoder = "encoder"

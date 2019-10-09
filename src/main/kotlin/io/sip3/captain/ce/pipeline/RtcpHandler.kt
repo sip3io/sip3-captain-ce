@@ -38,7 +38,7 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
 
     companion object {
 
-        const val MAX_VALID_JITTER = 10_000
+        const val MAX_VALID_JITTER = 10000
 
         const val R0 = 93.2F
         const val I_DELAY_DEFAULT = 0.65
@@ -47,8 +47,8 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
     }
 
     private var bulkSize = 1
-    private var expirationDelay: Long = 4_000
-    private var aggregationTimeout: Long = 30_000
+    private var expirationDelay: Long = 4000
+    private var aggregationTimeout: Long = 30000
 
     private val sessions = mutableMapOf<Long, RtcpSession>()
     private val sdpSessions = mutableMapOf<Long, SdpSession>()
