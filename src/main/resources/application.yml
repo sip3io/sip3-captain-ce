@@ -54,3 +54,8 @@ sender:
 #    db: sip3
 #    step: 1000
 #    retention-duration: 7d
+#  stasd:
+#    host: 127.0.0.1
+#    port: 8125
+#    step: 1000
+#    flavour: datadog

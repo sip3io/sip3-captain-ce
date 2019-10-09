@@ -77,8 +77,9 @@ class Encoder : AbstractVerticle() {
         packets.forEach { packet ->
             val srcAddrLength = packet.srcAddr.size
             val dstAddrLength = packet.dstAddr.size
-            val payload = packet.payload as Encodable
-            val payloadLength = payload.encode().capacity()
+
+            val payload = (packet.payload as Encodable).encode()
+            val payloadLength = payload.capacity()
 
             val packetLength = arrayListOf(
                     4,                         // Prefix
@@ -114,7 +115,7 @@ class Encoder : AbstractVerticle() {
                 writeTlv(TAG_DST_PORT, packet.dstPort.toShort())
 
                 writeTlv(TAG_PROTOCOL_CODE, packet.protocolCode)
-                writeTlv(TAG_PAYLOAD, payload.encode())
+                writeTlv(TAG_PAYLOAD, payload)
             }
             buffers.add(Buffer.buffer(buffer))
         }
