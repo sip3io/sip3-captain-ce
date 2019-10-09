@@ -16,22 +16,22 @@
 
 package io.sip3.captain.ce.domain
 
-import io.netty.buffer.ByteBuf
-import io.netty.buffer.Unpooled
+import org.apache.commons.net.ntp.TimeStamp
 
-class RtpHeaderPayload : Payload {
+class SenderReport {
 
-    var payloadType: Byte = 0
-    var sequenceNumber: Int = 0
-    var timestamp: Long = 0
-    var ssrc: Long = 0
+    val packetType = 200
+    var reportBlockCount: Byte = 0
+    var length: Int = 0
+    var senderSsrc: Long = 0
 
-    override fun encode(): ByteBuf {
-        return Unpooled.buffer(21).apply {
-            writeByte(payloadType.toInt())
-            writeInt(sequenceNumber)
-            writeLong(timestamp)
-            writeLong(ssrc)
-        }
+    var ntpTimestampMsw: Long = 0
+    var ntpTimestampLsw: Long = 0
+    val ntpTimestamp by lazy {
+        TimeStamp("${ntpTimestampMsw.toString(16)}.${ntpTimestampLsw.toString(16)}").time
     }
+
+    var senderPacketCount: Long = 0
+
+    var reportBlocks = mutableListOf<RtcpReportBlock>()
 }

@@ -16,6 +16,7 @@
 
 package io.sip3.captain.ce.domain
 
+import io.sip3.commons.domain.payload.Payload
 import java.sql.Timestamp
 
 class Packet {

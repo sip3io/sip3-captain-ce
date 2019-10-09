@@ -19,8 +19,9 @@ package io.sip3.captain.ce.pipeline
 import io.mockk.*
 import io.mockk.junit5.MockKExtension
 import io.netty.buffer.Unpooled
-import io.sip3.captain.ce.domain.ByteBufPayload
 import io.sip3.captain.ce.domain.Packet
+import io.sip3.commons.domain.payload.ByteBufPayload
+import io.sip3.commons.domain.payload.Encodable
 import io.vertx.core.Vertx
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -77,7 +78,7 @@ class EthernetHandlerTest {
         ethernetHandler.handle(packet)
         // Assert
         verify { anyConstructed<Ipv4Handler>().handle(any()) }
-        val buffer = packetSlot.captured.payload.encode()
+        val buffer = (packetSlot.captured.payload as Encodable).encode()
         assertEquals(14, buffer.readerIndex())
     }
 
@@ -97,7 +98,7 @@ class EthernetHandlerTest {
         ethernetHandler.handle(packet)
         // Assert
         verify { anyConstructed<Ipv4Handler>().handle(any()) }
-        val buffer = packetSlot.captured.payload.encode()
+        val buffer = (packetSlot.captured.payload as Encodable).encode()
         assertEquals(18, buffer.readerIndex())
     }
 
@@ -117,7 +118,7 @@ class EthernetHandlerTest {
         ethernetHandler.handle(packet)
         // Assert
         verify { anyConstructed<Ipv4Handler>().handle(any()) }
-        val buffer = packetSlot.captured.payload.encode()
+        val buffer = (packetSlot.captured.payload as Encodable).encode()
         assertEquals(22, buffer.readerIndex())
     }
 
@@ -137,7 +138,7 @@ class EthernetHandlerTest {
         ethernetHandler.handle(packet)
         // Assert
         verify { anyConstructed<Ipv4Handler>().handle(any()) }
-        val buffer = packetSlot.captured.payload.encode()
+        val buffer = (packetSlot.captured.payload as Encodable).encode()
         assertEquals(16, buffer.readerIndex())
     }
 

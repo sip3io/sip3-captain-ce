@@ -22,6 +22,7 @@ import io.sip3.captain.ce.encoder.Encoder
 import io.sip3.captain.ce.pipeline.Ipv4FragmentHandler
 import io.sip3.captain.ce.pipeline.TcpHandler
 import io.sip3.captain.ce.sender.Sender
+import io.sip3.captain.ce.socket.ManagementSocket
 import io.sip3.commons.vertx.AbstractBootstrap
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.eventbus.deliveryOptionsOf
@@ -40,6 +41,9 @@ open class Bootstrap : AbstractBootstrap() {
         vertx.deployVerticle(TcpHandler::class, config)
         vertx.deployVerticle(Encoder::class, config, instances)
         vertx.deployVerticle(Sender::class, config, instances)
+        if (config.containsKey("management")) {
+            vertx.deployVerticle(ManagementSocket::class, config)
+        }
         if (config.containsKey("pcap")) {
             vertx.deployVerticle(PcapEngine::class, config)
         }

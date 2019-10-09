@@ -19,9 +19,10 @@ package io.sip3.captain.ce.pipeline
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.Routes
-import io.sip3.captain.ce.domain.ByteBufPayload
 import io.sip3.captain.ce.domain.Ipv4Header
 import io.sip3.captain.ce.domain.Packet
+import io.sip3.commons.domain.payload.ByteBufPayload
+import io.sip3.commons.domain.payload.Encodable
 import io.vertx.core.AbstractVerticle
 import mu.KotlinLogging
 import org.apache.commons.collections4.map.PassiveExpiringMap
@@ -66,7 +67,7 @@ class Ipv4FragmentHandler : AbstractVerticle() {
         val key = "${srcAddr.hostAddress}:${dstAddr.hostAddress}:${header.identification}"
 
         var defragmentator = defragmentators.computeIfAbsent(key) { Defragmentator(packet.timestamp) }
-        defragmentator.onPacket(header, packet.payload.encode())?.let { buffer ->
+        defragmentator.onPacket(header, (packet.payload as Encodable).encode())?.let { buffer ->
             val packet = Packet().apply {
                 this.timestamp = defragmentator.timestamp
                 this.srcAddr = header.srcAddr

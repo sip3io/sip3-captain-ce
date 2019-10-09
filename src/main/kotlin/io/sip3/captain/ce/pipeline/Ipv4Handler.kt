@@ -19,9 +19,10 @@ package io.sip3.captain.ce.pipeline
 import io.netty.buffer.ByteBuf
 import io.sip3.captain.ce.Routes
 import io.sip3.captain.ce.USE_LOCAL_CODEC
-import io.sip3.captain.ce.domain.ByteArrayPayload
 import io.sip3.captain.ce.domain.Ipv4Header
 import io.sip3.captain.ce.domain.Packet
+import io.sip3.commons.domain.payload.ByteArrayPayload
+import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.getBytes
 import io.vertx.core.Vertx
 
@@ -53,7 +54,7 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
     }
 
     override fun onPacket(packet: Packet) {
-        val buffer = packet.payload.encode()
+        val buffer = (packet.payload as Encodable).encode()
         val offset = buffer.readerIndex()
 
         val ipv4Header = readIpv4Header(buffer)
@@ -111,7 +112,7 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
             // TCP:
             TYPE_TCP -> {
                 packet.payload = run {
-                    val buffer = packet.payload.encode()
+                    val buffer = (packet.payload as Encodable).encode()
                     return@run ByteArrayPayload(buffer.getBytes())
                 }
                 tcpPackets.add(packet)
@@ -123,7 +124,7 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
             }
             // ICMP:
             TYPE_ICMP -> {
-                val buffer = packet.payload.encode()
+                val buffer = (packet.payload as Encodable).encode()
                 // Type
                 val type = buffer.readByte().toInt()
                 // Code

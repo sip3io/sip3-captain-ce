@@ -20,6 +20,7 @@ import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.Routes
 import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Packet
+import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.writeTlv
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.buffer.Buffer
@@ -77,7 +78,7 @@ class Encoder : AbstractVerticle() {
             val srcAddrLength = packet.srcAddr.size
             val dstAddrLength = packet.dstAddr.size
 
-            val payload = packet.payload.encode()
+            val payload = (packet.payload as Encodable).encode()
             val payloadLength = payload.capacity()
 
             val packetLength = arrayListOf(

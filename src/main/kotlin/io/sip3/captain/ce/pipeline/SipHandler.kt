@@ -18,9 +18,10 @@ package io.sip3.captain.ce.pipeline
 
 import io.sip3.captain.ce.Routes
 import io.sip3.captain.ce.USE_LOCAL_CODEC
-import io.sip3.captain.ce.domain.ByteArrayPayload
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.util.SipUtil
+import io.sip3.commons.domain.payload.ByteArrayPayload
+import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.getBytes
 import io.vertx.core.Vertx
 
@@ -41,7 +42,7 @@ class SipHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
     }
 
     override fun onPacket(packet: Packet) {
-        val buffer = packet.payload.encode()
+        val buffer = (packet.payload as Encodable).encode()
 
         var offset = 0
         var mark = -1

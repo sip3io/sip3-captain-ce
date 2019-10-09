@@ -19,7 +19,8 @@ package io.sip3.captain.ce.pipeline
 import io.sip3.captain.ce.Routes
 import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Packet
-import io.sip3.captain.ce.domain.RtpHeaderPayload
+import io.sip3.commons.domain.payload.Encodable
+import io.sip3.commons.domain.payload.RtpHeaderPayload
 import io.vertx.core.Vertx
 import kotlin.experimental.and
 
@@ -42,7 +43,7 @@ class RtpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
     override fun onPacket(packet: Packet) {
         packet.protocolCode = Packet.TYPE_RTP
 
-        val buffer = packet.payload.encode()
+        val buffer = (packet.payload as Encodable).encode()
         packet.payload = RtpHeaderPayload().apply {
             // Version & P & X & CC
             buffer.skipBytes(1)

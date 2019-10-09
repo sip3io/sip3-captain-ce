@@ -16,11 +16,14 @@
 
 package io.sip3.captain.ce.domain
 
-import io.netty.buffer.ByteBuf
+class RtcpReportBlock {
 
-inline class ByteBufPayload(val buffer: ByteBuf) : Payload {
+    var ssrc: Long = 0
+    var fractionLost: Short = 0
+    var cumulativePacketLost: Long = 0
+    var extendedSeqNumber: Long = 0
+    var interarrivalJitter: Long = 0
 
-    override fun encode(): ByteBuf {
-        return buffer
-    }
+    var lsrTimestamp: Long = 0
+    var dlsrTimestamp: Long = 0
 }
