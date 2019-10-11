@@ -60,6 +60,6 @@ sender:
 #    step: 1000
 #    flavour: datadog
 #  elastic:
-#    host: 127.0.0.1:9200
+#    host: http://127.0.0.1:9200
 #    index: sip3
 #    step: 1000
