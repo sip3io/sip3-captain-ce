@@ -31,9 +31,9 @@ class Packet {
         const val TYPE_SIP: Byte = 3
         // Internet Control Message Protocol
         const val TYPE_ICMP: Byte = 4
-        // Real-Time Transport Protocol Report (Internal SIP3 protocol supported in SIP3 `Enterprise Edition` only)
+        // Real-Time Transport Protocol Report (Internal SIP3 protocol)
         const val TYPE_RTPR: Byte = 5
-        // Session Initiation Protocol
+        // Short Message Peer-to-Peer
         const val TYPE_SMPP: Byte = 6
     }
 
