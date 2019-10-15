@@ -30,10 +30,16 @@ class RtpHandlerTest : VertxTest() {
 
     companion object {
 
-        // Payload: RTP
+        // Payload: RTP with marker bit = 0
         val PACKET_1 = byteArrayOf(
                 0x80.toByte(), 0x08.toByte(), 0x01.toByte(), 0xdd.toByte(), 0x2b.toByte(), 0x76.toByte(), 0x37.toByte(),
                 0x40.toByte(), 0x95.toByte(), 0x06.toByte(), 0xb9.toByte(), 0x73.toByte()
+        )
+
+        // Payload: RTP with marker bit = 1
+        val PACKET_2 = byteArrayOf(
+                0x80.toByte(), 0x88.toByte(), 0xd5.toByte(), 0x66.toByte(), 0x0a.toByte(), 0xdd.toByte(), 0xb8.toByte(),
+                0xa0.toByte(), 0x7c.toByte(), 0x50.toByte(), 0xe6.toByte(), 0xef.toByte()
         )
     }
 
@@ -45,7 +51,7 @@ class RtpHandlerTest : VertxTest() {
                 },
                 execute = {
                     val rtpHandler = RtpHandler(vertx, false)
-                    var packet = Packet().apply {
+                    val packet = Packet().apply {
                         this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
                     }
                     rtpHandler.handle(packet)
@@ -61,11 +67,49 @@ class RtpHandlerTest : VertxTest() {
                             assertTrue(packet.payload is RtpHeaderPayload)
 
                             val payload = packet.payload as RtpHeaderPayload
-                            assertEquals(21, payload.encode().capacity())
+                            assertEquals(22, payload.encode().capacity())
                             assertEquals(8, payload.payloadType)
                             assertEquals(477, payload.sequenceNumber)
                             assertEquals(729167680, payload.timestamp)
                             assertEquals(2500245875, payload.ssrc)
+                            assertEquals(false, payload.marker)
+                        }
+                        context.completeNow()
+                    }
+                }
+        )
+    }
+
+    @Test
+    fun `Parse RTP with marker bit = 1`() {
+        runTest(
+                deploy = {
+                    // Do nothing...
+                },
+                execute = {
+                    val rtpHandler = RtpHandler(vertx, false)
+                    val packet = Packet().apply {
+                        this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
+                    }
+                    rtpHandler.handle(packet)
+                },
+                assert = {
+                    vertx.eventBus().consumer<List<Packet>>(Routes.rtp) { event ->
+                        val packets = event.body()
+                        context.verify {
+                            assertEquals(1, packets.size)
+
+                            val packet = packets[0]
+                            assertEquals(Packet.TYPE_RTP, packet.protocolCode)
+                            assertTrue(packet.payload is RtpHeaderPayload)
+
+                            val payload = packet.payload as RtpHeaderPayload
+                            assertEquals(22, payload.encode().capacity())
+                            assertEquals(8, payload.payloadType)
+                            assertEquals(54630, payload.sequenceNumber)
+                            assertEquals(182302880, payload.timestamp)
+                            assertEquals(2085676783, payload.ssrc)
+                            assertEquals(true, payload.marker)
                         }
                         context.completeNow()
                     }
