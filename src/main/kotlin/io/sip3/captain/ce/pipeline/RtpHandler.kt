@@ -48,9 +48,9 @@ class RtpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
             // Version & P & X & CC
             buffer.skipBytes(1)
 
-            buffer.readUnsignedByte().let { uByte ->
-                payloadType = uByte.and(127).toByte()
-                marker = (uByte.and(128) == 128.toShort())
+            buffer.readUnsignedByte().let { byte ->
+                payloadType = byte.and(127).toByte()
+                marker = (byte.and(128) == 128.toShort())
             }
             sequenceNumber = buffer.readUnsignedShort()
             timestamp = buffer.readUnsignedInt()
