@@ -99,6 +99,8 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
         val buffer = (packet.payload as Encodable).encode()
 
         while (buffer.remainingCapacity() > 0) {
+            val offset = buffer.readerIndex()
+
             val headerByte = buffer.readByte()
             val payloadType = buffer.readUnsignedByte().toInt()
             val reportLength = buffer.readUnsignedShort() * 4
@@ -150,9 +152,11 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
                     // 203 BYE: Goodbye
                     // 204 APP: Application-Defined
                     // Undefined RTCP packet
-                    buffer.skipBytes(reportLength)
                 }
             }
+
+            // Move reader index to next RTCP report in packet
+            buffer.readerIndex(offset + reportLength + 4)
         }
     }
 
