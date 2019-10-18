@@ -25,6 +25,7 @@ import io.sip3.captain.ce.domain.SenderReport
 import io.sip3.commons.domain.SdpSession
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.domain.payload.RtpReportPayload
+import io.sip3.commons.util.remainingCapacity
 import io.vertx.core.Vertx
 import mu.KotlinLogging
 import kotlin.experimental.and
@@ -96,62 +97,66 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
 
     override fun onPacket(packet: Packet) {
         val buffer = (packet.payload as Encodable).encode()
-        val offset = buffer.readerIndex()
 
-        val packetType = buffer.getUnsignedByte(offset + 1).toInt()
-        when (packetType) {
-            // SR: Sender Report RTCP Packet
-            200 -> {
-                val report = SenderReport().apply {
-                    // Reception report count
-                    reportBlockCount = buffer.readByte().and(31)
-                    // Packet Type
-                    buffer.skipBytes(1)
-                    // Length
-                    buffer.skipBytes(2)
-                    // Sender SSRC
-                    senderSsrc = buffer.readUnsignedInt()
-                    // NTP Timestamp: Most and Least significant words
-                    ntpTimestampMsw = buffer.readUnsignedInt()
-                    ntpTimestampLsw = buffer.readUnsignedInt()
-                    // RTP Timestamp
-                    buffer.skipBytes(4)
-                    // Sender's packet count
-                    senderPacketCount = buffer.readUnsignedInt()
-                    // Sender's octet count
-                    buffer.skipBytes(4)
+        while (buffer.remainingCapacity() > 0) {
+            val offset = buffer.readerIndex()
 
-                    // Reports
-                    for (index in 1..reportBlockCount) {
-                        reportBlocks.add(RtcpReportBlock().apply {
-                            // SSRC of sender
-                            ssrc = buffer.readUnsignedInt()
-                            // Fraction lost and Cumulative packet lost
-                            buffer.readUnsignedInt().let { value ->
-                                fractionLost = ((value and 0xF000) shr 24).toShort()
-                                cumulativePacketLost = value and 0x0FFF
-                            }
-                            // Extended sequence number
-                            extendedSeqNumber = buffer.readUnsignedInt()
-                            // Interarrival Jitter
-                            interarrivalJitter = buffer.readUnsignedInt()
-                            // Last SR Timestamp
-                            lsrTimestamp = buffer.readUnsignedInt()
-                            // Delay since last SR
-                            buffer.skipBytes(4)
-                        })
+            val headerByte = buffer.readByte()
+            val payloadType = buffer.readUnsignedByte().toInt()
+            val reportLength = buffer.readUnsignedShort() * 4
+
+            when(payloadType) {
+                // SR: Sender Report RTCP Packet
+                200 -> {
+                    val report = SenderReport().apply {
+                        reportBlockCount = headerByte.and(31)
+                        // Sender SSRC
+                        senderSsrc = buffer.readUnsignedInt()
+                        // NTP Timestamp: Most and Least significant words
+                        ntpTimestampMsw = buffer.readUnsignedInt()
+                        ntpTimestampLsw = buffer.readUnsignedInt()
+                        // RTP Timestamp
+                        buffer.skipBytes(4)
+                        // Sender's packet count
+                        senderPacketCount = buffer.readUnsignedInt()
+                        // Sender's octet count
+                        buffer.skipBytes(4)
+
+                        // Reports
+                        for (index in 1..reportBlockCount) {
+                            reportBlocks.add(RtcpReportBlock().apply {
+                                // SSRC of sender
+                                ssrc = buffer.readUnsignedInt()
+                                // Fraction lost and Cumulative packet lost
+                                buffer.readUnsignedInt().let { value ->
+                                    fractionLost = ((value and 0xF000) shr 24).toShort()
+                                    cumulativePacketLost = value and 0x0FFF
+                                }
+                                // Extended sequence number
+                                extendedSeqNumber = buffer.readUnsignedInt()
+                                // Interarrival Jitter
+                                interarrivalJitter = buffer.readUnsignedInt()
+                                // Last SR Timestamp
+                                lsrTimestamp = buffer.readUnsignedInt()
+                                // Delay since last SR
+                                buffer.skipBytes(4)
+                            })
+                        }
                     }
+                    onSenderReport(packet, report)
                 }
-                onSenderReport(packet, report)
+                else -> {
+                    // Skip reports:
+                    // 201 RR: Receiver Report
+                    // 202 SDES: Source Description
+                    // 203 BYE: Goodbye
+                    // 204 APP: Application-Defined
+                    // Undefined RTCP packet
+                }
             }
-            else -> {
-                // Ignore:
-                // 201 RR: Receiver Report RTCP Packet
-                // 202 SDES: Source Description RTCP Packet
-                // 203 BYE: Goodbye RTCP Packet
-                // 204 APP: Application-Defined RTCP Packet
-                // Undefined RTCP packet
-            }
+
+            // Move reader index to next RTCP report in packet
+            buffer.readerIndex(offset + reportLength + 4)
         }
     }
 
