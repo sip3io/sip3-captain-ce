@@ -43,9 +43,10 @@ class RtcpHandlerTest : VertxTest() {
             ((srcAddrAsLong shl 32) or (SRC_PORT - 1).toLong())
         }
 
-        // RTCP Sender Report 1
+        // RTCP Sender Report only
         val PACKET_1 = byteArrayOf(
-                0x81.toByte(), 0xc8.toByte(), 0x00.toByte(), 0x0c.toByte(), // Payload type & report count
+                // SR
+                0x81.toByte(), 0xc8.toByte(), 0x00.toByte(), 0x0c.toByte(), // Payload type & report count & length
                 0x01.toByte(), 0xa8.toByte(), 0xbd.toByte(), 0xe3.toByte(), // SSRC
                 0xe1.toByte(), 0x37.toByte(), 0x70.toByte(), 0x16.toByte(), // Timestamp MSW
                 0xd0.toByte(), 0x84.toByte(), 0x1e.toByte(), 0xde.toByte(), // Timestamp LSW
@@ -60,8 +61,9 @@ class RtcpHandlerTest : VertxTest() {
                 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte()  // Delay since last SR
         )
 
-        // RTCP Sender Report 2
+        // RTCP Sender Report and Source description
         val PACKET_2 = byteArrayOf(
+                // SR
                 0x81.toByte(), 0xc8.toByte(), 0x00.toByte(), 0x0c.toByte(),
                 0x01.toByte(), 0xa8.toByte(), 0xbd.toByte(), 0xe3.toByte(),
                 0xe1.toByte(), 0x37.toByte(), 0x70.toByte(), 0x1a.toByte(),
@@ -74,11 +76,38 @@ class RtcpHandlerTest : VertxTest() {
                 0x00.toByte(), 0x00.toByte(), 0x2c.toByte(), 0xea.toByte(),
                 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x37.toByte(),
                 0x70.toByte(), 0x1a.toByte(), 0x03.toByte(), 0xd7.toByte(),
-                0x00.toByte(), 0x00.toByte(), 0x80.toByte(), 0x01.toByte()
+                0x00.toByte(), 0x00.toByte(), 0x80.toByte(), 0x01.toByte(),
+
+                // SD
+                0x81.toByte(), 0xca.toByte(), 0x00.toByte(), 0x0a.toByte(),
+                0x23.toByte(), 0x43.toByte(), 0x50.toByte(), 0x1f.toByte(),
+                0x01.toByte(), 0x07.toByte(), 0x4d.toByte(), 0x59.toByte(),
+                0x43.toByte(), 0x4e.toByte(), 0x41.toByte(), 0x4d.toByte(),
+                0x45.toByte(), 0x05.toByte(), 0x08.toByte(), 0x61.toByte(),
+                0x17.toByte(), 0x01.toByte(), 0x40.toByte(), 0xff.toByte(),
+                0xff.toByte(), 0xff.toByte(), 0xff.toByte(), 0x07.toByte(),
+                0x07.toByte(), 0xf8.toByte(), 0xfa.toByte(), 0xdf.toByte(),
+                0xad.toByte(), 0x60.toByte(), 0x12.toByte(), 0x13.toByte(),
+                0x08.toByte(), 0x02.toByte(), 0xdf.toByte(), 0xad.toByte(),
+                0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte()
         )
 
-        // RTCP Sender Report 3
+        // RTCP Sender Report and Source Description is first
         val PACKET_3 = byteArrayOf(
+                // SD
+                0x81.toByte(), 0xca.toByte(), 0x00.toByte(), 0x0a.toByte(),
+                0x23.toByte(), 0x43.toByte(), 0x50.toByte(), 0x1f.toByte(),
+                0x01.toByte(), 0x07.toByte(), 0x4d.toByte(), 0x59.toByte(),
+                0x43.toByte(), 0x4e.toByte(), 0x41.toByte(), 0x4d.toByte(),
+                0x45.toByte(), 0x05.toByte(), 0x08.toByte(), 0x61.toByte(),
+                0x17.toByte(), 0x01.toByte(), 0x40.toByte(), 0xff.toByte(),
+                0xff.toByte(), 0xff.toByte(), 0xff.toByte(), 0x07.toByte(),
+                0x07.toByte(), 0xf8.toByte(), 0xfa.toByte(), 0xdf.toByte(),
+                0xad.toByte(), 0x60.toByte(), 0x12.toByte(), 0x13.toByte(),
+                0x08.toByte(), 0x02.toByte(), 0xdf.toByte(), 0xad.toByte(),
+                0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(),
+
+                // SR
                 0x81.toByte(), 0xc8.toByte(), 0x00.toByte(), 0x0c.toByte(),
                 0x01.toByte(), 0xa8.toByte(), 0xbd.toByte(), 0xe3.toByte(),
                 0xe1.toByte(), 0x37.toByte(), 0x70.toByte(), 0x1e.toByte(),
@@ -147,23 +176,17 @@ class RtcpHandlerTest : VertxTest() {
 
                             when (packetCount) {
                                 1 -> {
-                                    println(report)
                                     assertEquals(196, report.expectedPacketCount)
-                                    println(packetCount)
                                     assertEquals(28F, report.lastJitter)
                                     assertEquals(1, report.lostPacketCount)
                                 }
                                 2 -> {
-                                    println(report)
                                     assertEquals(201, report.expectedPacketCount)
-                                    println(packetCount)
                                     assertEquals(55F, report.lastJitter)
                                     assertEquals(0, report.lostPacketCount)
                                 }
                                 3 -> {
-                                    println(report)
                                     assertEquals(201, report.expectedPacketCount)
-                                    println(packetCount)
                                     assertEquals(74F, report.lastJitter)
                                     assertEquals(0, report.lostPacketCount)
                                 }
