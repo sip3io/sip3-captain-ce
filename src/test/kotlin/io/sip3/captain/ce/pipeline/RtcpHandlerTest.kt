@@ -102,6 +102,7 @@ class RtcpHandlerTest : VertxTest() {
             codecIe = 0F
             id = SESSION_ID
             payloadType = 0
+            codecName = "PCMU"
             timestamp = System.currentTimeMillis()
         }
     }
@@ -141,6 +142,7 @@ class RtcpHandlerTest : VertxTest() {
                             assertEquals(Packet.TYPE_RTPR, packet.protocolCode)
                             // Assert SDP session data in RTPR
                             assertEquals(SDP_SESSION.callId, report.callId)
+                            assertEquals(SDP_SESSION.codecName, report.codecName)
                             assertEquals(SDP_SESSION.payloadType, report.payloadType)
 
                             when (packetCount) {
@@ -165,14 +167,6 @@ class RtcpHandlerTest : VertxTest() {
                                     assertEquals(74F, report.lastJitter)
                                     assertEquals(0, report.lostPacketCount)
                                 }
-                            }
-
-
-                            report.apply {
-                                println("duration = $duration")
-                                println("mos = $mos")
-                                println("rFactor = $rFactor")
-                                println("-----------------------------------------------------------------\n")
                             }
                         }
 
