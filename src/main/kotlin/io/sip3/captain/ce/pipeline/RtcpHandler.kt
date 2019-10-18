@@ -69,7 +69,7 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
                 val sdpSession = event.body()
                 onSdpSession(sdpSession)
             } catch (e: Exception) {
-                logger.error("RtcpCollector 'onSdpSession()' failed.", e)
+                logger.error("RtcpHandler 'onSdpSession()' failed.", e)
             }
         }
 
@@ -96,8 +96,9 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
 
     override fun onPacket(packet: Packet) {
         val buffer = (packet.payload as Encodable).encode()
-        val packetType = buffer.getUnsignedByte(1).toInt()
+        val offset = buffer.readerIndex()
 
+        val packetType = buffer.getUnsignedByte(offset + 1).toInt()
         when (packetType) {
             // SR: Sender Report RTCP Packet
             200 -> {
@@ -152,7 +153,6 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
                 // Undefined RTCP packet
             }
         }
-
     }
 
     private fun onSenderReport(packet: Packet, senderReport: SenderReport) {
@@ -219,6 +219,7 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
                 session.sdpSession?.let { sdpSession ->
                     callId = sdpSession.callId
                     payloadType = sdpSession.payloadType
+                    codecName = sdpSession.codecName
 
                     // Raw rFactor value
                     val ppl = fractionLost * 100
