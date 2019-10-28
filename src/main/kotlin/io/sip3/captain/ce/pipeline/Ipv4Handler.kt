@@ -54,10 +54,11 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
     }
 
     override fun onPacket(packet: Packet) {
-        val buffer = (packet.payload as Encodable).encode()
+        var buffer = (packet.payload as Encodable).encode()
         val offset = buffer.readerIndex()
 
         val ipv4Header = readIpv4Header(buffer)
+        buffer = buffer.capacity(offset + ipv4Header.totalLength)
 
         if (ipv4Header.moreFragments || ipv4Header.fragmentOffset > 0) {
             packet.payload = ByteArrayPayload(buffer.getBytes())
