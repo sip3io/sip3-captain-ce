@@ -22,6 +22,7 @@ import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Ipv4Header
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.domain.payload.ByteArrayPayload
+import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.getBytes
 import io.vertx.core.Vertx
@@ -58,9 +59,11 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
         val offset = buffer.readerIndex()
 
         val ipv4Header = readIpv4Header(buffer)
+        val slice = buffer.slice(0, offset + ipv4Header.totalLength)
+        slice.readerIndex(offset + ipv4Header.headerLength)
 
         if (ipv4Header.moreFragments || ipv4Header.fragmentOffset > 0) {
-            packet.payload = ByteArrayPayload(buffer.getBytes())
+            packet.payload = ByteArrayPayload(slice.getBytes())
             ipv4Packets.add(Pair(ipv4Header, packet))
 
             if (ipv4Packets.size >= bulkSize) {
@@ -71,8 +74,7 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
             packet.srcAddr = ipv4Header.srcAddr
             packet.dstAddr = ipv4Header.dstAddr
             packet.protocolNumber = ipv4Header.protocolNumber
-
-            buffer.readerIndex(offset + ipv4Header.headerLength)
+            packet.payload = ByteBufPayload(slice)
 
             routePacket(packet)
         }

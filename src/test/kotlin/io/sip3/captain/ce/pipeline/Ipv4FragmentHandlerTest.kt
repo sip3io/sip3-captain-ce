@@ -21,9 +21,12 @@ import io.mockk.junit5.MockKExtension
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.domain.payload.ByteBufPayload
+import io.sip3.commons.domain.payload.Encodable
+import io.sip3.commons.util.getBytes
 import io.sip3.commons.vertx.test.VertxTest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.sql.Timestamp
@@ -38,7 +41,8 @@ class Ipv4FragmentHandlerTest : VertxTest() {
                 0x45.toByte(), 0xa0.toByte(), 0x00.toByte(), 0x1c.toByte(), 0xe8.toByte(), 0xdd.toByte(), 0x20.toByte(),
                 0x00.toByte(), 0x3c.toByte(), 0x11.toByte(), 0x75.toByte(), 0x6e.toByte(), 0x0a.toByte(), 0xfa.toByte(),
                 0xf4.toByte(), 0x05.toByte(), 0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte(), 0x32.toByte(),
-                0x40.toByte(), 0xe8.toByte(), 0x3c.toByte(), 0x00.toByte(), 0xb4.toByte(), 0x13.toByte(), 0x0b.toByte()
+                0x40.toByte(), 0xe8.toByte(), 0x3c.toByte(), 0x00.toByte(), 0xb4.toByte(), 0x13.toByte(), 0x0b.toByte(),
+                0xfe.toByte(), 0xfe.toByte(), 0xfe.toByte(), 0xfe.toByte(), 0xfe.toByte(), 0xfe.toByte(), 0xfe.toByte()
         )
 
         // Payload: IPv4 (Fragment 2/2)
@@ -46,7 +50,8 @@ class Ipv4FragmentHandlerTest : VertxTest() {
                 0x45.toByte(), 0xa0.toByte(), 0x00.toByte(), 0x1c.toByte(), 0xe8.toByte(), 0xdd.toByte(), 0x00.toByte(),
                 0x01.toByte(), 0x3c.toByte(), 0x11.toByte(), 0x75.toByte(), 0x6e.toByte(), 0x0a.toByte(), 0xfa.toByte(),
                 0xf4.toByte(), 0x05.toByte(), 0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte(), 0x32.toByte(),
-                0x40.toByte(), 0xe8.toByte(), 0x3c.toByte(), 0x00.toByte(), 0xb4.toByte(), 0x13.toByte(), 0x0b.toByte()
+                0x40.toByte(), 0xe8.toByte(), 0x3c.toByte(), 0x00.toByte(), 0xb4.toByte(), 0x13.toByte(), 0x0b.toByte(),
+                0xfe.toByte(), 0xfe.toByte(), 0xfe.toByte(), 0xfe.toByte()
         )
     }
 
@@ -82,6 +87,9 @@ class Ipv4FragmentHandlerTest : VertxTest() {
                             val packet = packetSlot.captured
                             assertEquals(expectedTimestamp, packet.timestamp)
                             assertEquals(Ipv4Handler.TYPE_UDP, packet.protocolNumber)
+                            val buffer = (packet.payload as Encodable).encode()
+                            assertEquals(16, buffer.capacity())
+                            assertFalse(buffer.getBytes().contains(0xfe.toByte()))
                         }
                         context.completeNow()
                     }, {})
@@ -121,6 +129,9 @@ class Ipv4FragmentHandlerTest : VertxTest() {
                             val packet = packetSlot.captured
                             assertEquals(expectedTimestamp, packet.timestamp)
                             assertEquals(Ipv4Handler.TYPE_UDP, packet.protocolNumber)
+                            val buffer = (packet.payload as Encodable).encode()
+                            assertEquals(16, buffer.capacity())
+                            assertFalse(buffer.getBytes().contains(0xfe.toByte()))
                         }
                         context.completeNow()
                     }, {})
