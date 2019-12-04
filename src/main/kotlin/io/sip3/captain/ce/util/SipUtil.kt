@@ -17,27 +17,18 @@
 package io.sip3.captain.ce.util
 
 import io.netty.buffer.ByteBuf
+import io.sip3.commons.SipMethods
 
 object SipUtil {
 
-    val SIP_WORDS = arrayOf(
-            // RFC 3261
-            "SIP/2.0 ", "INVITE", "REGISTER", "ACK", "CANCEL", "BYE", "OPTIONS",
-            // RFC 3262
-            "PRACK",
-            // RFC 3428
-            "MESSAGE",
-            // RFC 6665
-            "SUBSCRIBE", "NOTIFY",
-            // RFC 3903
-            "PUBLISH",
-            // RFC 3311
-            "UPDATE",
-            // RFC 3515
-            "REFER",
-            // RFC 2976
-            "INFO"
-    ).map { word -> word.toByteArray() }.toList()
+    val SIP_WORDS = SipMethods.values()
+            .map(Any::toString)
+            .toMutableList()
+            .apply {
+                add("SIP/2.0 ")
+            }
+            .map { word -> word.toByteArray() }
+            .toList()
 
     const val CR: Byte = 0x0d
     const val LF: Byte = 0x0a
