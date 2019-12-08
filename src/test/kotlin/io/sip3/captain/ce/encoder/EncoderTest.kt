@@ -19,6 +19,7 @@ package io.sip3.captain.ce.encoder
 import io.sip3.captain.ce.Routes
 import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Packet
+import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.payload.ByteArrayPayload
 import io.sip3.commons.vertx.test.VertxTest
 import io.vertx.core.buffer.Buffer
@@ -56,7 +57,7 @@ class EncoderTest : VertxTest() {
                         this.dstAddr = dstAddr
                         this.srcPort = srcPort
                         this.dstPort = dstPort
-                        protocolCode = Packet.TYPE_ICMP
+                        protocolCode = PacketTypes.ICMP
                         payload = ByteArrayPayload(PACKET_1)
                     }
                     vertx.eventBus().send(Routes.encoder, listOf(packet), USE_LOCAL_CODEC)
@@ -107,7 +108,7 @@ class EncoderTest : VertxTest() {
                             // Protocol Code
                             assertEquals(7, buffer.getByte(51))
                             assertEquals(4, buffer.getShort(52))
-                            assertEquals(Packet.TYPE_ICMP, buffer.getByte(54))
+                            assertEquals(PacketTypes.ICMP, buffer.getByte(54))
                             // Payload
                             assertEquals(8, buffer.getByte(55))
                             assertEquals(3 + PACKET_1.size, buffer.getShort(56).toInt())

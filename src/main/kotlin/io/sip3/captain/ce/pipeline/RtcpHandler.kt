@@ -22,6 +22,7 @@ import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.domain.RtcpReportBlock
 import io.sip3.captain.ce.domain.RtcpSession
 import io.sip3.captain.ce.domain.SenderReport
+import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.SdpSession
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.domain.payload.RtpReportPayload
@@ -197,7 +198,7 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
                 this.dstPort = session.dstPort
                 srcAddr = session.srcAddr
                 this.srcPort = session.srcPort
-                protocolCode = Packet.TYPE_RTPR
+                protocolCode = PacketTypes.RTPR
             }
 
             rtpReport.payload = RtpReportPayload().apply {

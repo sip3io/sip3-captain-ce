@@ -19,6 +19,7 @@ package io.sip3.captain.ce.pipeline
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.Routes
 import io.sip3.captain.ce.domain.Packet
+import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.RtpHeaderPayload
 import io.sip3.commons.vertx.test.VertxTest
@@ -63,7 +64,7 @@ class RtpHandlerTest : VertxTest() {
                             assertEquals(1, packets.size)
 
                             val packet = packets[0]
-                            assertEquals(Packet.TYPE_RTP, packet.protocolCode)
+                            assertEquals(PacketTypes.RTP, packet.protocolCode)
                             assertTrue(packet.payload is RtpHeaderPayload)
 
                             val payload = packet.payload as RtpHeaderPayload
@@ -100,7 +101,7 @@ class RtpHandlerTest : VertxTest() {
                             assertEquals(1, packets.size)
 
                             val packet = packets[0]
-                            assertEquals(Packet.TYPE_RTP, packet.protocolCode)
+                            assertEquals(PacketTypes.RTP, packet.protocolCode)
                             assertTrue(packet.payload is RtpHeaderPayload)
 
                             val payload = packet.payload as RtpHeaderPayload

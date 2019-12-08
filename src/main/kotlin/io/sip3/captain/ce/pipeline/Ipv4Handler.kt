@@ -21,6 +21,7 @@ import io.sip3.captain.ce.Routes
 import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Ipv4Header
 import io.sip3.captain.ce.domain.Packet
+import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.payload.ByteArrayPayload
 import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
@@ -135,7 +136,7 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
                 buffer.skipBytes(6)
                 // Destination Port Unreachable
                 if (type == 3 && code == 3) {
-                    packet.protocolCode = Packet.TYPE_ICMP
+                    packet.protocolCode = PacketTypes.ICMP
                     packet.rejected = true
                     onPacket(packet)
                 }

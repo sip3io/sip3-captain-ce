@@ -20,6 +20,7 @@ import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.Routes
 import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Packet
+import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.SdpSession
 import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.RtpReportPayload
@@ -168,7 +169,7 @@ class RtcpHandlerTest : VertxTest() {
                             packetCount++
                             val packet = packets.first()
                             val report = packet.payload as RtpReportPayload
-                            assertEquals(Packet.TYPE_RTPR, packet.protocolCode)
+                            assertEquals(PacketTypes.RTPR, packet.protocolCode)
                             // Assert SDP session data in RTPR
                             assertEquals(SDP_SESSION.callId, report.callId)
                             assertEquals(SDP_SESSION.codecName, report.codecName)

@@ -16,8 +16,8 @@
 
 package io.sip3.captain.ce
 
-import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.encoder.Encoder
+import io.sip3.commons.PacketTypes
 import io.sip3.commons.vertx.test.VertxTest
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.datagram.listenAwait
@@ -94,7 +94,7 @@ class BootstrapTest : VertxTest() {
                                     // Protocol Code
                                     assertEquals(7, buffer.getByte(51))
                                     assertEquals(4, buffer.getShort(52))
-                                    assertEquals(Packet.TYPE_SIP, buffer.getByte(54))
+                                    assertEquals(PacketTypes.SIP, buffer.getByte(54))
                                     // Payload
                                     assertEquals(8, buffer.getByte(55))
                                     assertEquals(934, buffer.getShort(56).toInt())

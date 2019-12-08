@@ -19,6 +19,7 @@ package io.sip3.captain.ce.pipeline
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.Routes
 import io.sip3.captain.ce.domain.Packet
+import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.remainingCapacity
@@ -82,7 +83,7 @@ class SipHandlerTest : VertxTest() {
                         context.verify {
                             assertEquals(1, packets.size)
                             val packet = packets[0]
-                            assertEquals(Packet.TYPE_SIP, packet.protocolCode)
+                            assertEquals(PacketTypes.SIP, packet.protocolCode)
                             val buffer = (packet.payload as Encodable).encode()
                             assertEquals(18, buffer.remainingCapacity())
                         }
@@ -116,7 +117,7 @@ class SipHandlerTest : VertxTest() {
                         context.verify {
                             assertEquals(2, packets.size)
                             packets.forEach { packet ->
-                                assertEquals(Packet.TYPE_SIP, packet.protocolCode)
+                                assertEquals(PacketTypes.SIP, packet.protocolCode)
                                 val buffer = (packet.payload as Encodable).encode()
                                 assertEquals(51, buffer.remainingCapacity())
                             }

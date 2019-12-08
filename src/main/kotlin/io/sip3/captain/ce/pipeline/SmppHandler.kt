@@ -20,6 +20,7 @@ import io.sip3.captain.ce.Routes
 import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.util.SmppUtil
+import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.payload.ByteArrayPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.getBytes
@@ -59,7 +60,7 @@ class SmppHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
                         dstAddr = packet.dstAddr
                         srcPort = packet.srcPort
                         dstPort = packet.dstPort
-                        protocolCode = Packet.TYPE_SMPP
+                        protocolCode = PacketTypes.SMPP
                         payload = run {
                             val bytes = buffer.getBytes(offset, length)
                             return@run ByteArrayPayload(bytes)

@@ -21,22 +21,6 @@ import java.sql.Timestamp
 
 class Packet {
 
-    companion object {
-
-        // Real-Time Transport Protocol
-        const val TYPE_RTCP: Byte = 1
-        // Real-time Transport Control Protocol
-        const val TYPE_RTP: Byte = 2
-        // Session Initiation Protocol
-        const val TYPE_SIP: Byte = 3
-        // Internet Control Message Protocol
-        const val TYPE_ICMP: Byte = 4
-        // Real-Time Transport Protocol Report (Internal SIP3 protocol)
-        const val TYPE_RTPR: Byte = 5
-        // Short Message Peer-to-Peer
-        const val TYPE_SMPP: Byte = 6
-    }
-
     lateinit var timestamp: Timestamp
     lateinit var srcAddr: ByteArray
     lateinit var dstAddr: ByteArray
