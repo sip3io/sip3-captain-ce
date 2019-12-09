@@ -28,6 +28,18 @@ import java.net.ServerSocket
 
 class ManagementSocketTest : VertxTest() {
 
+    companion object {
+
+        private val host1 = JsonObject().apply {
+            put("name", "sbc1")
+            put("sip", arrayListOf("10.10.10.10", "10.10.20.10:5060"))
+        }
+        private val host2 = JsonObject().apply {
+            put("name", "sbc2")
+            put("sip", arrayListOf("10.20.10.10", "10.20.20.10:5060"))
+        }
+    }
+
     lateinit var config: JsonObject
     private var localPort = -1
     private var remotePort = -1
@@ -48,6 +60,7 @@ class ManagementSocketTest : VertxTest() {
                 put("remote-host", "127.0.0.1:$remotePort")
                 put("register-delay", 2000L)
             })
+            put("hosts", arrayListOf(host1, host2))
         }
     }
 
@@ -67,7 +80,9 @@ class ManagementSocketTest : VertxTest() {
                         context.verify {
                             assertEquals(2, jsonObject.size())
                             assertEquals(ManagementSocket.TYPE_REGISTER, jsonObject.getString("type"))
-                            assertNotNull(jsonObject.getString("name"))
+                            val payload = jsonObject.getJsonObject("payload")
+                            assertNotNull(payload.getString("name"))
+                            assertEquals(2, payload.getJsonArray("hosts").size())
                             assertEquals(localPort, packet.sender().port())
                         }
 

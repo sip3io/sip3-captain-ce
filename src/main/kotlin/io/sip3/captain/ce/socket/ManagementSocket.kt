@@ -21,6 +21,7 @@ import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.commons.domain.SdpSession
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.datagram.DatagramSocket
+import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import mu.KotlinLogging
 import java.net.URI
@@ -44,6 +45,7 @@ class ManagementSocket : AbstractVerticle() {
     private var registerDelay: Long = 60000
 
     private lateinit var socket: DatagramSocket
+    private var hosts = JsonArray()
 
     override fun start() {
         config().getJsonObject("management").let { config ->
@@ -63,6 +65,13 @@ class ManagementSocket : AbstractVerticle() {
             }
 
             config.getLong("register-delay")?.let { registerDelay = it }
+        }
+
+        config().getJsonArray("hosts")?.let { hosts = it }
+
+        vertx.eventBus().localConsumer<JsonObject>(io.sip3.commons.Routes.config_change) { event ->
+            val config = event.body()
+            config.getJsonArray("hosts")?.let { hosts = it }
         }
 
         startUdpServer()
@@ -91,14 +100,23 @@ class ManagementSocket : AbstractVerticle() {
     }
 
     private fun registerManagementSocket() {
-        vertx.setPeriodic(registerDelay) {
-            val registerMessage = JsonObject().apply {
-                put("type", TYPE_REGISTER)
-                put("name", deploymentID())
-            }
+        sendRegisterMessage()
 
-            socket.send(registerMessage.toBuffer(), remoteUri.port, remoteUri.host) {}
+        vertx.setPeriodic(registerDelay) {
+            sendRegisterMessage()
         }
+    }
+
+    private fun sendRegisterMessage() {
+        val registerMessage = JsonObject().apply {
+            put("type", TYPE_REGISTER)
+            put("payload", JsonObject().apply {
+                put("name", deploymentID())
+                put("hosts", hosts)
+            })
+        }
+
+        socket.send(registerMessage.toBuffer(), remoteUri.port, remoteUri.host) {}
     }
 
     private fun handle(message: JsonObject) {
