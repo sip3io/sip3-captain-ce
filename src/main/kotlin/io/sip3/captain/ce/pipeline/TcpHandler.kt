@@ -18,7 +18,7 @@ package io.sip3.captain.ce.pipeline
 
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
-import io.sip3.captain.ce.Routes
+import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.domain.TcpSegment
 import io.sip3.captain.ce.util.SipUtil
@@ -59,7 +59,7 @@ class TcpHandler : AbstractVerticle() {
             }
         }
 
-        vertx.eventBus().localConsumer<List<Packet>>(Routes.tcp) { event ->
+        vertx.eventBus().localConsumer<List<Packet>>(RoutesCE.tcp) { event ->
             val packets = event.body()
             packets.forEach { packet ->
                 try {

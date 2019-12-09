@@ -16,7 +16,7 @@
 
 package io.sip3.captain.ce.pipeline
 
-import io.sip3.captain.ce.Routes
+import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.util.SipUtil
@@ -87,7 +87,7 @@ class SipHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
         }
 
         if (packets.size >= bulkSize) {
-            vertx.eventBus().send(Routes.encoder, packets.toList(), USE_LOCAL_CODEC)
+            vertx.eventBus().send(RoutesCE.encoder, packets.toList(), USE_LOCAL_CODEC)
             packets.clear()
         }
     }

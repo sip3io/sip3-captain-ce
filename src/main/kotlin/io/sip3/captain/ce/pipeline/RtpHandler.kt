@@ -16,7 +16,7 @@
 
 package io.sip3.captain.ce.pipeline
 
-import io.sip3.captain.ce.Routes
+import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.PacketTypes
@@ -60,7 +60,7 @@ class RtpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
         packets.add(packet)
 
         if (packets.size >= bulkSize) {
-            vertx.eventBus().send(Routes.rtp, packets.toList(), USE_LOCAL_CODEC)
+            vertx.eventBus().send(RoutesCE.rtp, packets.toList(), USE_LOCAL_CODEC)
             packets.clear()
         }
     }

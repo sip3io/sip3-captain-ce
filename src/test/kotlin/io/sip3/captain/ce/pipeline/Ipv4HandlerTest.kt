@@ -19,7 +19,7 @@ package io.sip3.captain.ce.pipeline
 import io.mockk.*
 import io.mockk.junit5.MockKExtension
 import io.netty.buffer.Unpooled
-import io.sip3.captain.ce.Routes
+import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
@@ -117,7 +117,7 @@ class Ipv4HandlerTest : VertxTest() {
                     ipv4Handler.handle(packet)
                 },
                 assert = {
-                    vertx.eventBus().consumer<List<Packet>>(Routes.tcp) { event ->
+                    vertx.eventBus().consumer<List<Packet>>(RoutesCE.tcp) { event ->
                         val packets = event.body()
                         context.verify {
                             assertEquals(1, packets.size)

@@ -16,7 +16,7 @@
 
 package io.sip3.captain.ce.sender
 
-import io.sip3.captain.ce.Routes
+import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.commons.vertx.test.VertxTest
 import io.vertx.core.buffer.Buffer
@@ -48,7 +48,7 @@ class SenderTest : VertxTest() {
                 },
                 execute = {
                     val message = Buffer.buffer(MESSAGE)
-                    vertx.eventBus().send(Routes.sender, listOf(message), USE_LOCAL_CODEC)
+                    vertx.eventBus().send(RoutesCE.sender, listOf(message), USE_LOCAL_CODEC)
                 },
                 assert = {
                     vertx.createDatagramSocket()
@@ -77,7 +77,7 @@ class SenderTest : VertxTest() {
                 },
                 execute = {
                     val message = Buffer.buffer(MESSAGE)
-                    vertx.setPeriodic(100) { vertx.eventBus().send(Routes.sender, listOf(message), USE_LOCAL_CODEC) }
+                    vertx.setPeriodic(100) { vertx.eventBus().send(RoutesCE.sender, listOf(message), USE_LOCAL_CODEC) }
                 },
                 assert = {
                     vertx.createNetServer()

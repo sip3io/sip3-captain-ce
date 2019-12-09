@@ -32,19 +32,15 @@ sender:
 #    key-store: ...
 #    key-store-password: ...
 
-#! Hosts
-#hosts:
-#  - name: sbc.sip3.io
-#    sip:
-#      - 10.10.10.10
-#      - 10.10.10.20:5060
-#    media:
-#      - 10.10.20.10
-#      - 10.10.30.0/24
-#  - name: lb.sip3.io
-#    sip:
-#      - 10.20.10.10
-#      - 10.20.10.20:5060
+#! Host
+#host:
+#  name: sbc.sip3.io
+#  sip:
+#    - 10.10.10.10
+#    - 10.10.10.20:5060
+#  media:
+#    - 10.10.20.10
+#    - 10.10.30.0/24
 
 #! RTCP
 #rtcp:

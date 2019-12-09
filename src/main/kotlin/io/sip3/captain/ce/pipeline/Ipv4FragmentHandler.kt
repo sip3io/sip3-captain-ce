@@ -18,7 +18,7 @@ package io.sip3.captain.ce.pipeline
 
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
-import io.sip3.captain.ce.Routes
+import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Ipv4Header
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.domain.payload.ByteBufPayload
@@ -49,7 +49,7 @@ class Ipv4FragmentHandler : AbstractVerticle() {
 
         ipv4Handler = Ipv4Handler(vertx, false)
 
-        vertx.eventBus().localConsumer<List<Pair<Ipv4Header, Packet>>>(Routes.fragment) { event ->
+        vertx.eventBus().localConsumer<List<Pair<Ipv4Header, Packet>>>(RoutesCE.fragment) { event ->
             val packets = event.body()
             packets.forEach { (header, packet) ->
                 try {

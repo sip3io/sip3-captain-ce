@@ -17,7 +17,7 @@
 package io.sip3.captain.ce.sender
 
 import io.micrometer.core.instrument.Metrics
-import io.sip3.captain.ce.Routes
+import io.sip3.captain.ce.RoutesCE
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.datagram.DatagramSocket
@@ -59,7 +59,7 @@ class Sender : AbstractVerticle() {
             "tcp" -> openTcpConnection()
             else -> throw NotImplementedError("Unknown protocol: $uri")
         }
-        vertx.eventBus().localConsumer<List<Buffer>>(Routes.sender) { event ->
+        vertx.eventBus().localConsumer<List<Buffer>>(RoutesCE.sender) { event ->
             try {
                 val buffers = event.body()
                 send(buffers)

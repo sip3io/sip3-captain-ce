@@ -17,7 +17,7 @@
 package io.sip3.captain.ce.pipeline
 
 import io.netty.buffer.Unpooled
-import io.sip3.captain.ce.Routes
+import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.payload.ByteBufPayload
@@ -58,7 +58,7 @@ class RtpHandlerTest : VertxTest() {
                     rtpHandler.handle(packet)
                 },
                 assert = {
-                    vertx.eventBus().consumer<List<Packet>>(Routes.rtp) { event ->
+                    vertx.eventBus().consumer<List<Packet>>(RoutesCE.rtp) { event ->
                         val packets = event.body()
                         context.verify {
                             assertEquals(1, packets.size)
@@ -95,7 +95,7 @@ class RtpHandlerTest : VertxTest() {
                     rtpHandler.handle(packet)
                 },
                 assert = {
-                    vertx.eventBus().consumer<List<Packet>>(Routes.rtp) { event ->
+                    vertx.eventBus().consumer<List<Packet>>(RoutesCE.rtp) { event ->
                         val packets = event.body()
                         context.verify {
                             assertEquals(1, packets.size)

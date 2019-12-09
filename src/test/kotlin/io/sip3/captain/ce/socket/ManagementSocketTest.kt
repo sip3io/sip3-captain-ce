@@ -16,7 +16,7 @@
 
 package io.sip3.captain.ce.socket
 
-import io.sip3.captain.ce.Routes
+import io.sip3.captain.ce.RoutesCE
 import io.sip3.commons.domain.SdpSession
 import io.sip3.commons.vertx.test.VertxTest
 import io.vertx.core.json.JsonObject
@@ -30,13 +30,9 @@ class ManagementSocketTest : VertxTest() {
 
     companion object {
 
-        private val host1 = JsonObject().apply {
+        private val host = JsonObject().apply {
             put("name", "sbc1")
             put("sip", arrayListOf("10.10.10.10", "10.10.20.10:5060"))
-        }
-        private val host2 = JsonObject().apply {
-            put("name", "sbc2")
-            put("sip", arrayListOf("10.20.10.10", "10.20.20.10:5060"))
         }
     }
 
@@ -60,7 +56,7 @@ class ManagementSocketTest : VertxTest() {
                 put("remote-host", "127.0.0.1:$remotePort")
                 put("register-delay", 2000L)
             })
-            put("hosts", arrayListOf(host1, host2))
+            put("host", host)
         }
     }
 
@@ -82,7 +78,7 @@ class ManagementSocketTest : VertxTest() {
                             assertEquals(ManagementSocket.TYPE_REGISTER, jsonObject.getString("type"))
                             val payload = jsonObject.getJsonObject("payload")
                             assertNotNull(payload.getString("name"))
-                            assertEquals(2, payload.getJsonArray("hosts").size())
+                            assertEquals(host, payload.getJsonObject("host"))
                             assertEquals(localPort, packet.sender().port())
                         }
 
@@ -119,7 +115,7 @@ class ManagementSocketTest : VertxTest() {
                     }
                 },
                 assert = {
-                    vertx.eventBus().consumer<SdpSession>(Routes.sdp) { message ->
+                    vertx.eventBus().consumer<SdpSession>(RoutesCE.sdp) { message ->
                         context.verify {
                             sdpMessage.getJsonObject("payload").apply {
                                 assertEquals(getLong("id"), message.body().id)

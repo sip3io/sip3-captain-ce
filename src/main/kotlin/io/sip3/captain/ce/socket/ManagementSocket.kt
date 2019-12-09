@@ -16,12 +16,11 @@
 
 package io.sip3.captain.ce.socket
 
-import io.sip3.captain.ce.Routes
+import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.commons.domain.SdpSession
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.datagram.DatagramSocket
-import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import mu.KotlinLogging
 import java.net.URI
@@ -45,7 +44,7 @@ class ManagementSocket : AbstractVerticle() {
     private var registerDelay: Long = 60000
 
     private lateinit var socket: DatagramSocket
-    private var hosts = JsonArray()
+    private var host: JsonObject? = null
 
     override fun start() {
         config().getJsonObject("management").let { config ->
@@ -67,11 +66,11 @@ class ManagementSocket : AbstractVerticle() {
             config.getLong("register-delay")?.let { registerDelay = it }
         }
 
-        config().getJsonArray("hosts")?.let { hosts = it }
+        config().getJsonObject("host")?.let { host = it }
 
-        vertx.eventBus().localConsumer<JsonObject>(io.sip3.commons.Routes.config_change) { event ->
+        vertx.eventBus().localConsumer<JsonObject>(RoutesCE.config_change) { event ->
             val config = event.body()
-            config.getJsonArray("hosts")?.let { hosts = it }
+            config.getJsonObject("host")?.let { host = it }
         }
 
         startUdpServer()
@@ -112,7 +111,7 @@ class ManagementSocket : AbstractVerticle() {
             put("type", TYPE_REGISTER)
             put("payload", JsonObject().apply {
                 put("name", deploymentID())
-                put("hosts", hosts)
+                host?.let { put("host", it) }
             })
         }
 
@@ -126,7 +125,7 @@ class ManagementSocket : AbstractVerticle() {
             TYPE_SDP_SESSION -> {
                 val payload = message.getJsonObject("payload")
                 val sdpSession: SdpSession = payload.mapTo(SdpSession::class.java)
-                vertx.eventBus().publish(Routes.sdp, sdpSession, USE_LOCAL_CODEC)
+                vertx.eventBus().publish(RoutesCE.sdp, sdpSession, USE_LOCAL_CODEC)
             }
             else -> logger.error("Unknown message type. Message: ${message.encodePrettily()}")
         }
