@@ -66,11 +66,11 @@ class ManagementSocket : AbstractVerticle() {
             config.getLong("register-delay")?.let { registerDelay = it }
         }
 
-        config().getJsonObject("host")?.let { host = it }
+        host = config().getJsonObject("host")
 
         vertx.eventBus().localConsumer<JsonObject>(RoutesCE.config_change) { event ->
             val config = event.body()
-            config.getJsonObject("host")?.let { host = it }
+            host = config.getJsonObject("host")
         }
 
         startUdpServer()

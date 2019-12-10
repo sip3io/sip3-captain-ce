@@ -20,12 +20,12 @@ import io.sip3.commons.Routes
 
 interface RoutesCE : Routes {
 
+    companion object : RoutesCE
+
     val fragment get() = "fragment"
     val tcp get() = "tcp"
     val rtp get() = "rtp"
     val sdp get() = "sdp"
     val sender get() = "sender"
     val encoder get() = "encoder"
-
-    companion object : RoutesCE
 }
