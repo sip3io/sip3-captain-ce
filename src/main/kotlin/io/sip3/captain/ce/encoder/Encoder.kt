@@ -17,7 +17,7 @@
 package io.sip3.captain.ce.encoder
 
 import io.netty.buffer.Unpooled
-import io.sip3.captain.ce.Routes
+import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.domain.payload.Encodable
@@ -63,7 +63,7 @@ class Encoder : AbstractVerticle() {
         config().getJsonObject("encoder")?.let { config ->
             config.getInteger("bulk-size")?.let { bulkSize = it }
         }
-        vertx.eventBus().localConsumer<List<Packet>>(Routes.encoder) { event ->
+        vertx.eventBus().localConsumer<List<Packet>>(RoutesCE.encoder) { event ->
             try {
                 val packets = event.body()
                 encode(packets)
@@ -121,7 +121,7 @@ class Encoder : AbstractVerticle() {
         }
 
         if (buffers.size >= bulkSize) {
-            vertx.eventBus().send(Routes.sender, buffers.toList(), USE_LOCAL_CODEC)
+            vertx.eventBus().send(RoutesCE.sender, buffers.toList(), USE_LOCAL_CODEC)
             buffers.clear()
         }
     }

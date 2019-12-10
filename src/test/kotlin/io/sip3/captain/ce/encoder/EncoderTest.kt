@@ -16,7 +16,7 @@
 
 package io.sip3.captain.ce.encoder
 
-import io.sip3.captain.ce.Routes
+import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.PacketTypes
@@ -60,10 +60,10 @@ class EncoderTest : VertxTest() {
                         protocolCode = PacketTypes.ICMP
                         payload = ByteArrayPayload(PACKET_1)
                     }
-                    vertx.eventBus().send(Routes.encoder, listOf(packet), USE_LOCAL_CODEC)
+                    vertx.eventBus().send(RoutesCE.encoder, listOf(packet), USE_LOCAL_CODEC)
                 },
                 assert = {
-                    vertx.eventBus().consumer<List<Buffer>>(Routes.sender) { event ->
+                    vertx.eventBus().consumer<List<Buffer>>(RoutesCE.sender) { event ->
                         val buffers = event.body()
                         context.verify {
                             assertEquals(1, buffers.size)

@@ -17,7 +17,7 @@
 package io.sip3.captain.ce.pipeline
 
 import io.netty.buffer.Unpooled
-import io.sip3.captain.ce.Routes
+import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.PacketTypes
@@ -146,7 +146,7 @@ class RtcpHandlerTest : VertxTest() {
                 execute = {
                     val rtcpHandler = RtcpHandler(vertx, false)
 
-                    vertx.eventBus().publish(Routes.sdp, SDP_SESSION, USE_LOCAL_CODEC)
+                    vertx.eventBus().publish(RoutesCE.sdp, SDP_SESSION, USE_LOCAL_CODEC)
                     vertx.setTimer(1000L) {
                         listOf(PACKET_1, PACKET_2, PACKET_3).map { payload ->
                             Packet().apply {
@@ -162,7 +162,7 @@ class RtcpHandlerTest : VertxTest() {
                 },
                 assert = {
                     var packetCount = 0
-                    vertx.eventBus().consumer<List<Packet>>(Routes.encoder) { event ->
+                    vertx.eventBus().consumer<List<Packet>>(RoutesCE.encoder) { event ->
                         context.verify {
                             val packets = event.body()
                             assertEquals(1, packets.size)

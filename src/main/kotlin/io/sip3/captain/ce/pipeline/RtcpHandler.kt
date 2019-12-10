@@ -16,7 +16,7 @@
 
 package io.sip3.captain.ce.pipeline
 
-import io.sip3.captain.ce.Routes
+import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.domain.RtcpReportBlock
@@ -66,7 +66,7 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
         }
 
         // Consumer for sdpSession info from remote host
-        vertx.eventBus().localConsumer<SdpSession>(Routes.sdp) { event ->
+        vertx.eventBus().localConsumer<SdpSession>(RoutesCE.sdp) { event ->
             try {
                 val sdpSession = event.body()
                 onSdpSession(sdpSession)
@@ -251,7 +251,7 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
 
             reports.add(rtpReport)
             if (reports.size >= bulkSize) {
-                vertx.eventBus().send(Routes.encoder, reports.toList(), USE_LOCAL_CODEC)
+                vertx.eventBus().send(RoutesCE.encoder, reports.toList(), USE_LOCAL_CODEC)
                 reports.clear()
             }
         }

@@ -16,12 +16,16 @@
 
 package io.sip3.captain.ce
 
-object Routes {
+import io.sip3.commons.Routes
 
-    const val fragment = "fragment"
-    const val tcp = "tcp"
-    const val rtp = "rtp"
-    const val sdp = "sdp"
-    const val sender = "sender"
-    const val encoder = "encoder"
+interface RoutesCE : Routes {
+
+    companion object : RoutesCE
+
+    val fragment get() = "fragment"
+    val tcp get() = "tcp"
+    val rtp get() = "rtp"
+    val sdp get() = "sdp"
+    val sender get() = "sender"
+    val encoder get() = "encoder"
 }

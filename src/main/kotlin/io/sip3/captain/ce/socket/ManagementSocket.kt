@@ -16,7 +16,7 @@
 
 package io.sip3.captain.ce.socket
 
-import io.sip3.captain.ce.Routes
+import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.commons.domain.SdpSession
 import io.vertx.core.AbstractVerticle
@@ -44,6 +44,7 @@ class ManagementSocket : AbstractVerticle() {
     private var registerDelay: Long = 60000
 
     private lateinit var socket: DatagramSocket
+    private var host: JsonObject? = null
 
     override fun start() {
         config().getJsonObject("management").let { config ->
@@ -63,6 +64,13 @@ class ManagementSocket : AbstractVerticle() {
             }
 
             config.getLong("register-delay")?.let { registerDelay = it }
+        }
+
+        host = config().getJsonObject("host")
+
+        vertx.eventBus().localConsumer<JsonObject>(RoutesCE.config_change) { event ->
+            val config = event.body()
+            host = config.getJsonObject("host")
         }
 
         startUdpServer()
@@ -91,14 +99,23 @@ class ManagementSocket : AbstractVerticle() {
     }
 
     private fun registerManagementSocket() {
-        vertx.setPeriodic(registerDelay) {
-            val registerMessage = JsonObject().apply {
-                put("type", TYPE_REGISTER)
-                put("name", deploymentID())
-            }
+        sendRegisterMessage()
 
-            socket.send(registerMessage.toBuffer(), remoteUri.port, remoteUri.host) {}
+        vertx.setPeriodic(registerDelay) {
+            sendRegisterMessage()
         }
+    }
+
+    private fun sendRegisterMessage() {
+        val registerMessage = JsonObject().apply {
+            put("type", TYPE_REGISTER)
+            put("payload", JsonObject().apply {
+                put("name", deploymentID())
+                host?.let { put("host", it) }
+            })
+        }
+
+        socket.send(registerMessage.toBuffer(), remoteUri.port, remoteUri.host) {}
     }
 
     private fun handle(message: JsonObject) {
@@ -108,7 +125,7 @@ class ManagementSocket : AbstractVerticle() {
             TYPE_SDP_SESSION -> {
                 val payload = message.getJsonObject("payload")
                 val sdpSession: SdpSession = payload.mapTo(SdpSession::class.java)
-                vertx.eventBus().publish(Routes.sdp, sdpSession, USE_LOCAL_CODEC)
+                vertx.eventBus().publish(RoutesCE.sdp, sdpSession, USE_LOCAL_CODEC)
             }
             else -> logger.error("Unknown message type. Message: ${message.encodePrettily()}")
         }
