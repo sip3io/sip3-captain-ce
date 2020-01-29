@@ -96,11 +96,15 @@ class ManagementSocketTest : VertxTest() {
             put("payload", JsonObject().apply {
                 put("id", 10070L)
                 put("timestamp", System.currentTimeMillis())
-                put("clock_rate", 8000)
-                put("codec_ie", 1F)
-                put("codec_bpl", 2F)
-                put("payload_type", 0)
                 put("call_id", "f81d4fae-7dec-11d0-a765-00a0c91e6bf6@foo.bar.com")
+
+                put("codec", JsonObject().apply {
+                    put("name", "PCMU")
+                    put("payload_type", 0)
+                    put("clock_rate", 8000)
+                    put("ie", 1F)
+                    put("bpl", 2F)
+                })
             })
         }
 
@@ -115,11 +119,22 @@ class ManagementSocketTest : VertxTest() {
                     }
                 },
                 assert = {
-                    vertx.eventBus().consumer<SdpSession>(RoutesCE.sdp) { message ->
+                    vertx.eventBus().consumer<SdpSession>(RoutesCE.sdp) { event ->
                         context.verify {
                             sdpMessage.getJsonObject("payload").apply {
-                                assertEquals(getLong("id"), message.body().id)
-                                assertEquals( getString("call_id"), message.body().callId)
+                                val payload = event.body()
+                                assertEquals(getLong("id"), payload.id)
+                                assertEquals(getString("call_id"), payload.callId)
+                                assertNotNull(payload.timestamp)
+
+                                val codec = payload.codec
+                                getJsonObject("codec").apply {
+                                    assertEquals(getString("name"), codec.name)
+                                    assertEquals(getInteger("payload_type"), codec.payloadType.toInt())
+                                    assertEquals(getInteger("clock_rate"), codec.clockRate)
+                                    assertEquals(getFloat("ie"), codec.ie)
+                                    assertEquals(getFloat("bpl"), codec.bpl)
+                                }
                             }
 
                         }

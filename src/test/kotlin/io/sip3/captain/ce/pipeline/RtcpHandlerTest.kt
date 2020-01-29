@@ -21,6 +21,7 @@ import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.PacketTypes
+import io.sip3.commons.domain.Codec
 import io.sip3.commons.domain.SdpSession
 import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.RtpReportPayload
@@ -39,7 +40,7 @@ class RtcpHandlerTest : VertxTest() {
         val DST_ADDR = byteArrayOf(0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte())
         const val DST_PORT = 13057
 
-        val SESSION_ID = run {
+        private val SESSION_ID = run {
             val srcAddrAsLong = IpUtil.convertToInt(SRC_ADDR).toLong()
             ((srcAddrAsLong shl 32) or (SRC_PORT - 1).toLong())
         }
@@ -126,14 +127,17 @@ class RtcpHandlerTest : VertxTest() {
 
         // SDP
         val SDP_SESSION = SdpSession().apply {
-            callId = "callId_uuid@domain.io"
-            clockRate = 8000
-            codecBpl = 4.3F
-            codecIe = 0F
             id = SESSION_ID
-            payloadType = 0
-            codecName = "PCMU"
+            callId = "callId_uuid@domain.io"
             timestamp = System.currentTimeMillis()
+
+            codec = Codec().apply {
+                name = "PCMU"
+                payloadType = 0
+                clockRate = 8000
+                bpl = 4.3F
+                ie = 0F
+            }
         }
     }
 
@@ -170,10 +174,10 @@ class RtcpHandlerTest : VertxTest() {
                             val packet = packets.first()
                             val report = packet.payload as RtpReportPayload
                             assertEquals(PacketTypes.RTPR, packet.protocolCode)
-                            // Assert SDP session data in RTPR
+                            // Assert SDP session data in RTP-R
                             assertEquals(SDP_SESSION.callId, report.callId)
-                            assertEquals(SDP_SESSION.codecName, report.codecName)
-                            assertEquals(SDP_SESSION.payloadType, report.payloadType)
+                            assertEquals(SDP_SESSION.codec.name, report.codecName)
+                            assertEquals(SDP_SESSION.codec.payloadType, report.payloadType)
 
                             when (packetCount) {
                                 1 -> {
