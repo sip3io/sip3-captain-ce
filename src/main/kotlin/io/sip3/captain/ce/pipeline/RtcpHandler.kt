@@ -29,6 +29,7 @@ import io.sip3.commons.domain.payload.RtpReportPayload
 import io.sip3.commons.util.remainingCapacity
 import io.vertx.core.Vertx
 import mu.KotlinLogging
+import java.sql.Timestamp
 import kotlin.experimental.and
 
 /**
@@ -106,7 +107,7 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
             val payloadType = buffer.readUnsignedByte().toInt()
             val reportLength = buffer.readUnsignedShort() * 4
 
-            when(payloadType) {
+            when (payloadType) {
                 // SR: Sender Report RTCP Packet
                 200 -> {
                     val report = SenderReport().apply {
@@ -192,8 +193,9 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
                 session.lastJitter = report.interarrivalJitter.toFloat()
             }
 
+            val now = Timestamp(System.currentTimeMillis())
             val rtpReport = Packet().apply {
-                timestamp = session.createdAt
+                timestamp = now
                 dstAddr = session.dstAddr
                 this.dstPort = session.dstPort
                 srcAddr = session.srcAddr
@@ -202,12 +204,19 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
             }
 
             rtpReport.payload = RtpReportPayload().apply {
+                createdAt = now.time
+                startedAt = if (session.lastPacketTimestamp > 0) {
+                    session.lastPacketTimestamp
+                } else {
+                    now.time
+                }
+
                 source = RtpReportPayload.SOURCE_RTCP
                 this.ssrc = report.ssrc
 
                 lastJitter = session.lastJitter
 
-                if(isNewSession) {
+                if (isNewSession) {
                     receivedPacketCount = senderReport.senderPacketCount.toInt()
                     lostPacketCount = report.cumulativePacketLost.toInt()
                     expectedPacketCount = receivedPacketCount + lostPacketCount
@@ -220,16 +229,17 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
                     duration = (senderReport.ntpTimestamp - session.lastNtpTimestamp).toInt()
                 }
 
-
                 // Perform calculations only if codec information persists
                 session.sdpSession?.let { sdpSession ->
                     callId = sdpSession.callId
-                    payloadType = sdpSession.payloadType
-                    codecName = sdpSession.codecName
+
+                    val codec = sdpSession.codec
+                    payloadType = codec.payloadType
+                    codecName = codec.name
 
                     // Raw rFactor value
                     val ppl = fractionLost * 100
-                    val ieEff = sdpSession.codecIe + (95 - sdpSession.codecIe) * ppl / (ppl + sdpSession.codecBpl)
+                    val ieEff = codec.ie + (95 - codec.ie) * ppl / (ppl + codec.bpl)
                     var iDelay = I_DELAY_DEFAULT
                     if (lastJitter - 177.3F >= 0) {
                         iDelay += (lastJitter - 15.93)
