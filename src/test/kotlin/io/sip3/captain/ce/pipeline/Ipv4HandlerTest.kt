@@ -76,6 +76,14 @@ class Ipv4HandlerTest : VertxTest() {
                 0xf4.toByte(), 0x05.toByte(), 0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte(), 0x32.toByte(),
                 0x40.toByte(), 0xe8.toByte(), 0x3c.toByte(), 0x00.toByte(), 0xb4.toByte(), 0x13.toByte(), 0x0b.toByte()
         )
+
+        // IPv4 Payload: GRE
+        val PACKET_5 = byteArrayOf(
+                0x45.toByte(), 0xa0.toByte(), 0x00.toByte(), 0x1c.toByte(), 0xe8.toByte(), 0xdd.toByte(), 0x00.toByte(),
+                0x00.toByte(), 0x3c.toByte(), 0x2f.toByte(), 0x75.toByte(), 0x6e.toByte(), 0x0a.toByte(), 0xfa.toByte(),
+                0xf4.toByte(), 0x05.toByte(), 0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte(), 0x32.toByte(),
+                0x40.toByte(), 0xe8.toByte(), 0x3c.toByte(), 0x00.toByte(), 0xb4.toByte(), 0x13.toByte(), 0x0b.toByte()
+        )
     }
 
     @Test
@@ -179,6 +187,31 @@ class Ipv4HandlerTest : VertxTest() {
         packet = packetSlot.captured
         val buffer = (packet.payload as Encodable).encode()
         assertTrue(packet.rejected)
+        val srcAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte()))
+        assertEquals(srcAddr, InetAddress.getByAddress(packet.srcAddr))
+        val dstAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte()))
+        assertEquals(dstAddr, InetAddress.getByAddress(packet.dstAddr))
+        assertEquals(8, buffer.remainingCapacity())
+    }
+
+    @Test
+    fun `Parse IPv4 - GRE`() {
+        // Init
+        mockkConstructor(GreHandler::class)
+        val packetSlot = slot<Packet>()
+        every {
+            anyConstructed<GreHandler>().handle(capture(packetSlot))
+        } just Runs
+        // Execute
+        val ipv4Handler = Ipv4Handler(Vertx.vertx(), false)
+        var packet = Packet().apply {
+            this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_5))
+        }
+        ipv4Handler.handle(packet)
+        // Assert
+        verify { anyConstructed<GreHandler>().handle(any()) }
+        packet = packetSlot.captured
+        val buffer = (packet.payload as Encodable).encode()
         val srcAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte()))
         assertEquals(srcAddr, InetAddress.getByAddress(packet.srcAddr))
         val dstAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte()))

@@ -26,9 +26,15 @@ import io.vertx.core.Vertx
  */
 class UdpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, bulkOperationsEnabled) {
 
-    private val rtcpHandler = RtcpHandler(vertx, bulkOperationsEnabled)
-    private val rtpHandler = RtpHandler(vertx, bulkOperationsEnabled)
-    private val sipHandler = SipHandler(vertx, bulkOperationsEnabled)
+    private val rtcpHandler: RtcpHandler by lazy {
+        RtcpHandler(vertx, bulkOperationsEnabled)
+    }
+    private val rtpHandler: RtpHandler by lazy {
+        RtpHandler(vertx, bulkOperationsEnabled)
+    }
+    private val sipHandler: SipHandler by lazy {
+        SipHandler(vertx, bulkOperationsEnabled)
+    }
 
     override fun onPacket(packet: Packet) {
         val buffer = (packet.payload as Encodable).encode()
