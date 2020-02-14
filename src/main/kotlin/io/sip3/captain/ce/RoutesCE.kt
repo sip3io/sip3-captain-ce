@@ -24,7 +24,6 @@ interface RoutesCE : Routes {
 
     val fragment get() = "fragment"
     val tcp get() = "tcp"
-    val gre get() = "gre"
     val rtp get() = "rtp"
     val sdp get() = "sdp"
     val sender get() = "sender"
