@@ -34,7 +34,9 @@ class EthernetHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(ve
         const val TYPE_LINUX_COOKED_CAPTURE = 0x0000
     }
 
-    private val ipv4Handler = Ipv4Handler(vertx, bulkOperationsEnabled)
+    private val ipv4Handler: Ipv4Handler by lazy {
+        Ipv4Handler(vertx, bulkOperationsEnabled)
+    }
 
     override fun onPacket(packet: Packet) {
         val buffer = (packet.payload as Encodable).encode()

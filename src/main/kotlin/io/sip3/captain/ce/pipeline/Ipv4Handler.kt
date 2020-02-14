@@ -39,13 +39,19 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
         const val TYPE_UDP = 0x11
         const val TYPE_ICMP = 0x01
         const val TYPE_IPV4 = 0x04
+        const val TYPE_GRE = 0x2F
     }
 
     private val ipv4Packets = mutableListOf<Pair<Ipv4Header, Packet>>()
     private val tcpPackets = mutableListOf<Packet>()
     private var bulkSize = 1
 
-    private val udpHandler = UdpHandler(vertx, bulkOperationsEnabled)
+    private val udpHandler: UdpHandler by lazy {
+        UdpHandler(vertx, bulkOperationsEnabled)
+    }
+    private val greHandler: GreHandler by lazy {
+        GreHandler(vertx, bulkOperationsEnabled)
+    }
 
     init {
         if (bulkOperationsEnabled) {
@@ -142,7 +148,13 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
                 }
             }
             // IPv4:
-            TYPE_IPV4 -> onPacket(packet)
+            TYPE_IPV4 -> {
+                onPacket(packet)
+            }
+            // GRE(Generic Routing Encapsulation):
+            TYPE_GRE -> {
+                greHandler.handle(packet)
+            }
         }
     }
 }
