@@ -17,14 +17,18 @@
 package io.sip3.captain.ce.pipeline
 
 import io.mockk.*
+import io.mockk.junit5.MockKExtension
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.vertx.core.Vertx
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 
+@ExtendWith(MockKExtension::class)
 class ErspanHandlerTest {
 
     companion object {
@@ -56,5 +60,10 @@ class ErspanHandlerTest {
         verify { anyConstructed<EthernetHandler>().handle(any()) }
         val buffer = (packetSlot.captured.payload as Encodable).encode()
         assertEquals(8, buffer.readerIndex())
+    }
+
+    @AfterEach
+    fun `Unmock all`() {
+        unmockkAll()
     }
 }
