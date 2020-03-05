@@ -82,7 +82,8 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
             val now = System.currentTimeMillis()
             // Sessions cleanup
             sessions.filterValues { it.lastPacketTimestamp + aggregationTimeout < now }
-                    .forEach { (sessionId, _) ->
+                    .forEach { (sessionId, session) ->
+                        onSessionExpire(session)
                         sessions.remove(sessionId)
                     }
 
@@ -96,6 +97,22 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
 
     private fun onSdpSession(sdpSession: SdpSession) {
         sdpSessions.put(sdpSession.id, sdpSession)
+    }
+
+    private fun onSessionExpire(session: RtcpSession) {
+        // Send cumulative report
+        val now = Timestamp(System.currentTimeMillis())
+        val rtpReport = Packet().apply {
+            timestamp = now
+            dstAddr = session.dstAddr
+            dstPort = session.dstPort
+            srcAddr = session.srcAddr
+            srcPort = session.srcPort
+            protocolCode = PacketTypes.RTPR
+            session.cumulative.createdAt = now.time
+            payload = session.cumulative
+        }
+        send(rtpReport)
     }
 
     override fun onPacket(packet: Packet) {
@@ -153,7 +170,7 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
             buffer.skipBytes(4)
 
             // Reports
-            for (index in 1..reportBlockCount) {
+            repeat(reportBlockCount.toInt()) {
                 reportBlocks.add(RtcpReportBlock().apply {
                     // SSRC of sender
                     ssrc = buffer.readUnsignedInt()
@@ -185,20 +202,18 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
 
             val session = sessions.computeIfAbsent(sessionId) {
                 isNewSession = true
-                RtcpSession()
-            }
-
-            if (isNewSession) {
-                session.apply {
+                RtcpSession().apply {
                     createdAt = packet.timestamp
                     dstAddr = packet.dstAddr
                     this.dstPort = packet.dstPort
                     srcAddr = packet.srcAddr
                     this.srcPort = packet.srcPort
                     this.lastNtpTimestamp = senderReport.ntpTimestamp
-
-                    sdpSession = sdpSessions[dstSdpSessionId] ?: sdpSessions[srcSdpSessionId]
                 }
+            }
+
+            if (session.sdpSession == null) {
+                session.sdpSession = sdpSessions[session.dstSdpSessionId] ?: sdpSessions[session.srcSdpSessionId]
             }
 
             // If interarrival jitter is greater than maximum, current jitter is bad
@@ -216,7 +231,7 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
                 protocolCode = PacketTypes.RTPR
             }
 
-            rtpReport.payload = RtpReportPayload().apply {
+            val payload = RtpReportPayload().apply {
                 createdAt = now.time
                 startedAt = if (session.lastPacketTimestamp > 0) {
                     session.lastPacketTimestamp
@@ -260,23 +275,85 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
                     rFactor = (R0 - ieEff - iDelay).toFloat()
 
                     // MoS
-                    mos = when {
-                        rFactor < 0 -> MOS_MIN
-                        rFactor > 100F -> MOS_MAX
-                        else -> (1 + rFactor * 0.035 + rFactor * (100 - rFactor) * (rFactor - 60) * 0.000007).toFloat()
-                    }
+                    mos = computeMos(rFactor)
                 }
             }
+            rtpReport.payload = payload
+            updateCumulative(session, payload)
 
             session.previousReport = report
             session.lastNtpTimestamp = senderReport.ntpTimestamp
             session.lastPacketTimestamp = packet.timestamp.time
 
-            reports.add(rtpReport)
-            if (reports.size >= bulkSize) {
-                vertx.eventBus().send(RoutesCE.encoder, reports.toList(), USE_LOCAL_CODEC)
-                reports.clear()
+            send(rtpReport)
+        }
+    }
+
+    private fun updateCumulative(session: RtcpSession, payload: RtpReportPayload) {
+        session.cumulative.apply {
+            if (startedAt == 0L) {
+                startedAt = payload.startedAt
             }
+            if (codecName == null) {
+                payload.codecName?.let { codecName = it }
+            }
+            if (callId == null) {
+                payload.callId?.let { callId = it }
+            }
+
+            expectedPacketCount += payload.expectedPacketCount
+            receivedPacketCount += payload.receivedPacketCount
+            rejectedPacketCount += payload.rejectedPacketCount
+            lostPacketCount += payload.lostPacketCount
+
+            avgJitter = (avgJitter * session.rtcpReportCount + payload.avgJitter) / (session.rtcpReportCount + 1)
+            duration += payload.duration
+            fractionLost = lostPacketCount.toFloat() / expectedPacketCount
+
+            lastJitter = payload.lastJitter
+            if (maxJitter < payload.maxJitter) {
+                maxJitter = payload.maxJitter
+            }
+            if (minJitter > payload.minJitter) {
+                minJitter = payload.minJitter
+            }
+
+            session.sdpSession?.let { sdpSession ->
+                // Raw rFactor value
+                var ppl = (1 - receivedPacketCount.toFloat() / expectedPacketCount) * 100
+                if (ppl < 0) {
+                    ppl = 0F
+                }
+
+                val codec = sdpSession.codec
+                val ieEff = codec.ie + (95 - codec.ie) * ppl / (ppl + codec.bpl)
+                var iDelay = I_DELAY_DEFAULT
+                if (lastJitter - 177.3F >= 0) {
+                    iDelay += (lastJitter - 15.93)
+                }
+                rFactor = (R0 - ieEff - iDelay).toFloat()
+
+                // MoS
+                mos = computeMos(rFactor)
+            }
+
+            session.rtcpReportCount++
+        }
+    }
+
+    private fun computeMos(rFactor: Float): Float {
+        return when {
+            rFactor < 0 -> MOS_MIN
+            rFactor > 100F -> MOS_MAX
+            else -> (1 + rFactor * 0.035 + rFactor * (100 - rFactor) * (rFactor - 60) * 0.000007).toFloat()
+        }
+    }
+
+    private fun send(rtpReport: Packet) {
+        reports.add(rtpReport)
+        if (reports.size >= bulkSize) {
+            vertx.eventBus().send(RoutesCE.encoder, reports.toList(), USE_LOCAL_CODEC)
+            reports.clear()
         }
     }
 }
