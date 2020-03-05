@@ -16,10 +16,12 @@
 
 package io.sip3.captain.ce.pipeline
 
+import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.util.SipUtil
 import io.sip3.commons.domain.payload.Encodable
 import io.vertx.core.Vertx
+import io.vertx.core.json.JsonObject
 
 /**
  * Handles UDP packets
@@ -35,6 +37,9 @@ class UdpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
     private val sipHandler: SipHandler by lazy {
         SipHandler(vertx, bulkOperationsEnabled)
     }
+
+    private var rtpEnabled = false
+    private var rtcpEnabled = false
 
     override fun onPacket(packet: Packet) {
         val buffer = (packet.payload as Encodable).encode()
@@ -55,16 +60,27 @@ class UdpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
             return
         }
 
+        vertx.orCreateContext.config().let { config ->
+            rtpEnabled = config.containsKey("rtp")
+            rtcpEnabled = config.containsKey("rtcp")
+        }
+
+        vertx.eventBus().localConsumer<JsonObject>(RoutesCE.config_change) { event ->
+            val config = event.body()
+            rtpEnabled = config.containsKey("rtp")
+            rtcpEnabled = config.containsKey("rtcp")
+        }
+
         when {
             // RTP or RTCP packet
             buffer.getUnsignedByte(offset).toInt().shr(6) == 2 -> {
                 val packetType = buffer.getUnsignedByte(offset + 1).toInt()
                 if (packetType in 200..211) {
                     // Skip ICMP(RTCP) packet
-                    if (!packet.rejected) {
+                    if (rtcpEnabled && !packet.rejected) {
                         rtcpHandler.handle(packet)
                     }
-                } else {
+                } else if (rtpEnabled) {
                     rtpHandler.handle(packet)
                 }
             }

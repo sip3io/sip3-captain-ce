@@ -24,6 +24,8 @@ import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.remainingCapacity
 import io.vertx.core.Vertx
+import io.vertx.core.impl.EventLoopContext
+import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -90,6 +92,12 @@ class UdpHandlerTest {
         every {
             anyConstructed<RtpHandler>().handle(capture(packetSlot))
         } just Runs
+
+        mockkConstructor(EventLoopContext::class)
+        every {
+            anyConstructed<EventLoopContext>().config()
+        } returns JsonObject().put("rtp", JsonObject())
+
         // Execute
         val udpHandler = UdpHandler(Vertx.vertx(), false)
         var packet = Packet().apply {
@@ -113,6 +121,12 @@ class UdpHandlerTest {
         every {
             anyConstructed<RtcpHandler>().handle(capture(packetSlot))
         } just Runs
+
+        mockkConstructor(EventLoopContext::class)
+        every {
+            anyConstructed<EventLoopContext>().config()
+        } returns JsonObject().put("rtcp", JsonObject())
+
         // Execute
         val udpHandler = UdpHandler(Vertx.vertx(), false)
         var packet = Packet().apply {
@@ -136,6 +150,12 @@ class UdpHandlerTest {
         every {
             anyConstructed<RtpHandler>().handle(capture(packetSlot))
         } just Runs
+
+        mockkConstructor(EventLoopContext::class)
+        every {
+            anyConstructed<EventLoopContext>().config()
+        } returns JsonObject().put("rtp", JsonObject())
+
         // Execute
         val udpHandler = UdpHandler(Vertx.vertx(), false)
         var packet = Packet().apply {
