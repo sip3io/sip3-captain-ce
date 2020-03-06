@@ -202,7 +202,7 @@ class RtcpHandlerTest : VertxTest() {
                                     assertEquals(0, report.lostPacketCount)
                                 }
                                 4 -> {
-                                    assertEquals(196+201+201, report.expectedPacketCount)
+                                    assertEquals(196 + 201 + 201, report.expectedPacketCount)
                                     assertEquals(74F, report.lastJitter)
                                     assertEquals(1, report.lostPacketCount)
                                     assertTrue(report.cumulative)

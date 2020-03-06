@@ -18,6 +18,7 @@ package io.sip3.captain.ce.sender
 
 import io.micrometer.core.instrument.Metrics
 import io.sip3.captain.ce.RoutesCE
+import io.sip3.commons.vertx.annotations.Instance
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.datagram.DatagramSocket
@@ -29,6 +30,7 @@ import java.net.URI
 /**
  * Sends encoded packets to `SIP3 Salto`.
  */
+@Instance(singleton = false)
 class Sender : AbstractVerticle() {
 
     private val logger = KotlinLogging.logger {}

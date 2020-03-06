@@ -21,6 +21,8 @@ import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.pipeline.EthernetHandler
 import io.sip3.commons.domain.payload.ByteBufPayload
+import io.sip3.commons.vertx.annotations.ConditionalOnProperty
+import io.sip3.commons.vertx.annotations.Instance
 import io.vertx.core.AbstractVerticle
 import mu.KotlinLogging
 import org.pcap4j.core.*
@@ -34,6 +36,8 @@ import kotlin.system.exitProcess
 /**
  * Libpcap, WinPcap and Npcap capture engine
  */
+@Instance
+@ConditionalOnProperty("pcap")
 class PcapEngine : AbstractVerticle() {
 
     private val logger = KotlinLogging.logger {}

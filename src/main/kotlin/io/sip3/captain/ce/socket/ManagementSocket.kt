@@ -19,6 +19,8 @@ package io.sip3.captain.ce.socket
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.commons.domain.SdpSession
+import io.sip3.commons.vertx.annotations.ConditionalOnProperty
+import io.sip3.commons.vertx.annotations.Instance
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.datagram.DatagramSocket
 import io.vertx.core.json.JsonObject
@@ -28,6 +30,8 @@ import java.net.URI
 /**
  * Management socket
  */
+@Instance
+@ConditionalOnProperty("management")
 class ManagementSocket : AbstractVerticle() {
 
     private val logger = KotlinLogging.logger {}

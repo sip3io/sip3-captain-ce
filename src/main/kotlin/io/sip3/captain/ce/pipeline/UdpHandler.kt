@@ -16,12 +16,10 @@
 
 package io.sip3.captain.ce.pipeline
 
-import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.util.SipUtil
 import io.sip3.commons.domain.payload.Encodable
 import io.vertx.core.Vertx
-import io.vertx.core.json.JsonObject
 
 /**
  * Handles UDP packets
@@ -42,15 +40,12 @@ class UdpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
     private var rtcpEnabled = false
 
     init {
-        vertx.orCreateContext.config().let { config ->
-            rtpEnabled = config.containsKey("rtp")
-            rtcpEnabled = config.containsKey("rtcp")
+        vertx.orCreateContext.config().getJsonObject("rtp")?.getBoolean("enabled")?.let {
+            rtpEnabled = it
         }
 
-        vertx.eventBus().localConsumer<JsonObject>(RoutesCE.config_change) { event ->
-            val config = event.body()
-            rtpEnabled = config.containsKey("rtp")
-            rtcpEnabled = config.containsKey("rtcp")
+        vertx.orCreateContext.config().getJsonObject("rtcp")?.getBoolean("enabled")?.let {
+            rtcpEnabled = it
         }
     }
 

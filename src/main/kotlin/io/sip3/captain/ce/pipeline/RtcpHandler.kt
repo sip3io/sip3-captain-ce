@@ -126,8 +126,9 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
             val reportLength = buffer.readUnsignedShort() * 4
 
             // Return if report is not fully readable
-            if (offset + reportLength > buffer.capacity())
+            if (offset + reportLength > buffer.capacity()) {
                 return
+            }
 
             when (payloadType) {
                 // SR: Sender Report RTCP Packet

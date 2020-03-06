@@ -27,6 +27,7 @@ import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.IpUtil
 import io.sip3.commons.util.remainingCapacity
+import io.sip3.commons.vertx.annotations.Instance
 import io.vertx.core.AbstractVerticle
 import mu.KotlinLogging
 import java.util.*
@@ -34,6 +35,7 @@ import java.util.*
 /**
  * Handles TCP packets
  */
+@Instance
 class TcpHandler : AbstractVerticle() {
 
     private val logger = KotlinLogging.logger {}

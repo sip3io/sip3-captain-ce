@@ -22,6 +22,7 @@ import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.writeTlv
+import io.sip3.commons.vertx.annotations.Instance
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.buffer.Buffer
 import mu.KotlinLogging
@@ -29,6 +30,7 @@ import mu.KotlinLogging
 /**
  * Encodes packets to SIP3 protocol
  */
+@Instance(singleton = false)
 class Encoder : AbstractVerticle() {
 
     private val logger = KotlinLogging.logger {}

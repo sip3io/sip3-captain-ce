@@ -96,7 +96,11 @@ class UdpHandlerTest {
         mockkConstructor(EventLoopContext::class)
         every {
             anyConstructed<EventLoopContext>().config()
-        } returns JsonObject().put("rtp", JsonObject())
+        } returns JsonObject().apply {
+            put("rtp", JsonObject().apply {
+                put("enabled", true)
+            })
+        }
 
         // Execute
         val udpHandler = UdpHandler(Vertx.vertx(), false)
@@ -125,7 +129,11 @@ class UdpHandlerTest {
         mockkConstructor(EventLoopContext::class)
         every {
             anyConstructed<EventLoopContext>().config()
-        } returns JsonObject().put("rtcp", JsonObject())
+        } returns JsonObject().apply {
+            put("rtcp", JsonObject().apply {
+                put("enabled", true)
+            })
+        }
 
         // Execute
         val udpHandler = UdpHandler(Vertx.vertx(), false)
@@ -154,7 +162,11 @@ class UdpHandlerTest {
         mockkConstructor(EventLoopContext::class)
         every {
             anyConstructed<EventLoopContext>().config()
-        } returns JsonObject().put("rtp", JsonObject())
+        } returns JsonObject().apply {
+            put("rtp", JsonObject().apply {
+                put("enabled", true)
+            })
+        }
 
         // Execute
         val udpHandler = UdpHandler(Vertx.vertx(), false)

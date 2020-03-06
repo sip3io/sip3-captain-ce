@@ -16,15 +16,7 @@
 
 package io.sip3.captain.ce
 
-import io.sip3.captain.ce.capturing.DpdkEngine
-import io.sip3.captain.ce.capturing.PcapEngine
-import io.sip3.captain.ce.encoder.Encoder
-import io.sip3.captain.ce.pipeline.Ipv4FragmentHandler
-import io.sip3.captain.ce.pipeline.TcpHandler
-import io.sip3.captain.ce.sender.Sender
-import io.sip3.captain.ce.socket.ManagementSocket
 import io.sip3.commons.vertx.AbstractBootstrap
-import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.eventbus.deliveryOptionsOf
 
 val USE_LOCAL_CODEC = deliveryOptionsOf(codecName = "local", localOnly = true)
@@ -32,23 +24,4 @@ val USE_LOCAL_CODEC = deliveryOptionsOf(codecName = "local", localOnly = true)
 open class Bootstrap : AbstractBootstrap() {
 
     override val configLocations = listOf("config.location")
-
-    override fun deployVerticles(config: JsonObject) {
-        // Read `vertx.instances`
-        val instances = config.getJsonObject("vertx")?.getInteger("instances") ?: 1
-        // Deploy verticles
-        vertx.deployVerticle(Ipv4FragmentHandler::class, config)
-        vertx.deployVerticle(TcpHandler::class, config)
-        vertx.deployVerticle(Encoder::class, config, instances)
-        vertx.deployVerticle(Sender::class, config, instances)
-        if (config.containsKey("management")) {
-            vertx.deployVerticle(ManagementSocket::class, config)
-        }
-        if (config.containsKey("pcap")) {
-            vertx.deployVerticle(PcapEngine::class, config)
-        }
-        if (config.containsKey("dpdk")) {
-            vertx.deployVerticle(DpdkEngine::class, config)
-        }
-    }
 }
