@@ -41,6 +41,19 @@ class UdpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
     private var rtpEnabled = false
     private var rtcpEnabled = false
 
+    init {
+        vertx.orCreateContext.config().let { config ->
+            rtpEnabled = config.containsKey("rtp")
+            rtcpEnabled = config.containsKey("rtcp")
+        }
+
+        vertx.eventBus().localConsumer<JsonObject>(RoutesCE.config_change) { event ->
+            val config = event.body()
+            rtpEnabled = config.containsKey("rtp")
+            rtcpEnabled = config.containsKey("rtcp")
+        }
+    }
+
     override fun onPacket(packet: Packet) {
         val buffer = (packet.payload as Encodable).encode()
 
@@ -58,17 +71,6 @@ class UdpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
         // Filter packets with the size smaller than minimal RTP/RTCP or SIP
         if (buffer.capacity() - offset < 8) {
             return
-        }
-
-        vertx.orCreateContext.config().let { config ->
-            rtpEnabled = config.containsKey("rtp")
-            rtcpEnabled = config.containsKey("rtcp")
-        }
-
-        vertx.eventBus().localConsumer<JsonObject>(RoutesCE.config_change) { event ->
-            val config = event.body()
-            rtpEnabled = config.containsKey("rtp")
-            rtcpEnabled = config.containsKey("rtcp")
         }
 
         when {
