@@ -30,7 +30,7 @@ import mu.KotlinLogging
 /**
  * Encodes packets to SIP3 protocol
  */
-@Instance(singleton = false)
+@Instance
 class Encoder : AbstractVerticle() {
 
     private val logger = KotlinLogging.logger {}

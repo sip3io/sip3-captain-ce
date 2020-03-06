@@ -30,7 +30,7 @@ import java.net.URI
 /**
  * Management socket
  */
-@Instance
+@Instance(singleton = true)
 @ConditionalOnProperty("management")
 class ManagementSocket : AbstractVerticle() {
 

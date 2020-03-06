@@ -30,7 +30,7 @@ import java.net.URI
 /**
  * Sends encoded packets to `SIP3 Salto`.
  */
-@Instance(singleton = false)
+@Instance
 class Sender : AbstractVerticle() {
 
     private val logger = KotlinLogging.logger {}

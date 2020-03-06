@@ -34,7 +34,7 @@ import kotlin.system.exitProcess
 /**
  * DPDK capture engine
  */
-@Instance
+@Instance(singleton = true)
 @ConditionalOnProperty("dpdk")
 class DpdkEngine : AbstractVerticle() {
 

@@ -31,7 +31,7 @@ import java.net.InetAddress
 import java.sql.Timestamp
 import java.util.*
 
-@Instance
+@Instance(singleton = true)
 class Ipv4FragmentHandler : AbstractVerticle() {
 
     private val logger = KotlinLogging.logger {}

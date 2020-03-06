@@ -35,7 +35,7 @@ import java.util.*
 /**
  * Handles TCP packets
  */
-@Instance
+@Instance(singleton = true)
 class TcpHandler : AbstractVerticle() {
 
     private val logger = KotlinLogging.logger {}

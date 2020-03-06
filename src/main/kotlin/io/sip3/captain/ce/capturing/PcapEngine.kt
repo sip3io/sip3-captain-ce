@@ -36,7 +36,7 @@ import kotlin.system.exitProcess
 /**
  * Libpcap, WinPcap and Npcap capture engine
  */
-@Instance
+@Instance(singleton = true)
 @ConditionalOnProperty("pcap")
 class PcapEngine : AbstractVerticle() {
 
