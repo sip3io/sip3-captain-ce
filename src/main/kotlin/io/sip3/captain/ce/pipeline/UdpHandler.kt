@@ -36,6 +36,19 @@ class UdpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
         SipHandler(vertx, bulkOperationsEnabled)
     }
 
+    private var rtpEnabled = false
+    private var rtcpEnabled = false
+
+    init {
+        vertx.orCreateContext.config().getJsonObject("rtp")?.getBoolean("enabled")?.let {
+            rtpEnabled = it
+        }
+
+        vertx.orCreateContext.config().getJsonObject("rtcp")?.getBoolean("enabled")?.let {
+            rtcpEnabled = it
+        }
+    }
+
     override fun onPacket(packet: Packet) {
         val buffer = (packet.payload as Encodable).encode()
 
@@ -61,10 +74,10 @@ class UdpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
                 val packetType = buffer.getUnsignedByte(offset + 1).toInt()
                 if (packetType in 200..211) {
                     // Skip ICMP(RTCP) packet
-                    if (!packet.rejected) {
+                    if (rtcpEnabled && !packet.rejected) {
                         rtcpHandler.handle(packet)
                     }
-                } else {
+                } else if (rtpEnabled) {
                     rtpHandler.handle(packet)
                 }
             }

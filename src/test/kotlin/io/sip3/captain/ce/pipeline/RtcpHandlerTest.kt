@@ -27,7 +27,9 @@ import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.RtpReportPayload
 import io.sip3.commons.util.IpUtil
 import io.sip3.commons.vertx.test.VertxTest
+import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.sql.Timestamp
 
@@ -148,10 +150,14 @@ class RtcpHandlerTest : VertxTest() {
                     // Do nothing...
                 },
                 execute = {
+                    vertx.orCreateContext.config().put("rtcp", JsonObject().apply {
+                        put("expiration-delay", 2000)
+                        put("aggregation-timeout", 2000)
+                    })
                     val rtcpHandler = RtcpHandler(vertx, false)
 
                     vertx.eventBus().publish(RoutesCE.sdp, SDP_SESSION, USE_LOCAL_CODEC)
-                    vertx.setTimer(1000L) {
+                    vertx.setTimer(200L) {
                         listOf(PACKET_1, PACKET_2, PACKET_3).map { payload ->
                             Packet().apply {
                                 srcAddr = SRC_ADDR
@@ -195,10 +201,16 @@ class RtcpHandlerTest : VertxTest() {
                                     assertEquals(74F, report.lastJitter)
                                     assertEquals(0, report.lostPacketCount)
                                 }
+                                4 -> {
+                                    assertEquals(196 + 201 + 201, report.expectedPacketCount)
+                                    assertEquals(74F, report.lastJitter)
+                                    assertEquals(1, report.lostPacketCount)
+                                    assertTrue(report.cumulative)
+                                }
                             }
                         }
 
-                        if (packetCount == 3) {
+                        if (packetCount == 4) {
                             context.completeNow()
                         }
                     }

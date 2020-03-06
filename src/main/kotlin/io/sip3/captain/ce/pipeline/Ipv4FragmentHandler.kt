@@ -23,6 +23,7 @@ import io.sip3.captain.ce.domain.Ipv4Header
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
+import io.sip3.commons.vertx.annotations.Instance
 import io.vertx.core.AbstractVerticle
 import mu.KotlinLogging
 import org.apache.commons.collections4.map.PassiveExpiringMap
@@ -30,6 +31,7 @@ import java.net.InetAddress
 import java.sql.Timestamp
 import java.util.*
 
+@Instance(singleton = true)
 class Ipv4FragmentHandler : AbstractVerticle() {
 
     private val logger = KotlinLogging.logger {}

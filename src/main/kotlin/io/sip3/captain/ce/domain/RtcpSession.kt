@@ -17,6 +17,7 @@
 package io.sip3.captain.ce.domain
 
 import io.sip3.commons.domain.SdpSession
+import io.sip3.commons.domain.payload.RtpReportPayload
 import io.sip3.commons.util.IpUtil
 import java.sql.Timestamp
 
@@ -46,4 +47,7 @@ class RtcpSession {
         val dstAddr = IpUtil.convertToInt(dstAddr).toLong()
         ((dstAddr shl 32) or (dstPort - 1).toLong())
     }
+
+    var rtcpReportCount = 0
+    val cumulative: RtpReportPayload = RtpReportPayload().apply { cumulative = true }
 }
