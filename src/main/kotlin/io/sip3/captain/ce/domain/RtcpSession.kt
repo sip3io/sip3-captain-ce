@@ -49,5 +49,8 @@ class RtcpSession {
     }
 
     var rtcpReportCount = 0
-    val cumulative: RtpReportPayload = RtpReportPayload().apply { cumulative = true }
+    val cumulative: RtpReportPayload = RtpReportPayload().apply {
+        source = RtpReportPayload.SOURCE_RTCP
+        cumulative = true
+    }
 }
