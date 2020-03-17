@@ -51,7 +51,7 @@ class ErspanHandlerTest {
             anyConstructed<EthernetHandler>().handle(capture(packetSlot))
         } just Runs
         // Execute
-        val erspanHandler = ErspanHandler(Vertx.vertx(), false)
+        val erspanHandler = ErspanHandler(Vertx.vertx().orCreateContext, false)
         val packet = Packet().apply {
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
         }

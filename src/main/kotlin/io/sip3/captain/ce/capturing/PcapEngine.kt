@@ -64,7 +64,7 @@ class PcapEngine : AbstractVerticle() {
             timeoutMillis = config.getInteger("timeout-millis")
         }
 
-        ethernetHandler = EthernetHandler(vertx, true)
+        ethernetHandler = EthernetHandler(vertx.orCreateContext, true)
 
         dir?.let {
             logger.info("Listening folder: $it")

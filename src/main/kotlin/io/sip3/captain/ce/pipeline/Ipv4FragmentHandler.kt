@@ -49,7 +49,7 @@ class Ipv4FragmentHandler : AbstractVerticle() {
         defragmentators = PassiveExpiringMap(ttl)
         vertx.setPeriodic(ttl) { defragmentators.size }
 
-        ipv4Handler = Ipv4Handler(vertx, false)
+        ipv4Handler = Ipv4Handler(vertx.orCreateContext, false)
 
         vertx.eventBus().localConsumer<List<Pair<Ipv4Header, Packet>>>(RoutesCE.fragment) { event ->
             val packets = event.body()
@@ -70,14 +70,15 @@ class Ipv4FragmentHandler : AbstractVerticle() {
 
         var defragmentator = defragmentators.computeIfAbsent(key) { Defragmentator(packet.timestamp) }
         defragmentator.onPacket(header, (packet.payload as Encodable).encode())?.let { buffer ->
-            val packet = Packet().apply {
+            val p = Packet().apply {
                 this.timestamp = defragmentator.timestamp
                 this.srcAddr = header.srcAddr
                 this.dstAddr = header.dstAddr
                 this.protocolNumber = header.protocolNumber
                 this.payload = ByteBufPayload(buffer)
             }
-            ipv4Handler.routePacket(packet)
+            ipv4Handler.routePacket(p)
+
             defragmentators.remove(key)
         }
     }
@@ -106,7 +107,7 @@ class Ipv4FragmentHandler : AbstractVerticle() {
             }
             // Concat all fragments
             return Unpooled.buffer(expectedOffset).apply {
-                buffers.forEach { (o, b) -> writeBytes(b) }
+                buffers.forEach { (_, b) -> writeBytes(b) }
             }
         }
     }

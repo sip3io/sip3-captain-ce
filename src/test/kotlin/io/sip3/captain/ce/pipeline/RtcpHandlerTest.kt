@@ -154,7 +154,7 @@ class RtcpHandlerTest : VertxTest() {
                         put("expiration-delay", 2000)
                         put("aggregation-timeout", 2000)
                     })
-                    val rtcpHandler = RtcpHandler(vertx, false)
+                    val rtcpHandler = RtcpHandler(vertx.orCreateContext, false)
 
                     vertx.eventBus().publish(RoutesCE.sdp, SDP_SESSION, USE_LOCAL_CODEC)
                     vertx.setTimer(200L) {

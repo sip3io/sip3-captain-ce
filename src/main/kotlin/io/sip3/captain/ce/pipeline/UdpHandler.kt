@@ -19,32 +19,31 @@ package io.sip3.captain.ce.pipeline
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.util.SipUtil
 import io.sip3.commons.domain.payload.Encodable
-import io.vertx.core.Vertx
+import io.vertx.core.Context
 
 /**
  * Handles UDP packets
  */
-class UdpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, bulkOperationsEnabled) {
+class UdpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(context, bulkOperationsEnabled) {
 
     private val rtcpHandler: RtcpHandler by lazy {
-        RtcpHandler(vertx, bulkOperationsEnabled)
+        RtcpHandler(context, bulkOperationsEnabled)
     }
     private val rtpHandler: RtpHandler by lazy {
-        RtpHandler(vertx, bulkOperationsEnabled)
+        RtpHandler(context, bulkOperationsEnabled)
     }
     private val sipHandler: SipHandler by lazy {
-        SipHandler(vertx, bulkOperationsEnabled)
+        SipHandler(context, bulkOperationsEnabled)
     }
 
     private var rtpEnabled = false
     private var rtcpEnabled = false
 
     init {
-        vertx.orCreateContext.config().getJsonObject("rtp")?.getBoolean("enabled")?.let {
+        context.config().getJsonObject("rtp")?.getBoolean("enabled")?.let {
             rtpEnabled = it
         }
-
-        vertx.orCreateContext.config().getJsonObject("rtcp")?.getBoolean("enabled")?.let {
+        context.config().getJsonObject("rtcp")?.getBoolean("enabled")?.let {
             rtcpEnabled = it
         }
     }

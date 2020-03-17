@@ -18,22 +18,22 @@ package io.sip3.captain.ce.pipeline
 
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.domain.payload.Encodable
-import io.vertx.core.Vertx
+import io.vertx.core.Context
 
 /**
  * Handles ERSPAN packets
  */
-class ErspanHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, bulkOperationsEnabled) {
+class ErspanHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(context, bulkOperationsEnabled) {
 
     private var bulkSize = 1
 
     private val ethernetHandler: EthernetHandler by lazy {
-        EthernetHandler(vertx, bulkOperationsEnabled)
+        EthernetHandler(context, bulkOperationsEnabled)
     }
 
     init {
         if (bulkOperationsEnabled) {
-            vertx.orCreateContext.config().getJsonObject("gre")?.let { config ->
+            context.config().getJsonObject("gre")?.let { config ->
                 config.getInteger("bulk-size")?.let { bulkSize = it }
             }
         }

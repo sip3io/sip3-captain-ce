@@ -70,7 +70,7 @@ class UdpHandlerTest {
             anyConstructed<SipHandler>().handle(capture(packetSlot))
         } just Runs
         // Execute
-        val udpHandler = UdpHandler(Vertx.vertx(), false)
+        val udpHandler = UdpHandler(Vertx.vertx().orCreateContext, false)
         var packet = Packet().apply {
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
         }
@@ -103,7 +103,7 @@ class UdpHandlerTest {
         }
 
         // Execute
-        val udpHandler = UdpHandler(Vertx.vertx(), false)
+        val udpHandler = UdpHandler(Vertx.vertx().orCreateContext, false)
         var packet = Packet().apply {
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
         }
@@ -136,7 +136,7 @@ class UdpHandlerTest {
         }
 
         // Execute
-        val udpHandler = UdpHandler(Vertx.vertx(), false)
+        val udpHandler = UdpHandler(Vertx.vertx().orCreateContext, false)
         var packet = Packet().apply {
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_3))
         }
@@ -169,7 +169,7 @@ class UdpHandlerTest {
         }
 
         // Execute
-        val udpHandler = UdpHandler(Vertx.vertx(), false)
+        val udpHandler = UdpHandler(Vertx.vertx().orCreateContext, false)
         var packet = Packet().apply {
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
             this.rejected = true

@@ -26,12 +26,13 @@ import io.sip3.commons.domain.payload.ByteArrayPayload
 import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.getBytes
+import io.vertx.core.Context
 import io.vertx.core.Vertx
 
 /**
  * Handles IPv4 packets
  */
-class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, bulkOperationsEnabled) {
+class Ipv4Handler(context: Context, bulkOperationsEnabled: Boolean) : Handler(context, bulkOperationsEnabled) {
 
     companion object {
 
@@ -47,18 +48,22 @@ class Ipv4Handler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
     private var bulkSize = 1
 
     private val udpHandler: UdpHandler by lazy {
-        UdpHandler(vertx, bulkOperationsEnabled)
+        UdpHandler(context, bulkOperationsEnabled)
     }
     private val greHandler: GreHandler by lazy {
-        GreHandler(vertx, bulkOperationsEnabled)
+        GreHandler(context, bulkOperationsEnabled)
     }
+
+    private val vertx: Vertx
 
     init {
         if (bulkOperationsEnabled) {
-            vertx.orCreateContext.config().getJsonObject("ipv4")?.let { config ->
+            context.config().getJsonObject("ipv4")?.let { config ->
                 config.getInteger("bulk-size")?.let { bulkSize = it }
             }
         }
+
+        vertx = context.owner()
     }
 
     override fun onPacket(packet: Packet) {

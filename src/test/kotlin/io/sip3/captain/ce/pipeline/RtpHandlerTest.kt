@@ -51,7 +51,7 @@ class RtpHandlerTest : VertxTest() {
                     // Do nothing...
                 },
                 execute = {
-                    val rtpHandler = RtpHandler(vertx, false)
+                    val rtpHandler = RtpHandler(vertx.orCreateContext, false)
                     val packet = Packet().apply {
                         this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
                     }
@@ -88,7 +88,7 @@ class RtpHandlerTest : VertxTest() {
                     // Do nothing...
                 },
                 execute = {
-                    val rtpHandler = RtpHandler(vertx, false)
+                    val rtpHandler = RtpHandler(vertx.orCreateContext, false)
                     val packet = Packet().apply {
                         this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
                     }

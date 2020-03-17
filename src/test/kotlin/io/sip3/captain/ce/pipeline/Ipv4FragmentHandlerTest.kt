@@ -68,7 +68,7 @@ class Ipv4FragmentHandlerTest : VertxTest() {
                     vertx.deployTestVerticle(Ipv4FragmentHandler::class)
                 },
                 execute = {
-                    val ipv4Handler = Ipv4Handler(vertx, false)
+                    val ipv4Handler = Ipv4Handler(vertx.orCreateContext, false)
                     val packet1 = Packet().apply {
                         timestamp = expectedTimestamp
                         payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
@@ -110,7 +110,7 @@ class Ipv4FragmentHandlerTest : VertxTest() {
                     vertx.deployTestVerticle(Ipv4FragmentHandler::class)
                 },
                 execute = {
-                    val ipv4Handler = Ipv4Handler(vertx, false)
+                    val ipv4Handler = Ipv4Handler(vertx.orCreateContext, false)
                     val packet2 = Packet().apply {
                         timestamp = expectedTimestamp
                         payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))

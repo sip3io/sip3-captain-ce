@@ -66,7 +66,7 @@ class SipHandlerTest : VertxTest() {
                     // Do nothing...
                 },
                 execute = {
-                    val sipHandler = SipHandler(vertx, false)
+                    val sipHandler = SipHandler(vertx.orCreateContext, false)
                     val packet = Packet().apply {
                         timestamp = Timestamp(System.currentTimeMillis())
                         srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
@@ -100,7 +100,7 @@ class SipHandlerTest : VertxTest() {
                     // Do nothing...
                 },
                 execute = {
-                    val sipHandler = SipHandler(vertx, false)
+                    val sipHandler = SipHandler(vertx.orCreateContext, false)
                     val packet = Packet().apply {
                         timestamp = Timestamp(System.currentTimeMillis())
                         srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
