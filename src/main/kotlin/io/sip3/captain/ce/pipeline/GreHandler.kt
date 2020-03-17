@@ -18,12 +18,12 @@ package io.sip3.captain.ce.pipeline
 
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.domain.payload.Encodable
-import io.vertx.core.Vertx
+import io.vertx.core.Context
 
 /**
  * Handles GRE(Generic Routing Encapsulation) packets
  */
-class GreHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, bulkOperationsEnabled) {
+class GreHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(context, bulkOperationsEnabled) {
 
     companion object {
 
@@ -34,15 +34,15 @@ class GreHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, 
     private var bulkSize = 1
 
     private val erspanHandler: ErspanHandler by lazy {
-        ErspanHandler(vertx, bulkOperationsEnabled)
+        ErspanHandler(context, bulkOperationsEnabled)
     }
     private val ipv4Handler: Ipv4Handler by lazy {
-        Ipv4Handler(vertx, bulkOperationsEnabled)
+        Ipv4Handler(context, bulkOperationsEnabled)
     }
 
     init {
         if (bulkOperationsEnabled) {
-            vertx.orCreateContext.config().getJsonObject("gre")?.let { config ->
+            context.config().getJsonObject("gre")?.let { config ->
                 config.getInteger("bulk-size")?.let { bulkSize = it }
             }
         }

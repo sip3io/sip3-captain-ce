@@ -71,7 +71,7 @@ class EthernetHandlerTest {
             anyConstructed<Ipv4Handler>().handle(capture(packetSlot))
         } just Runs
         // Execute
-        val ethernetHandler = EthernetHandler(Vertx.vertx(), false)
+        val ethernetHandler = EthernetHandler(Vertx.vertx().orCreateContext, false)
         val packet = Packet().apply {
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
         }
@@ -91,7 +91,7 @@ class EthernetHandlerTest {
             anyConstructed<Ipv4Handler>().handle(capture(packetSlot))
         } just Runs
         // Execute
-        val ethernetHandler = EthernetHandler(Vertx.vertx(), false)
+        val ethernetHandler = EthernetHandler(Vertx.vertx().orCreateContext, false)
         val packet = Packet().apply {
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
         }
@@ -111,7 +111,7 @@ class EthernetHandlerTest {
             anyConstructed<Ipv4Handler>().handle(capture(packetSlot))
         } just Runs
         // Execute
-        val ethernetHandler = EthernetHandler(Vertx.vertx(), false)
+        val ethernetHandler = EthernetHandler(Vertx.vertx().orCreateContext, false)
         val packet = Packet().apply {
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_3))
         }
@@ -131,7 +131,7 @@ class EthernetHandlerTest {
             anyConstructed<Ipv4Handler>().handle(capture(packetSlot))
         } just Runs
         // Execute
-        val ethernetHandler = EthernetHandler(Vertx.vertx(), false)
+        val ethernetHandler = EthernetHandler(Vertx.vertx().orCreateContext, false)
         val packet = Packet().apply {
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_4))
         }

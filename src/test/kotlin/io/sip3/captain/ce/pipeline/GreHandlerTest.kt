@@ -50,7 +50,7 @@ class GreHandlerTest {
             anyConstructed<ErspanHandler>().handle(capture(packetSlot))
         } just Runs
         // Execute
-        val greHandler = GreHandler(Vertx.vertx(), false)
+        val greHandler = GreHandler(Vertx.vertx().orCreateContext, false)
         val packet = Packet().apply {
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
         }

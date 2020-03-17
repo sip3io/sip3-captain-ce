@@ -95,7 +95,7 @@ class Ipv4HandlerTest : VertxTest() {
             anyConstructed<UdpHandler>().handle(capture(packetSlot))
         } just Runs
         // Execute
-        val ipv4Handler = Ipv4Handler(Vertx.vertx(), false)
+        val ipv4Handler = Ipv4Handler(Vertx.vertx().orCreateContext, false)
         var packet = Packet().apply {
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
         }
@@ -118,7 +118,7 @@ class Ipv4HandlerTest : VertxTest() {
                     // Do nothing...
                 },
                 execute = {
-                    val ipv4Handler = Ipv4Handler(vertx, false)
+                    val ipv4Handler = Ipv4Handler(vertx.orCreateContext, false)
                     var packet = Packet().apply {
                         this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
                     }
@@ -152,7 +152,7 @@ class Ipv4HandlerTest : VertxTest() {
             anyConstructed<UdpHandler>().handle(capture(packetSlot))
         } just Runs
         // Execute
-        val ipv4Handler = Ipv4Handler(Vertx.vertx(), false)
+        val ipv4Handler = Ipv4Handler(Vertx.vertx().orCreateContext, false)
         var packet = Packet().apply {
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_3))
         }
@@ -177,7 +177,7 @@ class Ipv4HandlerTest : VertxTest() {
             anyConstructed<UdpHandler>().handle(capture(packetSlot))
         } just Runs
         // Execute
-        val ipv4Handler = Ipv4Handler(Vertx.vertx(), false)
+        val ipv4Handler = Ipv4Handler(Vertx.vertx().orCreateContext, false)
         var packet = Packet().apply {
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_4))
         }
@@ -203,7 +203,7 @@ class Ipv4HandlerTest : VertxTest() {
             anyConstructed<GreHandler>().handle(capture(packetSlot))
         } just Runs
         // Execute
-        val ipv4Handler = Ipv4Handler(Vertx.vertx(), false)
+        val ipv4Handler = Ipv4Handler(Vertx.vertx().orCreateContext, false)
         var packet = Packet().apply {
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_5))
         }

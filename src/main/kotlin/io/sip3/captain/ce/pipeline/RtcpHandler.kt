@@ -28,6 +28,7 @@ import io.sip3.commons.domain.SdpSession
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.domain.payload.RtpReportPayload
 import io.sip3.commons.util.remainingCapacity
+import io.vertx.core.Context
 import io.vertx.core.Vertx
 import mu.KotlinLogging
 import java.sql.Timestamp
@@ -36,7 +37,7 @@ import kotlin.experimental.and
 /**
  * Handles RTCP packets
  */
-class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, bulkOperationsEnabled) {
+class RtcpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(context, bulkOperationsEnabled) {
 
     private val logger = KotlinLogging.logger {}
 
@@ -58,14 +59,18 @@ class RtcpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx,
     private val sdpSessions = mutableMapOf<Long, SdpSession>()
     private val reports = mutableListOf<Packet>()
 
+    private val vertx: Vertx
+
     init {
-        vertx.orCreateContext.config().getJsonObject("rtcp")?.let { config ->
+        context.config().getJsonObject("rtcp")?.let { config ->
             if (bulkOperationsEnabled) {
                 config.getInteger("bulk-size")?.let { bulkSize = it }
             }
             config.getLong("expiration-delay")?.let { expirationDelay = it }
             config.getLong("aggregation-timeout")?.let { aggregationTimeout = it }
         }
+
+        vertx = context.owner()
 
         // Consumer for sdpSession info from remote host
         vertx.eventBus().localConsumer<SdpSession>(RoutesCE.sdp) { event ->

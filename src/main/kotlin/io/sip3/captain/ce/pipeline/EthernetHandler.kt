@@ -19,12 +19,12 @@ package io.sip3.captain.ce.pipeline
 import io.netty.buffer.ByteBuf
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.domain.payload.Encodable
-import io.vertx.core.Vertx
+import io.vertx.core.Context
 
 /**
  * Handles Ethernet packets
  */
-class EthernetHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, bulkOperationsEnabled) {
+class EthernetHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(context, bulkOperationsEnabled) {
 
     companion object {
 
@@ -35,7 +35,7 @@ class EthernetHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(ve
     }
 
     private val ipv4Handler: Ipv4Handler by lazy {
-        Ipv4Handler(vertx, bulkOperationsEnabled)
+        Ipv4Handler(context, bulkOperationsEnabled)
     }
 
     override fun onPacket(packet: Packet) {

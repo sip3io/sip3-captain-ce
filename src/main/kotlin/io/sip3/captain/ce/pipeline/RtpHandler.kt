@@ -22,23 +22,28 @@ import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.domain.payload.RtpHeaderPayload
+import io.vertx.core.Context
 import io.vertx.core.Vertx
 import kotlin.experimental.and
 
 /**
  * Handles RTP packets
  */
-class RtpHandler(vertx: Vertx, bulkOperationsEnabled: Boolean) : Handler(vertx, bulkOperationsEnabled) {
+class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(context, bulkOperationsEnabled) {
 
     private val packets = mutableListOf<Packet>()
     private var bulkSize = 1
 
+    private val vertx: Vertx
+
     init {
         if (bulkOperationsEnabled) {
-            vertx.orCreateContext.config().getJsonObject("rtp")?.let { config ->
+            context.config().getJsonObject("rtp")?.let { config ->
                 config.getInteger("bulk-size")?.let { bulkSize = it }
             }
         }
+
+        vertx = context.owner()
     }
 
     override fun onPacket(packet: Packet) {

@@ -59,7 +59,7 @@ class SmppHandlerTest : VertxTest() {
                     // Do nothing...
                 },
                 execute = {
-                    val smppHandler = SmppHandler(vertx, false)
+                    val smppHandler = SmppHandler(vertx.orCreateContext, false)
                     val packet = Packet().apply {
                         timestamp = Timestamp(System.currentTimeMillis())
                         srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
@@ -94,7 +94,7 @@ class SmppHandlerTest : VertxTest() {
                     // Do nothing...
                 },
                 execute = {
-                    val smppHandler = SmppHandler(vertx, false)
+                    val smppHandler = SmppHandler(vertx.orCreateContext, false)
                     val packet = Packet().apply {
                         timestamp = Timestamp(System.currentTimeMillis())
                         srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
