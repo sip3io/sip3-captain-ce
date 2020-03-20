@@ -35,7 +35,7 @@ import kotlin.system.exitProcess
  * DPDK capture engine
  */
 @Instance(singleton = true)
-@ConditionalOnProperty("dpdk")
+@ConditionalOnProperty("/dpdk")
 class DpdkEngine : AbstractVerticle() {
 
     private val logger = KotlinLogging.logger {}

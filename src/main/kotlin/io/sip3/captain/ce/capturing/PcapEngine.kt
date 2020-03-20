@@ -37,7 +37,7 @@ import kotlin.system.exitProcess
  * Libpcap, WinPcap and Npcap capture engine
  */
 @Instance(singleton = true)
-@ConditionalOnProperty("pcap")
+@ConditionalOnProperty("/pcap")
 class PcapEngine : AbstractVerticle() {
 
     private val logger = KotlinLogging.logger {}

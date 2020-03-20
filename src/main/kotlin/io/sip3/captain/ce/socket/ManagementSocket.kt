@@ -31,7 +31,7 @@ import java.net.URI
  * Management socket
  */
 @Instance(singleton = true)
-@ConditionalOnProperty("management")
+@ConditionalOnProperty("/management")
 class ManagementSocket : AbstractVerticle() {
 
     private val logger = KotlinLogging.logger {}
