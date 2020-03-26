@@ -188,23 +188,35 @@ class RtcpHandlerTest : VertxTest() {
                             when (packetCount) {
                                 1 -> {
                                     assertEquals(196, report.expectedPacketCount)
-                                    assertEquals(28F, report.lastJitter)
                                     assertEquals(1, report.lostPacketCount)
+                                    assertEquals(28F, report.lastJitter)
+                                    assertEquals(28F, report.minJitter)
+                                    assertEquals(28F, report.maxJitter)
+                                    assertEquals(28F, report.avgJitter)
                                 }
                                 2 -> {
                                     assertEquals(201, report.expectedPacketCount)
-                                    assertEquals(55F, report.lastJitter)
                                     assertEquals(0, report.lostPacketCount)
+                                    assertEquals(55F, report.lastJitter)
+                                    assertEquals(55F, report.minJitter)
+                                    assertEquals(55F, report.maxJitter)
+                                    assertEquals(55F, report.avgJitter)
                                 }
                                 3 -> {
                                     assertEquals(201, report.expectedPacketCount)
-                                    assertEquals(74F, report.lastJitter)
                                     assertEquals(0, report.lostPacketCount)
+                                    assertEquals(74F, report.lastJitter)
+                                    assertEquals(74F, report.minJitter)
+                                    assertEquals(74F, report.maxJitter)
+                                    assertEquals(74F, report.avgJitter)
                                 }
                                 4 -> {
                                     assertEquals(196 + 201 + 201, report.expectedPacketCount)
-                                    assertEquals(74F, report.lastJitter)
                                     assertEquals(1, report.lostPacketCount)
+                                    assertEquals(74F, report.lastJitter)
+                                    assertEquals(28F, report.minJitter)
+                                    assertEquals(74F, report.maxJitter)
+                                    assertEquals((28F + 55F + 74F)/3, report.avgJitter)
                                     assertTrue(report.cumulative)
                                 }
                             }

@@ -249,6 +249,9 @@ class RtcpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
                 this.ssrc = report.ssrc
 
                 lastJitter = session.lastJitter
+                avgJitter = session.lastJitter
+                minJitter = session.lastJitter
+                maxJitter = session.lastJitter
 
                 if (isNewSession) {
                     receivedPacketCount = senderReport.senderPacketCount.toInt()
@@ -299,6 +302,9 @@ class RtcpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
         session.cumulative.apply {
             if (startedAt == 0L) {
                 startedAt = payload.startedAt
+                avgJitter = payload.lastJitter
+                minJitter = payload.lastJitter
+                maxJitter = payload.lastJitter
             }
             if (codecName == null) {
                 payload.codecName?.let { codecName = it }
@@ -312,16 +318,16 @@ class RtcpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
             rejectedPacketCount += payload.rejectedPacketCount
             lostPacketCount += payload.lostPacketCount
 
-            avgJitter = (avgJitter * session.rtcpReportCount + payload.avgJitter) / (session.rtcpReportCount + 1)
             duration += payload.duration
             fractionLost = lostPacketCount.toFloat() / expectedPacketCount
 
             lastJitter = payload.lastJitter
-            if (maxJitter < payload.maxJitter) {
-                maxJitter = payload.maxJitter
+            avgJitter = (avgJitter * session.rtcpReportCount + payload.avgJitter) / (session.rtcpReportCount + 1)
+            if (maxJitter < lastJitter) {
+                maxJitter = lastJitter
             }
-            if (minJitter > payload.minJitter) {
-                minJitter = payload.minJitter
+            if (minJitter > lastJitter) {
+                minJitter = lastJitter
             }
 
             session.sdpSession?.let { sdpSession ->
