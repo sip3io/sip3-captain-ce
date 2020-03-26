@@ -41,11 +41,13 @@ class RtcpSession {
     var sdpSession: SdpSession? = null
     val srcSdpSessionId: Long by lazy {
         val srcAddrAsLong = IpUtil.convertToInt(srcAddr).toLong()
-        ((srcAddrAsLong shl 32) or (srcPort - 1).toLong())
+        val port = if (srcPort % 2 == 0) { srcPort } else { srcPort - 1 }
+        ((srcAddrAsLong shl 32) or port.toLong())
     }
     val dstSdpSessionId: Long by lazy {
-        val dstAddr = IpUtil.convertToInt(dstAddr).toLong()
-        ((dstAddr shl 32) or (dstPort - 1).toLong())
+        val dstAddrAsLong = IpUtil.convertToInt(dstAddr).toLong()
+        val port = if (dstPort % 2 == 0) { dstPort } else { dstPort - 1 }
+        ((dstAddrAsLong shl 32) or port.toLong())
     }
 
     var rtcpReportCount = 0
