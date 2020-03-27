@@ -31,6 +31,7 @@ import io.sip3.commons.vertx.annotations.Instance
 import io.vertx.core.AbstractVerticle
 import mu.KotlinLogging
 import java.util.*
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Handles TCP packets
@@ -45,7 +46,7 @@ class TcpHandler : AbstractVerticle() {
     private var idleConnectionTimeout: Long = 300000
 
     private val connections = mutableMapOf<Long, TcpConnection>()
-
+    private val connectionGauge = io.micrometer.core.instrument.Metrics.gauge("tcp_connections", AtomicInteger(0))!!
     override fun start() {
         config().getJsonObject("tcp")?.let { config ->
             config.getLong("expiration-delay")?.let { expirationDelay = it }
@@ -130,6 +131,7 @@ class TcpHandler : AbstractVerticle() {
                 else -> connection.processTcpSegments()
             }
         }
+        connectionGauge.set(connections.size)
     }
 
     // Important! To make `TcpConnection` code easier we decided to ignore a very rare scenario:
@@ -187,6 +189,8 @@ class TcpHandler : AbstractVerticle() {
         }
 
         private fun walkThroughTcpSegments(sequenceNumbers: MutableList<Long>, nextSequenceNumber: Long = -1) {
+            // TODO: remove after debug
+            logger.debug { "processTcpSegments(): sequenceNumbers.size: ${sequenceNumbers.size}, nextSequenceNumber: $nextSequenceNumber" }
             val (sequenceNumber, segment) = segments.ceilingEntry(nextSequenceNumber) ?: return
 
             if (nextSequenceNumber == -1L || nextSequenceNumber == sequenceNumber) {
