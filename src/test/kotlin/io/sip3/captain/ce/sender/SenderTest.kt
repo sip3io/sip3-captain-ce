@@ -24,15 +24,23 @@ import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.datagram.listenAwait
 import io.vertx.kotlin.core.net.listenAwait
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.net.InetAddress
 
 class SenderTest : VertxTest() {
 
     companion object {
 
         const val MESSAGE = "Hello, world!"
-        const val PORT = 15061
-        const val HOST = "127.0.0.1"
+    }
+
+    private val address = InetAddress.getLoopbackAddress().hostAddress
+    private var port = -1
+
+    @BeforeEach
+    fun init() {
+        port = findRandomPort()
     }
 
     @Test
@@ -42,7 +50,7 @@ class SenderTest : VertxTest() {
                     vertx.deployTestVerticle(Sender::class,
                             config = JsonObject().apply {
                                 put("sender", JsonObject().apply {
-                                    put("uri", "udp://$HOST:$PORT")
+                                    put("uri", "udp://$address:$port")
                                 })
                             })
                 },
@@ -59,7 +67,7 @@ class SenderTest : VertxTest() {
                                 }
                                 context.completeNow()
                             }
-                            .listenAwait(PORT, HOST)
+                            .listenAwait(port, address)
                 }
         )
     }
@@ -71,7 +79,7 @@ class SenderTest : VertxTest() {
                     vertx.deployTestVerticle(Sender::class,
                             config = JsonObject().apply {
                                 put("sender", JsonObject().apply {
-                                    put("uri", "tcp://$HOST:$PORT")
+                                    put("uri", "tcp://$address:$port")
                                 })
                             })
                 },
@@ -90,7 +98,7 @@ class SenderTest : VertxTest() {
                                     context.completeNow()
                                 }
                             }
-                            .listenAwait(PORT, HOST)
+                            .listenAwait(port, address)
                 }
         )
     }
