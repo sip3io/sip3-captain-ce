@@ -24,36 +24,33 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.net.ServerSocket
+import java.net.InetAddress
 
 class ManagementSocketTest : VertxTest() {
 
     companion object {
 
-        private val host = JsonObject().apply {
+        val host = JsonObject().apply {
             put("name", "sbc1")
             put("sip", arrayListOf("10.10.10.10", "10.10.20.10:5060"))
         }
     }
 
     lateinit var config: JsonObject
+    private var address = InetAddress.getLoopbackAddress().hostAddress
     private var localPort = -1
     private var remotePort = -1
 
     @BeforeEach
     fun init() {
-        val localSocket = ServerSocket(0)
-        localPort = localSocket.localPort
-        val remoteSocket = ServerSocket(0)
-        remotePort = remoteSocket.localPort
-        localSocket.close()
-        remoteSocket.close()
+        localPort = findRandomPort()
+        remotePort = findRandomPort()
 
         config = JsonObject().apply {
             put("management", JsonObject().apply {
                 put("protocol", "udp")
-                put("local-host", "127.0.0.1:$localPort")
-                put("remote-host", "127.0.0.1:$remotePort")
+                put("local-host", "$address:$localPort")
+                put("remote-host", "$address:$remotePort")
                 put("register-delay", 2000L)
             })
             put("host", host)
@@ -69,7 +66,7 @@ class ManagementSocketTest : VertxTest() {
                 execute = {},
                 assert = {
                     val socket = vertx.createDatagramSocket()
-                    socket.listen(remotePort, "127.0.0.1") {}
+                    socket.listen(remotePort, address) {}
 
                     socket.handler { packet ->
                         val jsonObject = packet.data().toJsonObject()
@@ -114,7 +111,7 @@ class ManagementSocketTest : VertxTest() {
                 },
                 execute = {
                     val socket = vertx.createDatagramSocket()
-                    socket.send(sdpMessage.toBuffer(), localPort, "127.0.0.1") {
+                    socket.send(sdpMessage.toBuffer(), localPort, address) {
                         socket.close()
                     }
                 },

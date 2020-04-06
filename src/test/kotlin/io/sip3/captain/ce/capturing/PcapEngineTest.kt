@@ -26,6 +26,7 @@ import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.pcap4j.core.Pcaps
@@ -39,10 +40,15 @@ class PcapEngineTest : VertxTest() {
         val PCAP_FILE = File("src/test/resources/pcap/PcapEngineTest.pcap")
 
         const val MESSAGE = "Hello, World!"
-        const val PORT = 15062
     }
 
     private val loopback = InetAddress.getLoopbackAddress()
+    private var port = -1
+
+    @BeforeEach
+    fun init() {
+        port = findRandomPort()
+    }
 
     @Test
     fun `Capture some packets in offline mode`() {
@@ -99,14 +105,14 @@ class PcapEngineTest : VertxTest() {
                         put("pcap", JsonObject().apply {
                             val dev = Pcaps.getDevByAddress(loopback).name
                             put("dev", dev)
-                            put("bpf-filter", "udp and port $PORT")
+                            put("bpf-filter", "udp and port $port")
                             put("timeout-millis", 10)
                         })
                     })
                 },
                 execute = {
                     vertx.setPeriodic(100) {
-                        vertx.createDatagramSocket().send(MESSAGE, PORT, loopback.hostAddress) {}
+                        vertx.createDatagramSocket().send(MESSAGE, port, loopback.hostAddress) {}
                     }
                 },
                 assert = {

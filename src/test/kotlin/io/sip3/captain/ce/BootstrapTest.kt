@@ -25,10 +25,12 @@ import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.io.File
+import java.net.InetAddress
 
 class BootstrapTest : VertxTest() {
 
     companion object {
+
         val PCAP_FILE = File("src/test/resources/pcap/BootstrapTest.pcap")
     }
 
@@ -36,6 +38,10 @@ class BootstrapTest : VertxTest() {
     fun `Send some packets trough the entire pipeline to SIP3 Salto`() {
         val tempdir = createTempDir()
         val file = tempdir.resolve(PCAP_FILE.name)
+
+        val address = InetAddress.getLoopbackAddress().hostAddress
+        val port = findRandomPort()
+
         PCAP_FILE.copyTo(file)
         runTest(
                 deploy = {
@@ -44,7 +50,7 @@ class BootstrapTest : VertxTest() {
                             put("dir", tempdir.absolutePath)
                         })
                         put("sender", JsonObject().apply {
-                            put("uri", "udp://127.0.0.1:15060")
+                            put("uri", "udp://$address:$port")
                         })
                     })
                 },
@@ -101,7 +107,7 @@ class BootstrapTest : VertxTest() {
                                 }
                                 context.completeNow()
                             }
-                            .listenAwait(15060, "127.0.0.1")
+                            .listenAwait(port, address)
                 },
                 cleanup = {
                     tempdir.deleteRecursively()
