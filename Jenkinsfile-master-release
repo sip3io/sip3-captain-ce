@@ -33,6 +33,9 @@ pipeline {
                 // Drop -SNAPSHOT qualifier for Parent
                 sh 'mvn versions:update-parent -DallowSnapshots=false'
 
+                // Drop -SNAPSHOT qualifier for SIP3-commons
+                sh 'mvn versions:use-releases -DallowSnapshots=false -DfailIfNotReplaced=true -Dincludes=io.sip3.commons:sip3-commons'
+
                 // Release version
                 script {
                     def pom = readMavenPom file: 'pom.xml'
