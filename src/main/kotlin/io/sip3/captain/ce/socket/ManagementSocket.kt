@@ -80,7 +80,7 @@ class ManagementSocket : AbstractVerticle() {
 
         startUdpServer()
 
-        // Periodically send register message to `SIP3 Salto`
+        // Periodically send REGISTER message to `SIP3 Salto`
         vertx.setPeriodic(0, registerDelay) { sendRegisterMessage() }
     }
 
