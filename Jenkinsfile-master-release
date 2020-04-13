@@ -1,0 +1,103 @@
+#!/usr/bin/env groovy
+
+def releaseVersion
+def releaseBranch
+
+pipeline {
+    agent any
+
+    tools {
+        maven "maven3"
+    }
+
+    stages {
+        stage('Init') {
+            steps {
+                configFileProvider([configFile(fileId: '75d7a907-05a7-49c4-8ca4-ecfc124b4afb', targetLocation: 'settings.xml')]) {
+                    sh 'mkdir -p ~/.m2 && cp $WORKSPACE/settings.xml -f ~/.m2/settings.xml'
+                }
+            }
+        }
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Prepare version') {
+            steps {
+                // Drop -SNAPSHOT qualifier
+                sh 'mvn versions:set -DremoveSnapshot'
+
+                // Drop -SNAPSHOT qualifier for Parent
+                sh 'mvn versions:update-parent -DallowSnapshots=false'
+
+                // Release version
+                script {
+                    def pom = readMavenPom file: 'pom.xml'
+                    releaseVersion = pom.version
+                }
+                echo "Release version: ${releaseVersion}"
+
+                // Release branch
+                script {
+                    releaseBranch = "release/${releaseVersion}"
+                }
+                echo "Release branch: ${releaseBranch}"
+
+                // Commit version changes
+                sh 'mvn versions:commit'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'mvn -DskipTests=true clean package'
+                archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+
+            post {
+                always {
+                    junit 'target/surefire-reports/**/*.xml'
+                }
+            }
+        }
+
+        stage('Branch') {
+            steps {
+                withCredentials([string(credentialsId: '1ceac7f5-808a-456d-b758-2da186f29ac4', variable: 'GITHUB_TOKEN')]) {
+                    // Create release branch
+                    sh "git checkout -b ${releaseBranch}"
+                    sh "git commit -a -m \"New release ${releaseVersion}\""
+                    sh "git push https://${GITHUB_TOKEN}:x-oauth-basic@github.com/sip3io/sip3-captain-ce.git ${releaseBranch}"
+                }
+            }
+        }
+
+        stage('Release') {
+            steps {
+                // Add tag
+                withCredentials([string(credentialsId: '1ceac7f5-808a-456d-b758-2da186f29ac4', variable: 'GITHUB_TOKEN')]) {
+                    sh "git tag ${releaseVersion}"
+                    sh "git push https://${GITHUB_TOKEN}:x-oauth-basic@github.com/sip3io/sip3-captain-ce.git --tags"
+                }
+
+                // Deploy to internal artifactory
+                sh 'mvn deploy:deploy -DskipTests=true -DaltDeploymentRepository=archiva.internal::default::${ARTIFACTORY_URI}'
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
