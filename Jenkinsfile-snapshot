@@ -24,7 +24,7 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh 'mvn -DskipTests=true clean package'
+                sh 'mvn -Pexecutable-jar -DskipTests=true clean package'
                 archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
             }
         }
@@ -43,7 +43,7 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                sh 'mvn deploy:deploy -DskipTests=true -DaltDeploymentRepository=archiva.snapshots::default::${ARTIFACTORY_URI}'
+                sh 'mvn deploy -Pexecutable-jar -DskipTests=true -DaltDeploymentRepository=archiva.snapshots::default::${ARTIFACTORY_URI}'
             }
         }
     }
