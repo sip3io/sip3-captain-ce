@@ -52,7 +52,7 @@ sender:
 #! ManagementSocket
 #management:
 #  schema: udp
-#  local-host: 127.0.0.1:15090
+#  local-host: 0.0.0.0:15090
 #  remote-host: 127.0.0.1:15091
 #  register-delay: 60000
 

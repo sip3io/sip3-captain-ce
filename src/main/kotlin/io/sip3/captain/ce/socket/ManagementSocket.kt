@@ -21,6 +21,7 @@ import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.commons.domain.SdpSession
 import io.sip3.commons.vertx.annotations.ConditionalOnProperty
 import io.sip3.commons.vertx.annotations.Instance
+import io.sip3.commons.vertx.util.setPeriodic
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.datagram.DatagramSocket
 import io.vertx.core.json.JsonObject
@@ -78,7 +79,9 @@ class ManagementSocket : AbstractVerticle() {
         }
 
         startUdpServer()
-        registerManagementSocket()
+
+        // Periodically send register message to `SIP3 Salto`
+        vertx.setPeriodic(0, registerDelay) { sendRegisterMessage() }
     }
 
     private fun startUdpServer() {
@@ -99,14 +102,6 @@ class ManagementSocket : AbstractVerticle() {
                 throw connection.cause()
             }
             logger.info("Listening on $localUri")
-        }
-    }
-
-    private fun registerManagementSocket() {
-        sendRegisterMessage()
-
-        vertx.setPeriodic(registerDelay) {
-            sendRegisterMessage()
         }
     }
 
