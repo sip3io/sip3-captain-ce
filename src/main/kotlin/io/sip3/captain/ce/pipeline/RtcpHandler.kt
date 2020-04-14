@@ -165,12 +165,8 @@ class RtcpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
                 // Stop RTCP packet processing
                 val src = IpUtil.convertToString(packet.srcAddr) + ":${packet.srcPort}"
                 val dst = IpUtil.convertToString(packet.dstAddr) + ":${packet.dstPort}"
-                logger.warn { "Invalid RTCP packet. src $src, dst $dst" }
-
-                if (logger.isDebugEnabled) {
-                    buffer.readerIndex(0)
-                    logger.debug { "Packet:\n ${ByteBufUtil.prettyHexDump(buffer)}" }
-                }
+                logger.warn { "Invalid RTCP packet. Source: $src, Destination: $dst" }
+                logger.debug { "Packet:\n ${ByteBufUtil.prettyHexDump(buffer.readerIndex(0))}" }
 
                 return
             }
