@@ -17,6 +17,7 @@
 package io.sip3.captain.ce.pipeline
 
 import io.netty.buffer.ByteBuf
+import io.netty.buffer.ByteBufUtil
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Packet
@@ -27,6 +28,7 @@ import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.SdpSession
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.domain.payload.RtpReportPayload
+import io.sip3.commons.util.IpUtil
 import io.sip3.commons.util.remainingCapacity
 import io.vertx.core.Context
 import io.vertx.core.Vertx
@@ -155,8 +157,23 @@ class RtcpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
                 }
             }
 
-            // Move reader index to next RTCP report in packet
-            buffer.readerIndex(offset + reportLength + 4)
+            val nextIndex = offset + reportLength + 4
+            if (nextIndex <= buffer.capacity()) {
+                // Move reader index to next RTCP report in packet
+                buffer.readerIndex(nextIndex)
+            } else {
+                // Stop RTCP packet processing
+                val src = IpUtil.convertToString(packet.srcAddr) + ":${packet.srcPort}"
+                val dst = IpUtil.convertToString(packet.dstAddr) + ":${packet.dstPort}"
+                logger.warn { "Invalid RTCP packet. src $src, dst $dst" }
+
+                if (logger.isDebugEnabled) {
+                    buffer.readerIndex(0)
+                    logger.debug { "Packet:\n ${ByteBufUtil.prettyHexDump(buffer)}" }
+                }
+
+                return
+            }
         }
     }
 
