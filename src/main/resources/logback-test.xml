@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration>
+<configuration scan="true" scanPeriod="60 seconds">
     <appender name="DEFAULT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{dd-MM-yyyy HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
