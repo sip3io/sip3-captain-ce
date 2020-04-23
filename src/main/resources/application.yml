@@ -32,6 +32,13 @@ sender:
 #    key-store: ...
 #    key-store-password: ...
 
+#! ManagementSocket
+#management:
+#  schema: udp
+#  local-host: 0.0.0.0:15090
+#  remote-host: 127.0.0.1:15091
+#  register-delay: 60000
+
 #! Host
 #host:
 #  name: sbc.sip3.io
@@ -48,13 +55,6 @@ sender:
 #  bulk-size: 1
 #  expiration-delay: 4000
 #  aggregation-timeout: 30000
-
-#! ManagementSocket
-#management:
-#  schema: udp
-#  local-host: 0.0.0.0:15090
-#  remote-host: 127.0.0.1:15091
-#  register-delay: 60000
 
 #! Metrics
 #metrics:
