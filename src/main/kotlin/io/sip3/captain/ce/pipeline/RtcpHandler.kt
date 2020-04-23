@@ -48,7 +48,6 @@ class RtcpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
         const val MAX_VALID_JITTER = 10000
 
         const val R0 = 93.2F
-        const val I_DELAY_DEFAULT = 0.65
         const val MOS_MIN = 1F
         const val MOS_MAX = 4.5F
     }
@@ -290,11 +289,8 @@ class RtcpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
                     // Raw rFactor value
                     val ppl = fractionLost * 100
                     val ieEff = codec.ie + (95 - codec.ie) * ppl / (ppl + codec.bpl)
-                    var iDelay = I_DELAY_DEFAULT
-                    if (lastJitter - 177.3F >= 0) {
-                        iDelay += (lastJitter - 15.93)
-                    }
-                    rFactor = (R0 - ieEff - iDelay).toFloat()
+
+                    rFactor = (R0 - ieEff)
 
                     // MoS
                     mos = computeMos(rFactor)
@@ -352,11 +348,7 @@ class RtcpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
 
                 val codec = sdpSession.codec
                 val ieEff = codec.ie + (95 - codec.ie) * ppl / (ppl + codec.bpl)
-                var iDelay = I_DELAY_DEFAULT
-                if (lastJitter - 177.3F >= 0) {
-                    iDelay += (lastJitter - 15.93)
-                }
-                rFactor = (R0 - ieEff - iDelay).toFloat()
+                rFactor = (R0 - ieEff)
 
                 // MoS
                 mos = computeMos(rFactor)
