@@ -17,9 +17,6 @@
 package io.sip3.captain.ce
 
 import io.sip3.commons.vertx.AbstractBootstrap
-import io.vertx.kotlin.core.eventbus.deliveryOptionsOf
-
-val USE_LOCAL_CODEC = deliveryOptionsOf(codecName = "local", localOnly = true)
 
 open class Bootstrap : AbstractBootstrap() {
 

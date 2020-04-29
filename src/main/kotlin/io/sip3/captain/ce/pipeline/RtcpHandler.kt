@@ -19,7 +19,6 @@ package io.sip3.captain.ce.pipeline
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.ByteBufUtil
 import io.sip3.captain.ce.RoutesCE
-import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.domain.RtcpReportBlock
 import io.sip3.captain.ce.domain.RtcpSession
@@ -30,6 +29,7 @@ import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.domain.payload.RtpReportPayload
 import io.sip3.commons.util.IpUtil
 import io.sip3.commons.util.remainingCapacity
+import io.sip3.commons.vertx.util.localRequest
 import io.vertx.core.Context
 import io.vertx.core.Vertx
 import mu.KotlinLogging
@@ -369,7 +369,7 @@ class RtcpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
     private fun send(rtpReport: Packet) {
         reports.add(rtpReport)
         if (reports.size >= bulkSize) {
-            vertx.eventBus().send(RoutesCE.encoder, reports.toList(), USE_LOCAL_CODEC)
+            vertx.eventBus().localRequest<Any>(RoutesCE.encoder, reports.toList())
             reports.clear()
         }
     }

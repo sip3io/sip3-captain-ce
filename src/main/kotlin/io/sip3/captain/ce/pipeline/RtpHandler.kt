@@ -17,11 +17,11 @@
 package io.sip3.captain.ce.pipeline
 
 import io.sip3.captain.ce.RoutesCE
-import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.domain.payload.RtpHeaderPayload
+import io.sip3.commons.vertx.util.localRequest
 import io.vertx.core.Context
 import io.vertx.core.Vertx
 import kotlin.experimental.and
@@ -65,7 +65,7 @@ class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
         packets.add(packet)
 
         if (packets.size >= bulkSize) {
-            vertx.eventBus().send(RoutesCE.rtp, packets.toList(), USE_LOCAL_CODEC)
+            vertx.eventBus().localRequest<Any>(RoutesCE.rtp, packets.toList())
             packets.clear()
         }
     }

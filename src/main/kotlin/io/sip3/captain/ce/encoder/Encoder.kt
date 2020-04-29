@@ -18,11 +18,11 @@ package io.sip3.captain.ce.encoder
 
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.RoutesCE
-import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.writeTlv
 import io.sip3.commons.vertx.annotations.Instance
+import io.sip3.commons.vertx.util.localRequest
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.buffer.Buffer
 import mu.KotlinLogging
@@ -123,7 +123,7 @@ class Encoder : AbstractVerticle() {
         }
 
         if (buffers.size >= bulkSize) {
-            vertx.eventBus().send(RoutesCE.sender, buffers.toList(), USE_LOCAL_CODEC)
+            vertx.eventBus().localRequest<Any>(RoutesCE.sender, buffers.toList())
             buffers.clear()
         }
     }

@@ -17,11 +17,11 @@
 package io.sip3.captain.ce.encoder
 
 import io.sip3.captain.ce.RoutesCE
-import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.payload.ByteArrayPayload
 import io.sip3.commons.vertx.test.VertxTest
+import io.sip3.commons.vertx.util.localRequest
 import io.vertx.core.buffer.Buffer
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -60,7 +60,7 @@ class EncoderTest : VertxTest() {
                         protocolCode = PacketTypes.ICMP
                         payload = ByteArrayPayload(PACKET_1)
                     }
-                    vertx.eventBus().send(RoutesCE.encoder, listOf(packet), USE_LOCAL_CODEC)
+                    vertx.eventBus().localRequest<Any>(RoutesCE.encoder, listOf(packet))
                 },
                 assert = {
                     vertx.eventBus().consumer<List<Buffer>>(RoutesCE.sender) { event ->

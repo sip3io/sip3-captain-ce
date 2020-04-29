@@ -17,7 +17,6 @@
 package io.sip3.captain.ce.pipeline
 
 import io.sip3.captain.ce.RoutesCE
-import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.util.SmppUtil
 import io.sip3.commons.PacketTypes
@@ -25,6 +24,7 @@ import io.sip3.commons.domain.payload.ByteArrayPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.getBytes
 import io.sip3.commons.util.remainingCapacity
+import io.sip3.commons.vertx.util.localRequest
 import io.vertx.core.Context
 import io.vertx.core.Vertx
 
@@ -74,7 +74,7 @@ class SmppHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
                     packets.add(p)
 
                     if (packets.size >= bulkSize) {
-                        vertx.eventBus().send(RoutesCE.encoder, packets.toList(), USE_LOCAL_CODEC)
+                        vertx.eventBus().localRequest<Any>(RoutesCE.encoder, packets.toList())
                         packets.clear()
                     }
 

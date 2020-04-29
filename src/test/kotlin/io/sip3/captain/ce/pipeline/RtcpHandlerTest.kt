@@ -18,7 +18,6 @@ package io.sip3.captain.ce.pipeline
 
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.RoutesCE
-import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.Codec
@@ -27,6 +26,7 @@ import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.RtpReportPayload
 import io.sip3.commons.util.IpUtil
 import io.sip3.commons.vertx.test.VertxTest
+import io.sip3.commons.vertx.util.localPublish
 import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -156,7 +156,7 @@ class RtcpHandlerTest : VertxTest() {
                     })
                     val rtcpHandler = RtcpHandler(vertx.orCreateContext, false)
 
-                    vertx.eventBus().publish(RoutesCE.sdp, SDP_SESSION, USE_LOCAL_CODEC)
+                    vertx.eventBus().localPublish(RoutesCE.sdp, SDP_SESSION)
                     vertx.setTimer(200L) {
                         listOf(PACKET_1, PACKET_2, PACKET_3).map { payload ->
                             Packet().apply {

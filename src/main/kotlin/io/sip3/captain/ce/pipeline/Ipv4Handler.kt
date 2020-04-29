@@ -18,7 +18,6 @@ package io.sip3.captain.ce.pipeline
 
 import io.netty.buffer.ByteBuf
 import io.sip3.captain.ce.RoutesCE
-import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Ipv4Header
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.PacketTypes
@@ -26,6 +25,7 @@ import io.sip3.commons.domain.payload.ByteArrayPayload
 import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.getBytes
+import io.sip3.commons.vertx.util.localRequest
 import io.vertx.core.Context
 import io.vertx.core.Vertx
 
@@ -79,7 +79,7 @@ class Ipv4Handler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
             ipv4Packets.add(Pair(ipv4Header, packet))
 
             if (ipv4Packets.size >= bulkSize) {
-                vertx.eventBus().send(RoutesCE.fragment, ipv4Packets.toList(), USE_LOCAL_CODEC)
+                vertx.eventBus().localRequest<Any>(RoutesCE.fragment, ipv4Packets.toList())
                 ipv4Packets.clear()
             }
         } else {
@@ -132,7 +132,7 @@ class Ipv4Handler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
                 tcpPackets.add(packet)
 
                 if (tcpPackets.size >= bulkSize) {
-                    vertx.eventBus().send(RoutesCE.tcp, tcpPackets.toList(), USE_LOCAL_CODEC)
+                    vertx.eventBus().localRequest<Any>(RoutesCE.tcp, tcpPackets.toList())
                     tcpPackets.clear()
                 }
             }
