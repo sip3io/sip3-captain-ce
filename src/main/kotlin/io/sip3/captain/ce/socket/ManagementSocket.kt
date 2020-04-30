@@ -17,10 +17,10 @@
 package io.sip3.captain.ce.socket
 
 import io.sip3.captain.ce.RoutesCE
-import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.commons.domain.SdpSession
 import io.sip3.commons.vertx.annotations.ConditionalOnProperty
 import io.sip3.commons.vertx.annotations.Instance
+import io.sip3.commons.vertx.util.localPublish
 import io.sip3.commons.vertx.util.setPeriodic
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.datagram.DatagramSocket
@@ -124,7 +124,7 @@ class ManagementSocket : AbstractVerticle() {
             TYPE_SDP_SESSION -> {
                 val payload = message.getJsonObject("payload")
                 val sdpSession: SdpSession = payload.mapTo(SdpSession::class.java)
-                vertx.eventBus().publish(RoutesCE.sdp, sdpSession, USE_LOCAL_CODEC)
+                vertx.eventBus().localPublish(RoutesCE.sdp, sdpSession)
             }
             else -> logger.error("Unknown message type. Message: ${message.encodePrettily()}")
         }

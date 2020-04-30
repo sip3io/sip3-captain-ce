@@ -20,12 +20,12 @@ import io.mockk.*
 import io.mockk.junit5.MockKExtension
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.RoutesCE
-import io.sip3.captain.ce.USE_LOCAL_CODEC
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.remainingCapacity
 import io.sip3.commons.vertx.test.VertxTest
+import io.sip3.commons.vertx.util.localRequest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -97,7 +97,7 @@ class TcpHandlerTest : VertxTest() {
                         srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
                         payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
                     }
-                    vertx.eventBus().send(RoutesCE.tcp, listOf(packet), USE_LOCAL_CODEC)
+                    vertx.eventBus().localRequest<Any>(RoutesCE.tcp, listOf(packet))
                 },
                 assert = {
                     vertx.executeBlocking<Any>({
@@ -135,7 +135,7 @@ class TcpHandlerTest : VertxTest() {
                         srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
                         payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_3))
                     }
-                    vertx.eventBus().send(RoutesCE.tcp, listOf(packet1, packet2), USE_LOCAL_CODEC)
+                    vertx.eventBus().localRequest<Any>(RoutesCE.tcp, listOf(packet1, packet2))
                 },
                 assert = {
                     vertx.executeBlocking<Any>({
@@ -169,7 +169,7 @@ class TcpHandlerTest : VertxTest() {
                         srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
                         payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_4))
                     }
-                    vertx.eventBus().send(RoutesCE.tcp, listOf(packet), USE_LOCAL_CODEC)
+                    vertx.eventBus().localRequest<Any>(RoutesCE.tcp, listOf(packet))
                 },
                 assert = {
                     vertx.executeBlocking<Any>({
