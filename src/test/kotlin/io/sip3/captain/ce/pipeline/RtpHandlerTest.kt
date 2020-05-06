@@ -23,6 +23,7 @@ import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.RtpHeaderPayload
 import io.sip3.commons.vertx.test.VertxTest
+import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -41,6 +42,12 @@ class RtpHandlerTest : VertxTest() {
         val PACKET_2 = byteArrayOf(
                 0x80.toByte(), 0x88.toByte(), 0xd5.toByte(), 0x66.toByte(), 0x0a.toByte(), 0xdd.toByte(), 0xb8.toByte(),
                 0xa0.toByte(), 0x7c.toByte(), 0x50.toByte(), 0xe6.toByte(), 0xef.toByte()
+        )
+
+        // Payload: RTP payload type = 0
+        val PACKET_3 = byteArrayOf(
+                0x80.toByte(), 0x00.toByte(), 0x01.toByte(), 0xdd.toByte(), 0x2b.toByte(), 0x76.toByte(), 0x37.toByte(),
+                0x40.toByte(), 0x95.toByte(), 0x06.toByte(), 0xb9.toByte(), 0x73.toByte()
         )
     }
 
@@ -111,6 +118,48 @@ class RtpHandlerTest : VertxTest() {
                             assertEquals(182302880, payload.timestamp)
                             assertEquals(2085676783, payload.ssrc)
                             assertEquals(true, payload.marker)
+                        }
+                        context.completeNow()
+                    }
+                }
+        )
+    }
+
+    @Test
+    fun `Filter RTP by payload type`() {
+        runTest(
+                deploy = {
+                    // Do nothing...
+                },
+                execute = {
+                    vertx.orCreateContext.config().put("rtp", JsonObject().apply {
+                        put("payload-types", listOf("0..7", 100))
+                    })
+                    val rtpHandler = RtpHandler(vertx.orCreateContext, false)
+                    listOf(PACKET_1, PACKET_2, PACKET_3).forEach { payload ->
+                        val packet = Packet().apply {
+                            this.payload = ByteBufPayload(Unpooled.wrappedBuffer(payload))
+                        }
+                        rtpHandler.handle(packet)
+                    }
+                },
+                assert = {
+                    vertx.eventBus().consumer<List<Packet>>(RoutesCE.rtp) { event ->
+                        val packets = event.body()
+                        context.verify {
+                            assertEquals(1, packets.size)
+
+                            val packet = packets[0]
+                            assertEquals(PacketTypes.RTP, packet.protocolCode)
+                            assertTrue(packet.payload is RtpHeaderPayload)
+
+                            val payload = packet.payload as RtpHeaderPayload
+                            assertEquals(22, payload.encode().capacity())
+                            assertEquals(0, payload.payloadType)
+                            assertEquals(477, payload.sequenceNumber)
+                            assertEquals(729167680, payload.timestamp)
+                            assertEquals(2500245875, payload.ssrc)
+                            assertEquals(false, payload.marker)
                         }
                         context.completeNow()
                     }
