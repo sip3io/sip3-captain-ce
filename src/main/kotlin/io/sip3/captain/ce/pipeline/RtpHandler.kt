@@ -44,21 +44,17 @@ class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
                 config.getInteger("bulk-size")?.let { bulkSize = it }
             }
 
-            config.getJsonArray("payload-types")?.let { array ->
-                val result = mutableSetOf<Byte>()
-                array.forEach { element ->
-                    when (element) {
-                        is Int -> result.add(element.toByte())
-                        is String -> {
-                            element.toIntRange()
-                                    .forEach { result.add(it.toByte()) }
+            config.getJsonArray("payload-types")
+                    ?.flatMap { payloadType ->
+                        when (payloadType) {
+                            is Int -> setOf(payloadType.toByte())
+                            is String -> payloadType.toIntRange().map { it.toByte() }
+                            else -> emptySet()
                         }
                     }
-                }
-                payloadTypes = result
-            }
+                    ?.toSet()
+                    ?.let { payloadTypes = it }
         }
-
         vertx = context.owner()
     }
 
@@ -76,7 +72,7 @@ class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
             marker = (byte.and(128) == 128.toShort())
         }
 
-        if (payloadTypes.isEmpty() || payloadType in payloadTypes) {
+        if (payloadTypes.isEmpty() || payloadTypes.contains(payloadType)) {
             packet.payload = RtpHeaderPayload().apply {
                 this.payloadType = payloadType
                 this.marker = marker
