@@ -36,10 +36,14 @@ class UdpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
         SipHandler(context, bulkOperationsEnabled)
     }
 
+    private var sipEnabled = true
     private var rtpEnabled = false
     private var rtcpEnabled = false
 
     init {
+        context.config().getJsonObject("sip")?.getBoolean("enabled")?.let {
+            sipEnabled = it
+        }
         context.config().getJsonObject("rtp")?.getBoolean("enabled")?.let {
             rtpEnabled = it
         }
@@ -82,8 +86,8 @@ class UdpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
             }
             // SIP packet
             SipUtil.startsWithSipWord(buffer) -> {
-                // Skip ICMP packet
-                if (!packet.rejected) {
+                // Skip ICMP(SIP) packet
+                if (sipEnabled && !packet.rejected) {
                     sipHandler.handle(packet)
                 }
             }
