@@ -44,6 +44,8 @@ class TcpHandler : AbstractVerticle() {
     private var aggregationTimeout: Long = 100
     private var idleConnectionTimeout: Long = 300000
 
+    private var sipEnabled = true
+
     private val connections = mutableMapOf<Long, TcpConnection>()
 
     override fun start() {
@@ -51,6 +53,10 @@ class TcpHandler : AbstractVerticle() {
             config.getLong("expiration-delay")?.let { expirationDelay = it }
             config.getLong("aggregation-timeout")?.let { aggregationTimeout = it }
             config.getLong("idle-connection-timeout")?.let { idleConnectionTimeout = it }
+        }
+
+        config().getJsonObject("sip")?.getBoolean("enabled")?.let {
+            sipEnabled = it
         }
 
         vertx.setPeriodic(expirationDelay) {
@@ -104,7 +110,7 @@ class TcpHandler : AbstractVerticle() {
         var connection = connections[connectionId]
         if (connection == null) {
             connection = when {
-                SipUtil.startsWithSipWord(buffer) ->
+                sipEnabled && SipUtil.startsWithSipWord(buffer) ->
                     TcpConnection(SipHandler(vertx.orCreateContext, false)) { b: ByteBuf -> SipUtil.startsWithSipWord(b) }
                 SmppUtil.isPdu(buffer) ->
                     TcpConnection(SmppHandler(vertx.orCreateContext, false)) { b: ByteBuf -> SmppUtil.isPdu(b) }

@@ -71,7 +71,14 @@ class Ipv4Handler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
         val offset = buffer.readerIndex()
 
         val ipv4Header = readIpv4Header(buffer)
-        val slice = buffer.slice(0, offset + ipv4Header.totalLength)
+
+        val capacity = offset + ipv4Header.totalLength
+        // IPv4 payload must be equal or greater than its total length
+        // The situation below is possible for ICMP payloads
+        if (buffer.capacity() < capacity) {
+            return
+        }
+        val slice = buffer.slice(0, capacity)
         slice.readerIndex(offset + ipv4Header.headerLength)
 
         if (ipv4Header.moreFragments || ipv4Header.fragmentOffset > 0) {

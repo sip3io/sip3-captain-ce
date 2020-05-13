@@ -162,12 +162,13 @@ class RtcpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
                 buffer.readerIndex(nextIndex)
             } else {
                 // Stop RTCP packet processing
-                val src = IpUtil.convertToString(packet.srcAddr) + ":${packet.srcPort}"
-                val dst = IpUtil.convertToString(packet.dstAddr) + ":${packet.dstPort}"
-                logger.warn { "Invalid RTCP packet. Source: $src, Destination: $dst" }
-                logger.debug { "Packet:\n ${ByteBufUtil.prettyHexDump(buffer.readerIndex(0))}" }
-
-                return
+                logger.debug {
+                    val src = IpUtil.convertToString(packet.srcAddr) + ":${packet.srcPort}"
+                    val dst = IpUtil.convertToString(packet.dstAddr) + ":${packet.dstPort}"
+                    val payload = ByteBufUtil.prettyHexDump(buffer.readerIndex(0))
+                    "Invalid RTCP packet. Source: $src, Destination: $dst, Packet:\n $payload"
+                }
+                break
             }
         }
     }
