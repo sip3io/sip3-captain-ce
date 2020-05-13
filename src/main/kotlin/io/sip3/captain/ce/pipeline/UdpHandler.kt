@@ -85,9 +85,9 @@ class UdpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
                 }
             }
             // SIP packet
-            SipUtil.startsWithSipWord(buffer) -> {
+            sipEnabled && SipUtil.startsWithSipWord(buffer) -> {
                 // Skip ICMP(SIP) packet
-                if (sipEnabled && !packet.rejected) {
+                if (!packet.rejected) {
                     sipHandler.handle(packet)
                 }
             }
