@@ -25,18 +25,8 @@ import io.vertx.core.Context
  */
 class ErspanHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(context, bulkOperationsEnabled) {
 
-    private var bulkSize = 1
-
     private val ethernetHandler: EthernetHandler by lazy {
         EthernetHandler(context, bulkOperationsEnabled)
-    }
-
-    init {
-        if (bulkOperationsEnabled) {
-            context.config().getJsonObject("gre")?.let { config ->
-                config.getInteger("bulk-size")?.let { bulkSize = it }
-            }
-        }
     }
 
     override fun onPacket(packet: Packet) {

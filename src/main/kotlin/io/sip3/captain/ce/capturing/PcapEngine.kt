@@ -139,6 +139,6 @@ class PcapEngine : AbstractVerticle() {
                 this.payload = ByteBufPayload(Unpooled.wrappedBuffer(buffer))
             }
             ethernetHandler.handle(packet)
-        }))
+        }), Executors.newSingleThreadExecutor())
     }
 }
