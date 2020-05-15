@@ -31,21 +31,11 @@ class GreHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
         const val TYPE_IPV4 = 0x0800
     }
 
-    private var bulkSize = 1
-
     private val erspanHandler: ErspanHandler by lazy {
         ErspanHandler(context, bulkOperationsEnabled)
     }
     private val ipv4Handler: Ipv4Handler by lazy {
         Ipv4Handler(context, bulkOperationsEnabled)
-    }
-
-    init {
-        if (bulkOperationsEnabled) {
-            context.config().getJsonObject("gre")?.let { config ->
-                config.getInteger("bulk-size")?.let { bulkSize = it }
-            }
-        }
     }
 
     override fun onPacket(packet: Packet) {
