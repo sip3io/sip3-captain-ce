@@ -50,6 +50,7 @@ class PcapEngine : AbstractVerticle() {
     var dir: String? = null
     var dev: String? = null
     var bpfFilter: String? = null
+    var bufferSize: Int? = null
     var timeoutMillis: Int? = null
 
     private val packetsCaptured = Metrics.counter("packets_captured", "source", "pcap")
@@ -61,6 +62,7 @@ class PcapEngine : AbstractVerticle() {
             dir = config.getString("dir")
             dev = config.getString("dev")
             bpfFilter = config.getString("bpf-filter")
+            bufferSize = config.getInteger("buffer-size")
             timeoutMillis = config.getInteger("timeout-millis")
         }
 
@@ -109,6 +111,7 @@ class PcapEngine : AbstractVerticle() {
                 .promiscuousMode(PcapNetworkInterface.PromiscuousMode.PROMISCUOUS)
                 .snaplen(SNAP_LENGTH)
                 .apply {
+                    bufferSize?.let { bufferSize(it) }
                     timeoutMillis?.let { timeoutMillis(it) }
                 }
                 .build()
