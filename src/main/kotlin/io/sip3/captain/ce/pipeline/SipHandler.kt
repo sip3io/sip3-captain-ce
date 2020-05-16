@@ -16,7 +16,6 @@
 
 package io.sip3.captain.ce.pipeline
 
-import io.micrometer.core.instrument.Metrics
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.util.SipUtil
@@ -38,9 +37,6 @@ class SipHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
 
     private val vertx: Vertx
 
-    private val packetsRetrieved = Metrics.counter("packets_retrieved", "handler", "sip")
-    private val packetsProcessed = Metrics.counter("packets_processed", "type", "sip")
-
     init {
         if (bulkOperationsEnabled) {
             context.config().getJsonObject("sip")?.let { config ->
@@ -52,8 +48,6 @@ class SipHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
     }
 
     override fun onPacket(packet: Packet) {
-        packetsRetrieved.increment()
-
         val buffer = (packet.payload as Encodable).encode()
 
         var offset = 0
@@ -62,8 +56,6 @@ class SipHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
         while (offset + buffer.readerIndex() < buffer.capacity()) {
             if (SipUtil.isNewLine(buffer, offset) && SipUtil.startsWithSipWord(buffer, offset)) {
                 if (mark > -1) {
-                    packetsProcessed.increment()
-
                     val p = Packet().apply {
                         timestamp = packet.timestamp
                         srcAddr = packet.srcAddr
@@ -84,8 +76,6 @@ class SipHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
         }
 
         if (mark > -1) {
-            packetsProcessed.increment()
-
             val p = Packet().apply {
                 timestamp = packet.timestamp
                 srcAddr = packet.srcAddr

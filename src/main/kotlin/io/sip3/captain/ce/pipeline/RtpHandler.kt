@@ -16,7 +16,6 @@
 
 package io.sip3.captain.ce.pipeline
 
-import io.micrometer.core.instrument.Metrics
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.util.toIntRange
@@ -40,9 +39,6 @@ class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
     private var payloadTypes: Set<Byte> = emptySet()
 
     private val vertx: Vertx
-
-    private val packetsRetrieved = Metrics.counter("packets_retrieved", "handler", "rtp")
-    private val packetsProcessed = Metrics.counter("packets_processed", "type", "rtp")
 
     init {
         context.config().getJsonObject("vertx")?.getInteger("instances")?.let {
@@ -69,8 +65,6 @@ class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
     }
 
     override fun onPacket(packet: Packet) {
-        packetsRetrieved.increment()
-
         packet.protocolCode = PacketTypes.RTP
 
         val buffer = (packet.payload as Encodable).encode()
@@ -95,8 +89,6 @@ class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
         if (payloadTypes.isNotEmpty() && !payloadTypes.contains(payload.payloadType)) {
             return
         }
-
-        packetsProcessed.increment()
 
         val index = payload.ssrc % instances
         val packetsByIndex = packets.getOrPut(index) { mutableListOf() }
