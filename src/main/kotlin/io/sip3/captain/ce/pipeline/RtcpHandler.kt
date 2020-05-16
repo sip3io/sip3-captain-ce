@@ -16,6 +16,7 @@
 
 package io.sip3.captain.ce.pipeline
 
+import io.micrometer.core.instrument.Metrics
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.ByteBufUtil
 import io.sip3.captain.ce.RoutesCE
@@ -61,6 +62,9 @@ class RtcpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
     private val reports = mutableListOf<Packet>()
 
     private val vertx: Vertx
+
+    private val packetsRetrieved = Metrics.counter("packets_retrieved", "handler", "rtcp")
+    private val packetsProcessed = Metrics.counter("packets_processed", "type", "rtcp")
 
     init {
         context.config().getJsonObject("rtcp")?.let { config ->
@@ -122,6 +126,8 @@ class RtcpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
     }
 
     override fun onPacket(packet: Packet) {
+        packetsRetrieved.increment()
+
         val buffer = (packet.payload as Encodable).encode()
 
         while (buffer.remainingCapacity() > 4) {
@@ -212,6 +218,8 @@ class RtcpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
     }
 
     private fun onSenderReport(packet: Packet, senderReport: SenderReport) {
+        packetsProcessed.increment()
+
         senderReport.reportBlocks.forEach { report ->
             val srcPort = packet.srcPort.toLong()
             val dstPort = packet.dstPort.toLong()
