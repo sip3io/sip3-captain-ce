@@ -65,7 +65,7 @@ class RtpHandlerTest : VertxTest() {
                     rtpHandler.handle(packet)
                 },
                 assert = {
-                    vertx.eventBus().consumer<List<Packet>>(RoutesCE.rtp) { event ->
+                    vertx.eventBus().consumer<List<Packet>>(RoutesCE.rtp + "_0") { event ->
                         val packets = event.body()
                         context.verify {
                             assertEquals(1, packets.size)
@@ -102,7 +102,7 @@ class RtpHandlerTest : VertxTest() {
                     rtpHandler.handle(packet)
                 },
                 assert = {
-                    vertx.eventBus().consumer<List<Packet>>(RoutesCE.rtp) { event ->
+                    vertx.eventBus().consumer<List<Packet>>(RoutesCE.rtp + "_0") { event ->
                         val packets = event.body()
                         context.verify {
                             assertEquals(1, packets.size)
@@ -144,7 +144,7 @@ class RtpHandlerTest : VertxTest() {
                     }
                 },
                 assert = {
-                    vertx.eventBus().consumer<List<Packet>>(RoutesCE.rtp) { event ->
+                    vertx.eventBus().consumer<List<Packet>>(RoutesCE.rtp + "_0") { event ->
                         val packets = event.body()
                         context.verify {
                             assertEquals(1, packets.size)

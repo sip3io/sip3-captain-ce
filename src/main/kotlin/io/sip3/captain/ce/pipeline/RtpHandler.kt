@@ -32,13 +32,18 @@ import kotlin.experimental.and
  */
 class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(context, bulkOperationsEnabled) {
 
-    private val packets = mutableListOf<Packet>()
+    private val packets = mutableMapOf<Long, MutableList<Packet>>()
+
+    private var instances: Int = 1
     private var bulkSize = 1
     private var payloadTypes: Set<Byte> = emptySet()
 
     private val vertx: Vertx
 
     init {
+        context.config().getJsonObject("vertx")?.getInteger("instances")?.let {
+            instances = it
+        }
         context.config().getJsonObject("rtp")?.let { config ->
             if (bulkOperationsEnabled) {
                 config.getInteger("bulk-size")?.let { bulkSize = it }
@@ -55,6 +60,7 @@ class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
                     ?.toSet()
                     ?.let { payloadTypes = it }
         }
+
         vertx = context.owner()
     }
 
@@ -62,31 +68,36 @@ class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
         packet.protocolCode = PacketTypes.RTP
 
         val buffer = (packet.payload as Encodable).encode()
+
         // Version & P & X & CC
         buffer.skipBytes(1)
-
-        val payloadType: Byte
-        val marker: Boolean
-        buffer.readUnsignedByte().let { byte ->
-            payloadType = byte.and(127).toByte()
-            marker = (byte.and(128) == 128.toShort())
+        val payload = RtpHeaderPayload().apply {
+            buffer.readUnsignedByte().let { byte ->
+                payloadType = byte.and(127).toByte()
+                marker = (byte.and(128) == 128.toShort())
+            }
+            sequenceNumber = buffer.readUnsignedShort()
+            timestamp = buffer.readUnsignedInt()
+            ssrc = buffer.readUnsignedInt()
         }
 
-        if (payloadTypes.isEmpty() || payloadTypes.contains(payloadType)) {
-            packet.payload = RtpHeaderPayload().apply {
-                this.payloadType = payloadType
-                this.marker = marker
-                sequenceNumber = buffer.readUnsignedShort()
-                timestamp = buffer.readUnsignedInt()
-                ssrc = buffer.readUnsignedInt()
-            }
+        // Skip non-RTP packets
+        if (payload.ssrc <= 0 || payload.payloadType < 0) {
+            return
+        }
+        // Filter packets by payloadType
+        if (payloadTypes.isNotEmpty() && !payloadTypes.contains(payload.payloadType)) {
+            return
+        }
 
-            packets.add(packet)
+        val index = payload.ssrc % instances
+        val packetsByIndex = packets.getOrPut(index) { mutableListOf() }
 
-            if (packets.size >= bulkSize) {
-                vertx.eventBus().localRequest<Any>(RoutesCE.rtp, packets.toList())
-                packets.clear()
-            }
+        packet.payload = payload
+        packetsByIndex.add(packet)
+        if (packetsByIndex.size >= bulkSize) {
+            vertx.eventBus().localRequest<Any>(RoutesCE.rtp + "_$index", packetsByIndex.toList())
+            packetsByIndex.clear()
         }
     }
 }
