@@ -82,7 +82,7 @@ class PcapEngine : AbstractVerticle() {
         // Standard java `WatchService` is not capable to see changes in mounted volumes,
         // that's why we use `FileSystemWatcher` from spring-boot-devtools.
         val watcher = FileSystemWatcher()
-        watcher.addSourceFolder(File(dir!!))
+        watcher.addSourceDirectory(File(dir!!))
         watcher.addListener { changedFiles ->
             changedFiles.flatMap(ChangedFiles::getFiles)
                     .map(ChangedFile::getFile)
