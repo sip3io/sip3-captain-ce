@@ -75,7 +75,7 @@ class ManagementSocketTest : VertxTest() {
                             assertEquals(ManagementSocket.TYPE_REGISTER, jsonObject.getString("type"))
                             val payload = jsonObject.getJsonObject("payload")
                             assertNotNull(payload.getString("name"))
-                            assertEquals(host, payload.getJsonObject("host"))
+                            assertEquals(config, payload.getJsonObject("config"))
                             assertEquals(localPort, packet.sender().port())
                         }
 
