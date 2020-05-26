@@ -27,6 +27,7 @@ import io.vertx.core.datagram.DatagramSocket
 import io.vertx.core.json.JsonObject
 import mu.KotlinLogging
 import java.net.URI
+import java.nio.charset.Charset
 
 /**
  * Management socket
@@ -92,7 +93,7 @@ class ManagementSocket : AbstractVerticle() {
                 val message = buffer.toJsonObject()
                 handle(message)
             } catch (e: Exception) {
-                logger.error("ManagementSocket 'handle()' failed.", e)
+                logger.error("ManagementSocket 'handle()' failed. Message: ${buffer.toString(Charset.defaultCharset())}", e)
             }
         }
 
@@ -110,7 +111,7 @@ class ManagementSocket : AbstractVerticle() {
             put("type", TYPE_REGISTER)
             put("payload", JsonObject().apply {
                 put("name", deploymentID())
-                host?.let { put("host", it) }
+                put("config", config())
             })
         }
 
