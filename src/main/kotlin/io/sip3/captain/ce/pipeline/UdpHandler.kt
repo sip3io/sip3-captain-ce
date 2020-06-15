@@ -35,20 +35,27 @@ class UdpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
     private val sipHandler: SipHandler by lazy {
         SipHandler(context, bulkOperationsEnabled)
     }
+    private val tzspHandler: TzspHandler by lazy {
+        TzspHandler(context, bulkOperationsEnabled)
+    }
 
-    private var sipEnabled = true
-    private var rtpEnabled = false
     private var rtcpEnabled = false
+    private var rtpEnabled = false
+    private var sipEnabled = true
+    private var tzspEnabled = false
 
     init {
-        context.config().getJsonObject("sip")?.getBoolean("enabled")?.let {
-            sipEnabled = it
+        context.config().getJsonObject("rtcp")?.getBoolean("enabled")?.let {
+            rtcpEnabled = it
         }
         context.config().getJsonObject("rtp")?.getBoolean("enabled")?.let {
             rtpEnabled = it
         }
-        context.config().getJsonObject("rtcp")?.getBoolean("enabled")?.let {
-            rtcpEnabled = it
+        context.config().getJsonObject("sip")?.getBoolean("enabled")?.let {
+            sipEnabled = it
+        }
+        context.config().getJsonObject("tzsp")?.getBoolean("enabled")?.let {
+            tzspEnabled = it
         }
     }
 
@@ -89,6 +96,13 @@ class UdpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
                 // Skip ICMP(SIP) packet
                 if (!packet.rejected) {
                     sipHandler.handle(packet)
+                }
+            }
+            // TZSP packet
+            tzspEnabled && buffer.getByte(offset).toInt() == 1 -> {
+                // Skip ICMP(TZSP) packet
+                if (!packet.rejected) {
+                    tzspHandler.handle(packet)
                 }
             }
         }
