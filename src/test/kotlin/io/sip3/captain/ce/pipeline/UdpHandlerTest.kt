@@ -59,6 +59,13 @@ class UdpHandlerTest {
                 0xe3.toByte(), 0x0c.toByte(), 0x5c.toByte(), 0xac.toByte(), 0xde.toByte(), 0x40.toByte(), 0x00.toByte(),
                 0x0d.toByte(), 0xe7.toByte(), 0xb1.toByte()
         )
+
+        // Payload: TZSP
+        val PACKET_4 = byteArrayOf(
+                0x33.toByte(), 0x40.toByte(), 0xdf.toByte(), 0x98.toByte(), 0x00.toByte(), 0xb4.toByte(), 0x31.toByte(),
+                0x4e.toByte(), 0x01.toByte(), 0x00.toByte(), 0x01.toByte(), 0x01.toByte(), 0x33.toByte(), 0x40.toByte(),
+                0xdf.toByte(), 0x98.toByte(), 0x00.toByte(), 0xb4.toByte(), 0x31.toByte(), 0x4e.toByte()
+        )
     }
 
     @Test
@@ -184,6 +191,38 @@ class UdpHandlerTest {
         assertEquals(16, buffer.remainingCapacity())
     }
 
+    @Test
+    fun `Parse UDP - TZSP`() {
+        // Init
+        mockkConstructor(TzspHandler::class)
+        val packetSlot = slot<Packet>()
+        every {
+            anyConstructed<TzspHandler>().handle(capture(packetSlot))
+        } just Runs
+
+        mockkConstructor(EventLoopContext::class)
+        every {
+            anyConstructed<EventLoopContext>().config()
+        } returns JsonObject().apply {
+            put("tzsp", JsonObject().apply {
+                put("enabled", true)
+            })
+        }
+
+        // Execute
+        val udpHandler = UdpHandler(Vertx.vertx().orCreateContext, false)
+        var packet = Packet().apply {
+            this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_4))
+        }
+        udpHandler.handle(packet)
+        // Assert
+        verify { anyConstructed<TzspHandler>().handle(any()) }
+        packet = packetSlot.captured
+        val buffer = (packet.payload as Encodable).encode()
+        assertEquals(13120, packet.srcPort)
+        assertEquals(57240, packet.dstPort)
+        assertEquals(12, buffer.remainingCapacity())
+    }
 
     @AfterEach
     fun `Unmock all`() {
