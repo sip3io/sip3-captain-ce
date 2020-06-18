@@ -17,7 +17,8 @@ name: sip3-captain
 #  dev: eth0
 #  bpf-filter: udp
 #  buffer-size: 2097152
-#  timeout-millis: 10
+#  bulk-size: 256
+#  timeout-millis: 1
 
 #! TCP
 #tcp:
