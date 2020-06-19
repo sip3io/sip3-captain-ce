@@ -21,11 +21,13 @@ import io.sip3.captain.ce.RoutesCE
 import io.sip3.commons.vertx.annotations.Instance
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.buffer.Buffer
-import io.vertx.core.datagram.DatagramSocket
 import io.vertx.core.net.NetClientOptions
 import io.vertx.core.net.NetSocket
 import mu.KotlinLogging
+import java.net.InetSocketAddress
 import java.net.URI
+import java.nio.ByteBuffer
+import java.nio.channels.DatagramChannel
 
 /**
  * Sends encoded packets to `SIP3 Salto`.
@@ -41,7 +43,7 @@ class Sender : AbstractVerticle() {
     var keyStore: String? = null
     var keyStorePassword: String? = null
 
-    var udp: DatagramSocket? = null
+    var udp: DatagramChannel? = null
     var tcp: NetSocket? = null
 
     private val packetsSent = Metrics.counter("packets_sent")
@@ -73,7 +75,11 @@ class Sender : AbstractVerticle() {
 
     fun openUdpConnection() {
         logger.info("UDP connection opened: $uri")
-        udp = vertx.createDatagramSocket()
+        udp = DatagramChannel.open()
+                .apply {
+                    val addr = InetSocketAddress(uri.host, uri.port)
+                    connect(addr)
+                }
     }
 
     fun openTcpConnection() {
@@ -108,12 +114,8 @@ class Sender : AbstractVerticle() {
         packetsSent.increment(buffers.size.toDouble())
 
         buffers.forEach { buffer ->
-            udp?.let { udp ->
-                udp.send(buffer, uri.port, uri.host) {}
-            }
-            tcp?.let { tcp ->
-                tcp.write(buffer) {}
-            }
+            udp?.write(ByteBuffer.wrap(buffer.bytes))
+            tcp?.write(buffer) {}
         }
     }
 }
