@@ -30,6 +30,8 @@ import org.springframework.boot.devtools.filewatch.ChangedFile
 import org.springframework.boot.devtools.filewatch.ChangedFiles
 import org.springframework.boot.devtools.filewatch.FileSystemWatcher
 import java.io.File
+import java.nio.ByteBuffer
+import java.sql.Timestamp
 import java.util.concurrent.Executors
 import kotlin.system.exitProcess
 
@@ -49,21 +51,46 @@ class PcapEngine : AbstractVerticle() {
 
     var dir: String? = null
     var dev: String? = null
-    var bpfFilter: String? = null
-    var bufferSize: Int? = null
-    var timeoutMillis: Int? = null
-
-    private val packetsCaptured = Metrics.counter("packets_captured", "source", "pcap")
+    var bpfFilter = ""
+    var bufferSize = 2097152
+    var bulkSize = 256
+    var timeoutMillis = 1
+    private var useJniLib = false
 
     private lateinit var ethernetHandler: EthernetHandler
 
+    private val packetsCaptured = Metrics.counter("packets_captured", "source", "pcap")
+
+    init {
+        try {
+            System.loadLibrary("sip3-libpcap")
+            useJniLib = true
+            logger.info("Loaded `sip3-libpcap` JNI library.")
+        } catch (t: Throwable) {
+            // Do nothing...
+        }
+    }
+
     override fun start() {
         config().getJsonObject("pcap").let { config ->
-            dir = config.getString("dir")
-            dev = config.getString("dev")
-            bpfFilter = config.getString("bpf-filter")
-            bufferSize = config.getInteger("buffer-size")
-            timeoutMillis = config.getInteger("timeout-millis")
+            config.getString("dir")?.let {
+                dir = it
+            }
+            config.getString("dev")?.let {
+                dev = it
+            }
+            config.getString("bpf-filter")?.let {
+                bpfFilter = it
+            }
+            config.getInteger("buffer-size")?.let {
+                bufferSize = it
+            }
+            config.getInteger("bulk-size")?.let {
+                bulkSize = it
+            }
+            config.getInteger("timeout-millis")?.let {
+                timeoutMillis = it
+            }
         }
 
         ethernetHandler = EthernetHandler(vertx.orCreateContext, true)
@@ -107,29 +134,47 @@ class PcapEngine : AbstractVerticle() {
     }
 
     private fun online() {
-        val handle = PcapHandle.Builder(dev)
-                .promiscuousMode(PcapNetworkInterface.PromiscuousMode.PROMISCUOUS)
-                .snaplen(SNAP_LENGTH)
-                .apply {
-                    bufferSize?.let { bufferSize(it) }
-                    timeoutMillis?.let { timeoutMillis(it) }
-                }
-                .build()
+        if (useJniLib) {
+            val handle = object : PacketHandle() {
 
-        // Vert.x asks to execute long blocking operations in separate application thread.
-        Executors.newSingleThreadExecutor().execute {
-            try {
-                handle.loop()
-            } catch (e: Exception) {
-                logger.error("Got exception...", e)
-                exitProcess(-1)
+                override fun onPacket(packet: Packet) {
+                    packetsCaptured.increment()
+                    ethernetHandler.handle(packet)
+                }
+            }
+
+            // Vert.x asks to execute long blocking operations in separate application thread.
+            Executors.newSingleThreadExecutor().execute {
+                try {
+                    handle.loop(dev!!, bpfFilter, bufferSize, bulkSize, timeoutMillis)
+                } catch (t: Throwable) {
+                    logger.error("Got exception...", t)
+                    exitProcess(-1)
+                }
+            }
+        } else {
+            val handle = PcapHandle.Builder(dev)
+                    .promiscuousMode(PcapNetworkInterface.PromiscuousMode.PROMISCUOUS)
+                    .snaplen(SNAP_LENGTH)
+                    .bufferSize(bufferSize)
+                    .timeoutMillis(timeoutMillis)
+                    .build()
+
+            // Vert.x asks to execute long blocking operations in separate application thread.
+            Executors.newSingleThreadExecutor().execute {
+                try {
+                    handle.loop()
+                } catch (e: Exception) {
+                    logger.error("Got exception...", e)
+                    exitProcess(-1)
+                }
             }
         }
     }
 
     fun PcapHandle.loop() {
-        bpfFilter?.let {
-            setFilter(it, BpfProgram.BpfCompileMode.OPTIMIZE)
+        if (bpfFilter.isNotEmpty()) {
+            setFilter(bpfFilter, BpfProgram.BpfCompileMode.OPTIMIZE)
         }
         loop(0, (RawPacketListener { buffer ->
             packetsCaptured.increment()
@@ -141,4 +186,38 @@ class PcapEngine : AbstractVerticle() {
             ethernetHandler.handle(packet)
         }), Executors.newSingleThreadExecutor())
     }
+}
+
+/**
+ * Represents `sip3-libpcap` JNI interface
+ */
+abstract class PacketHandle {
+
+    private val logger = KotlinLogging.logger {}
+
+    private lateinit var packets: Array<ByteBuffer>
+
+    external fun loop(dev: String, bpfFilter: String, bufferSize: Int, bulkSize: Int, timeoutMillis: Int)
+
+    fun init(packets: Array<ByteBuffer>) {
+        this.packets = packets
+    }
+
+    fun dispatch(sec: Long, usec: Int, bulkSize: Int) {
+        val timestamp = Timestamp(sec * 1000 + usec / 1000).apply { nanos += usec % 1000 }
+
+        packets.take(bulkSize).forEach { buffer ->
+            val packet = Packet().apply {
+                this.timestamp = timestamp
+                this.payload = ByteBufPayload(Unpooled.wrappedBuffer(buffer))
+            }
+            try {
+                onPacket(packet)
+            } catch (e: Exception) {
+                logger.error("PacketHandle 'onPacket()' failed.", e)
+            }
+        }
+    }
+
+    abstract fun onPacket(packet: Packet)
 }
