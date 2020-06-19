@@ -18,7 +18,6 @@ package io.sip3.captain.ce.pipeline
 
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Packet
-import io.sip3.captain.ce.util.SipUtil
 import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.payload.ByteArrayPayload
 import io.sip3.commons.domain.payload.Encodable
@@ -50,46 +49,19 @@ class SipHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
     override fun onPacket(packet: Packet) {
         val buffer = (packet.payload as Encodable).encode()
 
-        var offset = 0
-        var mark = -1
-
-        while (offset + buffer.readerIndex() < buffer.capacity()) {
-            if (SipUtil.isNewLine(buffer, offset) && SipUtil.startsWithSipWord(buffer, offset)) {
-                if (mark > -1) {
-                    val p = Packet().apply {
-                        timestamp = packet.timestamp
-                        srcAddr = packet.srcAddr
-                        dstAddr = packet.dstAddr
-                        srcPort = packet.srcPort
-                        dstPort = packet.dstPort
-                        protocolCode = PacketTypes.SIP
-                        payload = run {
-                            val bytes = buffer.getBytes(buffer.readerIndex() + mark, offset - mark)
-                            return@run ByteArrayPayload(bytes)
-                        }
-                    }
-                    packets.add(p)
-                }
-                mark = offset
+        val p = Packet().apply {
+            timestamp = packet.timestamp
+            srcAddr = packet.srcAddr
+            dstAddr = packet.dstAddr
+            srcPort = packet.srcPort
+            dstPort = packet.dstPort
+            protocolCode = PacketTypes.SIP
+            payload = run {
+                val bytes = buffer.getBytes()
+                return@run ByteArrayPayload(bytes)
             }
-            offset++
         }
-
-        if (mark > -1) {
-            val p = Packet().apply {
-                timestamp = packet.timestamp
-                srcAddr = packet.srcAddr
-                dstAddr = packet.dstAddr
-                srcPort = packet.srcPort
-                dstPort = packet.dstPort
-                protocolCode = PacketTypes.SIP
-                payload = run {
-                    val bytes = buffer.getBytes(buffer.readerIndex() + mark, offset - mark)
-                    return@run ByteArrayPayload(bytes)
-                }
-            }
-            packets.add(p)
-        }
+        packets.add(p)
 
         if (packets.size >= bulkSize) {
             vertx.eventBus().localRequest<Any>(RoutesCE.encoder, packets.toList())

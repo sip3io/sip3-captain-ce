@@ -30,9 +30,6 @@ object SipUtil {
             .map { word -> word.toByteArray() }
             .toList()
 
-    const val CR: Byte = 0x0d
-    const val LF: Byte = 0x0a
-
     fun startsWithSipWord(buffer: ByteBuf, offset: Int = 0): Boolean {
         val i = offset + buffer.readerIndex()
         return SIP_WORDS.any { word ->
@@ -46,11 +43,5 @@ object SipUtil {
             }
             return@any true
         }
-    }
-
-    fun isNewLine(buffer: ByteBuf, offset: Int = 0): Boolean {
-        if (offset < 2) return true
-        val i = buffer.readerIndex() + offset
-        return buffer.getByte(i - 2) == CR && buffer.getByte(i - 1) == LF
     }
 }
