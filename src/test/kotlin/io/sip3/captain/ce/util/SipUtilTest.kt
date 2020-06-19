@@ -17,8 +17,6 @@
 package io.sip3.captain.ce.util
 
 import io.netty.buffer.Unpooled
-import io.sip3.captain.ce.util.SipUtil.CR
-import io.sip3.captain.ce.util.SipUtil.LF
 import io.sip3.captain.ce.util.SipUtil.SIP_WORDS
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -27,14 +25,9 @@ class SipUtilTest {
 
     @Test
     fun `Сheck SIP words`() {
-        for (word in SIP_WORDS) {
-            assertTrue(SipUtil.startsWithSipWord(Unpooled.wrappedBuffer(word)))
+        SIP_WORDS.forEach { word ->
+            val buffer = Unpooled.wrappedBuffer(word)
+            assertTrue(SipUtil.startsWithSipWord(buffer))
         }
-    }
-
-    @Test
-    fun `Сheck EOL`() {
-        val line = byteArrayOf(CR, LF)
-        assertTrue(SipUtil.isNewLine(Unpooled.wrappedBuffer(line), offset = 2))
     }
 }

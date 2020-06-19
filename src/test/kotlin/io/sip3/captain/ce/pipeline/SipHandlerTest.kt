@@ -38,25 +38,6 @@ class SipHandlerTest : VertxTest() {
                 0x20.toByte(), 0x32.toByte(), 0x30.toByte(), 0x30.toByte(), 0x20.toByte(), 0x4f.toByte(), 0x4b.toByte(),
                 0x0d.toByte(), 0x0a.toByte(), 0x0d.toByte(), 0x0a.toByte()
         )
-
-        // Payload: SIP (2 messages)
-        val PACKET_2 = byteArrayOf(
-                0x42.toByte(), 0x59.toByte(), 0x45.toByte(), 0x20.toByte(), 0x73.toByte(), 0x69.toByte(), 0x70.toByte(),
-                0x3a.toByte(), 0x31.toByte(), 0x30.toByte(), 0x2e.toByte(), 0x32.toByte(), 0x35.toByte(), 0x30.toByte(),
-                0x2e.toByte(), 0x32.toByte(), 0x34.toByte(), 0x32.toByte(), 0x2e.toByte(), 0x32.toByte(), 0x33.toByte(),
-                0x38.toByte(), 0x3a.toByte(), 0x35.toByte(), 0x30.toByte(), 0x36.toByte(), 0x30.toByte(), 0x3b.toByte(),
-                0x74.toByte(), 0x72.toByte(), 0x61.toByte(), 0x6e.toByte(), 0x73.toByte(), 0x70.toByte(), 0x6f.toByte(),
-                0x72.toByte(), 0x74.toByte(), 0x3d.toByte(), 0x75.toByte(), 0x64.toByte(), 0x70.toByte(), 0x20.toByte(),
-                0x53.toByte(), 0x49.toByte(), 0x50.toByte(), 0x2f.toByte(), 0x32.toByte(), 0x2e.toByte(), 0x30.toByte(),
-                0x0d.toByte(), 0x0a.toByte(), 0x41.toByte(), 0x43.toByte(), 0x4b.toByte(), 0x20.toByte(), 0x73.toByte(),
-                0x69.toByte(), 0x70.toByte(), 0x3a.toByte(), 0x31.toByte(), 0x30.toByte(), 0x2e.toByte(), 0x32.toByte(),
-                0x35.toByte(), 0x30.toByte(), 0x2e.toByte(), 0x32.toByte(), 0x34.toByte(), 0x32.toByte(), 0x2e.toByte(),
-                0x31.toByte(), 0x38.toByte(), 0x30.toByte(), 0x3a.toByte(), 0x35.toByte(), 0x30.toByte(), 0x36.toByte(),
-                0x31.toByte(), 0x3b.toByte(), 0x74.toByte(), 0x72.toByte(), 0x61.toByte(), 0x6e.toByte(), 0x73.toByte(),
-                0x70.toByte(), 0x6f.toByte(), 0x72.toByte(), 0x74.toByte(), 0x3d.toByte(), 0x75.toByte(), 0x64.toByte(),
-                0x70.toByte(), 0x20.toByte(), 0x53.toByte(), 0x49.toByte(), 0x50.toByte(), 0x2f.toByte(), 0x32.toByte(),
-                0x2e.toByte(), 0x30.toByte(), 0x0d.toByte(), 0x0a.toByte()
-        )
     }
 
     @Test
@@ -86,41 +67,6 @@ class SipHandlerTest : VertxTest() {
                             assertEquals(PacketTypes.SIP, packet.protocolCode)
                             val buffer = (packet.payload as Encodable).encode()
                             assertEquals(18, buffer.remainingCapacity())
-                        }
-                        context.completeNow()
-                    }
-                }
-        )
-    }
-
-    @Test
-    fun `Parse SIP packet containing two messages`() {
-        runTest(
-                deploy = {
-                    // Do nothing...
-                },
-                execute = {
-                    val sipHandler = SipHandler(vertx.orCreateContext, false)
-                    val packet = Packet().apply {
-                        timestamp = Timestamp(System.currentTimeMillis())
-                        srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
-                        dstAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
-                        srcPort = 5060
-                        dstPort = 5060
-                        payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
-                    }
-                    sipHandler.handle(packet)
-                },
-                assert = {
-                    vertx.eventBus().consumer<List<Packet>>(RoutesCE.encoder) { event ->
-                        val packets = event.body()
-                        context.verify {
-                            assertEquals(2, packets.size)
-                            packets.forEach { packet ->
-                                assertEquals(PacketTypes.SIP, packet.protocolCode)
-                                val buffer = (packet.payload as Encodable).encode()
-                                assertEquals(51, buffer.remainingCapacity())
-                            }
                         }
                         context.completeNow()
                     }
