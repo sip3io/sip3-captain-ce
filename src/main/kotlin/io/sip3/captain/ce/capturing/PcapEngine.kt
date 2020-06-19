@@ -65,6 +65,7 @@ class PcapEngine : AbstractVerticle() {
         try {
             System.loadLibrary("sip3-libpcap")
             useJniLib = true
+            logger.info("Loaded `sip3-libpcap` JNI library.")
         } catch (t: Throwable) {
             // Do nothing...
         }
