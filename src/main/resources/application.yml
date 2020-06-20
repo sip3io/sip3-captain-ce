@@ -26,6 +26,10 @@ name: sip3-captain
 #  aggregation-timeout: 100
 #  idle-connection-timeout: 300000
 
+#! Encoder
+encoder:
+  min-size-to-compress: 9000
+
 #! Sender
 sender:
   uri: udp://127.0.0.1:15060

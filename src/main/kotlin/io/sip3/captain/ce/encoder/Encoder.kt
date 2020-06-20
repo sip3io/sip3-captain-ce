@@ -20,12 +20,15 @@ import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.domain.payload.Encodable
+import io.sip3.commons.util.getBytes
 import io.sip3.commons.util.writeTlv
 import io.sip3.commons.vertx.annotations.Instance
 import io.sip3.commons.vertx.util.localRequest
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.buffer.Buffer
 import mu.KotlinLogging
+import java.io.ByteArrayOutputStream
+import java.util.zip.DeflaterOutputStream
 
 /**
  * Encodes packets to SIP3 protocol
@@ -44,7 +47,6 @@ class Encoder : AbstractVerticle() {
                 0x33.toByte()  // 3
         )
 
-        const val COMPRESSED = 0x00 // Compressed
         const val TYPE = 0x01 // Type
         const val VERSION = 0x01 // Version
 
@@ -59,12 +61,19 @@ class Encoder : AbstractVerticle() {
     }
 
     private val buffers = mutableListOf<Buffer>()
+    private var minSizeToCompress = 9000
     private var bulkSize = 1
 
     override fun start() {
         config().getJsonObject("encoder")?.let { config ->
-            config.getInteger("bulk-size")?.let { bulkSize = it }
+            config.getInteger("min-size-to-compress")?.let {
+                minSizeToCompress = it
+            }
+            config.getInteger("bulk-size")?.let {
+                bulkSize = it
+            }
         }
+
         vertx.eventBus().localConsumer<List<Packet>>(RoutesCE.encoder) { event ->
             try {
                 val packets = event.body()
@@ -80,8 +89,18 @@ class Encoder : AbstractVerticle() {
             val srcAddrLength = packet.srcAddr.size
             val dstAddrLength = packet.dstAddr.size
 
-            val payload = (packet.payload as Encodable).encode()
-            val payloadLength = payload.capacity()
+            var compressed = false
+            var payload = (packet.payload as Encodable).encode().getBytes()
+            var payloadLength = payload.size
+
+            if (payloadLength >= minSizeToCompress) {
+                val os = ByteArrayOutputStream()
+                DeflaterOutputStream(os).use { it.write(payload) }
+
+                compressed = true
+                payload = os.toByteArray()
+                payloadLength = payload.size
+            }
 
             val packetLength = arrayListOf(
                     4,                         // Prefix
@@ -102,7 +121,7 @@ class Encoder : AbstractVerticle() {
                 // Prefix
                 writeBytes(PREFIX)
                 // Compressed & Type & Version
-                writeByte(COMPRESSED)
+                writeBoolean(compressed)
                 writeByte(TYPE)
                 writeByte(VERSION)
                 // Length
