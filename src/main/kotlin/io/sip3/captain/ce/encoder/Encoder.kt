@@ -121,7 +121,7 @@ class Encoder : AbstractVerticle() {
                 // Prefix
                 writeBytes(PREFIX)
                 // Compressed & Type & Version
-                writeByte(if (compressed) 1 else 0)
+                writeBoolean(compressed)
                 writeByte(TYPE)
                 writeByte(VERSION)
                 // Length
