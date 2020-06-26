@@ -27,8 +27,8 @@ name: sip3-captain
 #  idle-connection-timeout: 300000
 
 #! Encoder
-encoder:
-  min-size-to-compress: 9000
+#encoder:
+#  min-size-to-compress: 9000
 
 #! Sender
 sender:
