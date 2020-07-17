@@ -36,15 +36,17 @@ class Ipv4Handler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
 
     companion object {
 
-        const val TYPE_TCP = 0x06
-        const val TYPE_UDP = 0x11
         const val TYPE_ICMP = 0x01
         const val TYPE_IPV4 = 0x04
+        const val TYPE_TCP = 0x06
+        const val TYPE_UDP = 0x11
         const val TYPE_GRE = 0x2F
+        const val TYPE_SCTP = 0x84
     }
 
     private val ipv4Packets = mutableListOf<Pair<Ipv4Header, Packet>>()
     private val tcpPackets = mutableListOf<Packet>()
+    private val sctpPackets = mutableListOf<Packet>()
     private var bulkSize = 1
 
     private val udpHandler: UdpHandler by lazy {
@@ -128,7 +130,9 @@ class Ipv4Handler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
     fun routePacket(packet: Packet) {
         when (packet.protocolNumber) {
             // UDP:
-            TYPE_UDP -> udpHandler.handle(packet)
+            TYPE_UDP -> {
+                udpHandler.handle(packet)
+            }
             // TCP:
             TYPE_TCP -> {
                 packet.payload = run {
@@ -140,6 +144,19 @@ class Ipv4Handler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
                 if (tcpPackets.size >= bulkSize) {
                     vertx.eventBus().localRequest<Any>(RoutesCE.tcp, tcpPackets.toList())
                     tcpPackets.clear()
+                }
+            }
+            // SCTP:
+            TYPE_SCTP -> {
+                packet.payload = run {
+                    val buffer = (packet.payload as Encodable).encode()
+                    return@run ByteArrayPayload(buffer.getBytes())
+                }
+                sctpPackets.add(packet)
+
+                if (sctpPackets.size >= bulkSize) {
+                    vertx.eventBus().localRequest<Any>(RoutesCE.sctp, sctpPackets.toList())
+                    sctpPackets.clear()
                 }
             }
             // ICMP:
