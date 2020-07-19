@@ -84,6 +84,14 @@ class Ipv4HandlerTest : VertxTest() {
                 0xf4.toByte(), 0x05.toByte(), 0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte(), 0x32.toByte(),
                 0x40.toByte(), 0xe8.toByte(), 0x3c.toByte(), 0x00.toByte(), 0xb4.toByte(), 0x13.toByte(), 0x0b.toByte()
         )
+
+        // IPv4 Payload: SCTP
+        val PACKET_6 = byteArrayOf(
+                0x45.toByte(), 0xa0.toByte(), 0x00.toByte(), 0x1c.toByte(), 0xe8.toByte(), 0xdd.toByte(), 0x00.toByte(),
+                0x00.toByte(), 0x3c.toByte(), 0x84.toByte(), 0x75.toByte(), 0x6e.toByte(), 0x0a.toByte(), 0xfa.toByte(),
+                0xf4.toByte(), 0x05.toByte(), 0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte(), 0x32.toByte(),
+                0x40.toByte(), 0xe8.toByte(), 0x3c.toByte(), 0x00.toByte(), 0xb4.toByte(), 0x13.toByte(), 0x0b.toByte()
+        )
     }
 
     @Test
@@ -217,6 +225,38 @@ class Ipv4HandlerTest : VertxTest() {
         val dstAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte()))
         assertEquals(dstAddr, InetAddress.getByAddress(packet.dstAddr))
         assertEquals(8, buffer.remainingCapacity())
+    }
+
+    @Test
+    fun `Parse IPv4 - SCTP`() {
+        runTest(
+                deploy = {
+                    // Do nothing...
+                },
+                execute = {
+                    val ipv4Handler = Ipv4Handler(vertx.orCreateContext, false)
+                    var packet = Packet().apply {
+                        this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_6))
+                    }
+                    ipv4Handler.handle(packet)
+                },
+                assert = {
+                    vertx.eventBus().consumer<List<Packet>>(RoutesCE.sctp) { event ->
+                        val packets = event.body()
+                        context.verify {
+                            assertEquals(1, packets.size)
+                            val packet = packets[0]
+                            val buffer = (packet.payload as Encodable).encode()
+                            val srcAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte()))
+                            assertEquals(srcAddr, InetAddress.getByAddress(packet.srcAddr))
+                            val dstAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte()))
+                            assertEquals(dstAddr, InetAddress.getByAddress(packet.dstAddr))
+                            assertEquals(8, buffer.remainingCapacity())
+                        }
+                        context.completeNow()
+                    }
+                }
+        )
     }
 
     @AfterEach
