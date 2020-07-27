@@ -43,7 +43,7 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                sh 'mvn deploy -Pexecutable-jar -DskipTests=true -DaltDeploymentRepository=archiva.snapshots::default::${ARTIFACTORY_URI}'
+                sh 'mvn deploy -Pexecutable-jar -DskipTests=true -DaltDeploymentRepository=sip3-snapshots-ce::default::${SIP3_MAVEN_REPO_URI}/snapshots-ce'
             }
         }
     }
