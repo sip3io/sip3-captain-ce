@@ -102,7 +102,7 @@ class TcpHandlerTest : VertxTest() {
                 assert = {
                     vertx.executeBlocking<Any>({
                         context.verify {
-                            verify(timeout = 10000) { anyConstructed<SipHandler>().handle(any()) }
+                            verify(timeout = 20000) { anyConstructed<SipHandler>().handle(any()) }
                             val packet = packetSlot.captured
                             assertEquals(5060, packet.srcPort)
                             assertEquals(40304, packet.dstPort)
@@ -140,7 +140,7 @@ class TcpHandlerTest : VertxTest() {
                 assert = {
                     vertx.executeBlocking<Any>({
                         context.verify {
-                            verify(timeout = 10000) { anyConstructed<SipHandler>().handle(any()) }
+                            verify(timeout = 20000) { anyConstructed<SipHandler>().handle(any()) }
                             val packet = packetSlot.captured
                             assertEquals(5060, packet.srcPort)
                             assertEquals(40304, packet.dstPort)
@@ -174,7 +174,7 @@ class TcpHandlerTest : VertxTest() {
                 assert = {
                     vertx.executeBlocking<Any>({
                         context.verify {
-                            verify(timeout = 10000) { anyConstructed<SmppHandler>().handle(any()) }
+                            verify(timeout = 20000) { anyConstructed<SmppHandler>().handle(any()) }
                             val packet = packetSlot.captured
                             assertEquals(5060, packet.srcPort)
                             assertEquals(40304, packet.dstPort)
