@@ -77,7 +77,7 @@ class PcapEngineTest : VertxTest() {
                 assert = {
                     vertx.executeBlocking<Any>({
                         context.verify {
-                            verify(timeout = 10000) { anyConstructed<EthernetHandler>().handle(any()) }
+                            verify(timeout = 20000) { anyConstructed<EthernetHandler>().handle(any()) }
                             val buffer = (packetSlot.captured.payload as Encodable).encode()
                             val received = Buffer.buffer(buffer).toString()
                             assertTrue(received.endsWith(MESSAGE))
