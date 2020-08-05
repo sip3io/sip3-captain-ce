@@ -77,7 +77,7 @@ class EthernetHandlerTest {
         }
         ethernetHandler.handle(packet)
         // Assert
-        verify { anyConstructed<Ipv4Handler>().handle(any()) }
+        verify(timeout = 20000) { anyConstructed<Ipv4Handler>().handle(any()) }
         val buffer = (packetSlot.captured.payload as Encodable).encode()
         assertEquals(14, buffer.readerIndex())
     }
@@ -97,7 +97,7 @@ class EthernetHandlerTest {
         }
         ethernetHandler.handle(packet)
         // Assert
-        verify { anyConstructed<Ipv4Handler>().handle(any()) }
+        verify(timeout = 20000) { anyConstructed<Ipv4Handler>().handle(any()) }
         val buffer = (packetSlot.captured.payload as Encodable).encode()
         assertEquals(18, buffer.readerIndex())
     }
@@ -117,7 +117,7 @@ class EthernetHandlerTest {
         }
         ethernetHandler.handle(packet)
         // Assert
-        verify { anyConstructed<Ipv4Handler>().handle(any()) }
+        verify(timeout = 20000) { anyConstructed<Ipv4Handler>().handle(any()) }
         val buffer = (packetSlot.captured.payload as Encodable).encode()
         assertEquals(22, buffer.readerIndex())
     }
@@ -137,7 +137,7 @@ class EthernetHandlerTest {
         }
         ethernetHandler.handle(packet)
         // Assert
-        verify { anyConstructed<Ipv4Handler>().handle(any()) }
+        verify(timeout = 20000) { anyConstructed<Ipv4Handler>().handle(any()) }
         val buffer = (packetSlot.captured.payload as Encodable).encode()
         assertEquals(16, buffer.readerIndex())
     }
