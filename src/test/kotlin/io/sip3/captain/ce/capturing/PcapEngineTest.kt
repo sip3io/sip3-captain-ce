@@ -56,77 +56,79 @@ class PcapEngineTest : VertxTest() {
         val file = tempDir.resolve(PCAP_FILE.name)
         PCAP_FILE.copyTo(file)
         val packetSlot = slot<Packet>()
-        runTest(
-                deploy = {
-                    mockkConstructor(EthernetHandler::class)
-                    every {
-                        anyConstructed<EthernetHandler>().handle(capture(packetSlot))
-                    } just Runs
+        mockkConstructor(EthernetHandler::class) {
+            every {
+                anyConstructed<EthernetHandler>().handle(capture(packetSlot))
+            } just Runs
 
-                    vertx.deployTestVerticle(PcapEngine::class, JsonObject().apply {
-                        put("pcap", JsonObject().apply {
-                            put("dir", tempDir.absolutePath)
+            runTest(
+                    deploy = {
+                        vertx.deployTestVerticle(PcapEngine::class, JsonObject().apply {
+                            put("pcap", JsonObject().apply {
+                                put("dir", tempDir.absolutePath)
+                            })
                         })
-                    })
-                },
-                execute = {
-                    vertx.setPeriodic(100) {
-                        file.setLastModified(System.currentTimeMillis())
-                    }
-                },
-                assert = {
-                    vertx.executeBlocking<Any>({
-                        context.verify {
-                            verify(timeout = 20000) { anyConstructed<EthernetHandler>().handle(any()) }
-                            val buffer = (packetSlot.captured.payload as Encodable).encode()
-                            val received = Buffer.buffer(buffer).toString()
-                            assertTrue(received.endsWith(MESSAGE))
+                    },
+                    execute = {
+                        vertx.setPeriodic(100) {
+                            file.setLastModified(System.currentTimeMillis())
                         }
-                        context.completeNow()
-                    }, {})
-                },
-                cleanup = {
-                    tempDir.deleteRecursively()
-                }
-        )
+                    },
+                    assert = {
+                        vertx.executeBlocking<Any>({
+                            context.verify {
+                                verify(timeout = 10000) { anyConstructed<EthernetHandler>().handle(any()) }
+                                val buffer = (packetSlot.captured.payload as Encodable).encode()
+                                val received = Buffer.buffer(buffer).toString()
+                                assertTrue(received.endsWith(MESSAGE))
+                            }
+                            context.completeNow()
+                        }, {})
+                    },
+                    cleanup = {
+                        tempDir.deleteRecursively()
+                    }
+            )
+        }
     }
 
     @Test
     fun `Capture some packets in online mode`() {
         val packetSlot = slot<Packet>()
-        runTest(
-                deploy = {
-                    mockkConstructor(EthernetHandler::class)
-                    every {
-                        anyConstructed<EthernetHandler>().handle(capture(packetSlot))
-                    } just Runs
+        mockkConstructor(EthernetHandler::class) {
+            every {
+                anyConstructed<EthernetHandler>().handle(capture(packetSlot))
+            } just Runs
 
-                    vertx.deployTestVerticle(PcapEngine::class, JsonObject().apply {
-                        put("pcap", JsonObject().apply {
-                            val dev = Pcaps.getDevByAddress(loopback).name
-                            put("dev", dev)
-                            put("bpf-filter", "udp and port $port")
-                            put("timeout-millis", 10)
+            runTest(
+                    deploy = {
+                        vertx.deployTestVerticle(PcapEngine::class, JsonObject().apply {
+                            put("pcap", JsonObject().apply {
+                                val dev = Pcaps.getDevByAddress(loopback).name
+                                put("dev", dev)
+                                put("bpf-filter", "udp and port $port")
+                                put("timeout-millis", 10)
+                            })
                         })
-                    })
-                },
-                execute = {
-                    vertx.setPeriodic(100) {
-                        vertx.createDatagramSocket().send(MESSAGE, port, loopback.hostAddress) {}
-                    }
-                },
-                assert = {
-                    vertx.executeBlocking<Any>({
-                        context.verify {
-                            verify(timeout = 10000) { anyConstructed<EthernetHandler>().handle(any()) }
-                            val buffer = (packetSlot.captured.payload as Encodable).encode()
-                            val received = Buffer.buffer(buffer).toString()
-                            assertTrue(received.endsWith(MESSAGE))
+                    },
+                    execute = {
+                        vertx.setPeriodic(100) {
+                            vertx.createDatagramSocket().send(MESSAGE, port, loopback.hostAddress) {}
                         }
-                        context.completeNow()
-                    }, {})
-                }
-        )
+                    },
+                    assert = {
+                        vertx.executeBlocking<Any>({
+                            context.verify {
+                                verify(timeout = 10000) { anyConstructed<EthernetHandler>().handle(any()) }
+                                val buffer = (packetSlot.captured.payload as Encodable).encode()
+                                val received = Buffer.buffer(buffer).toString()
+                                assertTrue(received.endsWith(MESSAGE))
+                            }
+                            context.completeNow()
+                        }, {})
+                    }
+            )
+        }
     }
 
     @AfterEach

@@ -65,81 +65,85 @@ class EthernetHandlerTest {
     @Test
     fun `Parse Ethernet - IPv4`() {
         // Init
-        mockkConstructor(Ipv4Handler::class)
-        val packetSlot = slot<Packet>()
-        every {
-            anyConstructed<Ipv4Handler>().handle(capture(packetSlot))
-        } just Runs
-        // Execute
-        val ethernetHandler = EthernetHandler(Vertx.vertx().orCreateContext, false)
-        val packet = Packet().apply {
-            this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
+        mockkConstructor(Ipv4Handler::class) {
+            val packetSlot = slot<Packet>()
+            every {
+                anyConstructed<Ipv4Handler>().handle(capture(packetSlot))
+            } just Runs
+            // Execute
+            val ethernetHandler = EthernetHandler(Vertx.vertx().orCreateContext, false)
+            val packet = Packet().apply {
+                this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
+            }
+            ethernetHandler.handle(packet)
+            // Assert
+            verify(timeout = 10000) { anyConstructed<Ipv4Handler>().handle(any()) }
+            val buffer = (packetSlot.captured.payload as Encodable).encode()
+            assertEquals(14, buffer.readerIndex())
         }
-        ethernetHandler.handle(packet)
-        // Assert
-        verify(timeout = 20000) { anyConstructed<Ipv4Handler>().handle(any()) }
-        val buffer = (packetSlot.captured.payload as Encodable).encode()
-        assertEquals(14, buffer.readerIndex())
     }
 
     @Test
     fun `Parse 802-1Q - IPv4`() {
         // Init
-        mockkConstructor(Ipv4Handler::class)
-        val packetSlot = slot<Packet>()
-        every {
-            anyConstructed<Ipv4Handler>().handle(capture(packetSlot))
-        } just Runs
-        // Execute
-        val ethernetHandler = EthernetHandler(Vertx.vertx().orCreateContext, false)
-        val packet = Packet().apply {
-            this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
+        mockkConstructor(Ipv4Handler::class) {
+            val packetSlot = slot<Packet>()
+            every {
+                anyConstructed<Ipv4Handler>().handle(capture(packetSlot))
+            } just Runs
+            // Execute
+            val ethernetHandler = EthernetHandler(Vertx.vertx().orCreateContext, false)
+            val packet = Packet().apply {
+                this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
+            }
+            ethernetHandler.handle(packet)
+            // Assert
+            verify(timeout = 10000) { anyConstructed<Ipv4Handler>().handle(any()) }
+            val buffer = (packetSlot.captured.payload as Encodable).encode()
+            assertEquals(18, buffer.readerIndex())
         }
-        ethernetHandler.handle(packet)
-        // Assert
-        verify(timeout = 20000) { anyConstructed<Ipv4Handler>().handle(any()) }
-        val buffer = (packetSlot.captured.payload as Encodable).encode()
-        assertEquals(18, buffer.readerIndex())
     }
 
     @Test
     fun `Parse 802-1AD - IPv4`() {
         // Init
-        mockkConstructor(Ipv4Handler::class)
-        val packetSlot = slot<Packet>()
-        every {
-            anyConstructed<Ipv4Handler>().handle(capture(packetSlot))
-        } just Runs
-        // Execute
-        val ethernetHandler = EthernetHandler(Vertx.vertx().orCreateContext, false)
-        val packet = Packet().apply {
-            this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_3))
+        mockkConstructor(Ipv4Handler::class) {
+            val packetSlot = slot<Packet>()
+            every {
+                anyConstructed<Ipv4Handler>().handle(capture(packetSlot))
+            } just Runs
+            // Execute
+            val ethernetHandler = EthernetHandler(Vertx.vertx().orCreateContext, false)
+            val packet = Packet().apply {
+                this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_3))
+            }
+            ethernetHandler.handle(packet)
+            // Assert
+            verify(timeout = 10000) { anyConstructed<Ipv4Handler>().handle(any()) }
+            val buffer = (packetSlot.captured.payload as Encodable).encode()
+            assertEquals(22, buffer.readerIndex())
         }
-        ethernetHandler.handle(packet)
-        // Assert
-        verify(timeout = 20000) { anyConstructed<Ipv4Handler>().handle(any()) }
-        val buffer = (packetSlot.captured.payload as Encodable).encode()
-        assertEquals(22, buffer.readerIndex())
     }
 
     @Test
     fun `Parse LinuxCookedCapture - IPv4`() {
         // Init
-        mockkConstructor(Ipv4Handler::class)
-        val packetSlot = slot<Packet>()
-        every {
-            anyConstructed<Ipv4Handler>().handle(capture(packetSlot))
-        } just Runs
-        // Execute
-        val ethernetHandler = EthernetHandler(Vertx.vertx().orCreateContext, false)
-        val packet = Packet().apply {
-            this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_4))
+        mockkConstructor(Ipv4Handler::class) {
+            val packetSlot = slot<Packet>()
+            every {
+                anyConstructed<Ipv4Handler>().handle(capture(packetSlot))
+            } just Runs
+            // Execute
+            val ethernetHandler = EthernetHandler(Vertx.vertx().orCreateContext, false)
+            val packet = Packet().apply {
+                this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_4))
+            }
+            ethernetHandler.handle(packet)
+            // Assert
+            verify(timeout = 10000) { anyConstructed<Ipv4Handler>().handle(any()) }
+            val buffer = (packetSlot.captured.payload as Encodable).encode()
+            assertEquals(16, buffer.readerIndex())
         }
-        ethernetHandler.handle(packet)
-        // Assert
-        verify(timeout = 20000) { anyConstructed<Ipv4Handler>().handle(any()) }
-        val buffer = (packetSlot.captured.payload as Encodable).encode()
-        assertEquals(16, buffer.readerIndex())
     }
 
     @AfterEach
