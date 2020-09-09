@@ -19,10 +19,10 @@ package io.sip3.captain.ce.socket
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.commons.domain.SdpSession
 import io.sip3.commons.vertx.test.VertxTest
+import io.vertx.core.json.Json
 import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.net.InetAddress
 
@@ -30,110 +30,70 @@ class ManagementSocketTest : VertxTest() {
 
     companion object {
 
-        val host = JsonObject().apply {
+        val HOST = JsonObject().apply {
             put("name", "sbc1")
             put("sip", arrayListOf("10.10.10.10", "10.10.20.10:5060"))
         }
-    }
 
-    lateinit var config: JsonObject
-    private var address = InetAddress.getLoopbackAddress().hostAddress
-    private var localPort = -1
-    private var remotePort = -1
-
-    @BeforeEach
-    fun init() {
-        localPort = findRandomPort()
-        remotePort = findRandomPort()
-
-        config = JsonObject().apply {
-            put("management", JsonObject().apply {
-                put("protocol", "udp")
-                put("local-host", "$address:$localPort")
-                put("remote-host", "$address:$remotePort")
-                put("register-delay", 2000L)
-            })
-            put("host", host)
-        }
-    }
-
-    @Test
-    fun `sending register to remote host`() {
-        runTest(
-                deploy = {
-                    vertx.deployTestVerticle(ManagementSocket::class, config)
-                },
-                execute = {},
-                assert = {
-                    val socket = vertx.createDatagramSocket()
-                    socket.listen(remotePort, address) {}
-
-                    socket.handler { packet ->
-                        val jsonObject = packet.data().toJsonObject()
-                        context.verify {
-                            assertEquals(2, jsonObject.size())
-                            assertEquals(ManagementSocket.TYPE_REGISTER, jsonObject.getString("type"))
-                            val payload = jsonObject.getJsonObject("payload")
-                            assertNotNull(payload.getString("name"))
-                            assertEquals(config, payload.getJsonObject("config"))
-                            assertEquals(localPort, packet.sender().port())
-                        }
-
-                        socket.close()
-                        context.completeNow()
-                    }
-                }
-        )
-    }
-
-    @Test
-    fun `receive SDP info from remote host`() {
-        val sdpMessage = JsonObject().apply {
+        val SDP_INFO = JsonObject().apply {
             put("type", ManagementSocket.TYPE_SDP_SESSION)
             put("payload", JsonObject().apply {
                 put("id", 10070L)
                 put("timestamp", System.currentTimeMillis())
-                put("call_id", "f81d4fae-7dec-11d0-a765-00a0c91e6bf6@foo.bar.com")
-
                 put("codec", JsonObject().apply {
                     put("name", "PCMU")
-                    put("payload_type", 0)
-                    put("clock_rate", 8000)
                     put("ie", 1F)
                     put("bpl", 2F)
+                    put("payload_type", 0)
+                    put("clock_rate", 8000)
                 })
+                put("ptime", 20)
+                put("call_id", "f81d4fae-7dec-11d0-a765-00a0c91e6bf6@foo.bar.com")
             })
         }
+    }
+
+    @Test
+    fun `Send 'REGISTER' to remote host and receive back 'SDP_INFO'`() {
+        val remoteAddr = InetAddress.getLoopbackAddress().hostAddress
+        val remotePort = findRandomPort()
 
         runTest(
                 deploy = {
-                    vertx.deployTestVerticle(ManagementSocket::class, config)
-                },
-                execute = {
-                    val socket = vertx.createDatagramSocket()
-                    socket.send(sdpMessage.toBuffer(), localPort, address) {
-                        socket.close()
-                    }
+                    vertx.deployTestVerticle(ManagementSocket::class, JsonObject().apply {
+                        put("management", JsonObject().apply {
+                            put("uri", "udp://$remoteAddr:$remotePort")
+                            put("register-delay", 100L)
+                        })
+                        put("host", HOST)
+                    })
                 },
                 assert = {
+                    val remoteSocket = vertx.createDatagramSocket().listen(remotePort, remoteAddr) {}
+
+                    // 1. Retrieve and assert `REGISTER` message
+                    // 2. Send back `SDP_INFO`
+                    remoteSocket.handler { packet ->
+                        val json = packet.data().toJsonObject()
+                        context.verify {
+                            assertEquals(ManagementSocket.TYPE_REGISTER, json.getString("type"))
+
+                            val payload = json.getJsonObject("payload")
+                            assertNotNull(payload.getString("name"))
+
+                            val config = payload.getJsonObject("config")
+                            assertEquals(HOST, config.getJsonObject("host"))
+                        }
+
+                        val sender = packet.sender()
+                        remoteSocket.send(SDP_INFO.toBuffer(), sender.port(), sender.host()) {}
+                    }
+
+                    // 1. Retrieve and assert `SDP_INFO`
                     vertx.eventBus().consumer<SdpSession>(RoutesCE.sdp) { event ->
                         context.verify {
-                            sdpMessage.getJsonObject("payload").apply {
-                                val payload = event.body()
-                                assertEquals(getLong("id"), payload.id)
-                                assertEquals(getString("call_id"), payload.callId)
-                                assertNotNull(payload.timestamp)
-
-                                val codec = payload.codec
-                                getJsonObject("codec").apply {
-                                    assertEquals(getString("name"), codec.name)
-                                    assertEquals(getInteger("payload_type"), codec.payloadType.toInt())
-                                    assertEquals(getInteger("clock_rate"), codec.clockRate)
-                                    assertEquals(getFloat("ie"), codec.ie)
-                                    assertEquals(getFloat("bpl"), codec.bpl)
-                                }
-                            }
-
+                            val payload = JsonObject(Json.encode(event.body()))
+                            assertEquals(SDP_INFO.getJsonObject("payload"), payload)
                         }
                         context.completeNow()
                     }
