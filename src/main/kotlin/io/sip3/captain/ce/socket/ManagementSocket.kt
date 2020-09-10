@@ -44,50 +44,25 @@ class ManagementSocket : AbstractVerticle() {
         const val TYPE_REGISTER = "register"
     }
 
-    private var schema = "udp"
-    private lateinit var localUri: URI
-    private lateinit var remoteUri: URI
+    lateinit var uri: URI
     private var registerDelay: Long = 60000
 
-    private lateinit var socket: DatagramSocket
-    private var host: JsonObject? = null
+    private var udp: DatagramSocket? = null
 
     override fun start() {
         config().getJsonObject("management").let { config ->
-            config.getString("schema")?.let { schemaValue ->
-                schema = schemaValue
-                require(schema == "udp") { "Unknown schema: '$schema'" }
-            }
-
-            config.getString("local-host")?.let { localHost ->
-                localUri = URI("$schema://$localHost")
-                require(localUri.port != -1 && localUri.host != null) { "local-host" }
-            }
-
-            config.getString("remote-host")?.let { remoteHost ->
-                remoteUri = URI("$schema://$remoteHost")
-                require(remoteUri.port != -1 && remoteUri.host != null) { "remote-host" }
-            }
-
+            uri = URI(config.getString("uri") ?: throw IllegalArgumentException("uri"))
             config.getLong("register-delay")?.let { registerDelay = it }
         }
 
-        host = config().getJsonObject("host")
-
-        vertx.eventBus().localConsumer<JsonObject>(RoutesCE.config_change) { event ->
-            val config = event.body()
-            host = config.getJsonObject("host")
+        when (uri.scheme) {
+            "udp" -> startUdpSocket()
+            else -> throw NotImplementedError("Unknown protocol: $uri")
         }
-
-        startUdpServer()
-
-        // Periodically send REGISTER message to `SIP3 Salto`
-        vertx.setPeriodic(0, registerDelay) { sendRegisterMessage() }
     }
 
-    private fun startUdpServer() {
-        socket = vertx.createDatagramSocket()
-        socket.handler { packet ->
+    private fun startUdpSocket() {
+        udp = vertx.createDatagramSocket().handler { packet ->
             val buffer = packet.data()
             try {
                 val message = buffer.toJsonObject()
@@ -97,25 +72,21 @@ class ManagementSocket : AbstractVerticle() {
             }
         }
 
-        socket.listen(localUri.port, localUri.host) { connection ->
-            if (connection.failed()) {
-                logger.error("UDP connection failed. URI: $localUri", connection.cause())
-                throw connection.cause()
+        vertx.setPeriodic(0, registerDelay) {
+            val registerMessage = JsonObject().apply {
+                put("type", TYPE_REGISTER)
+                put("payload", JsonObject().apply {
+                    put("config", config())
+                    put("name", deploymentID())
+                })
             }
-            logger.info("Listening on $localUri")
-        }
-    }
 
-    private fun sendRegisterMessage() {
-        val registerMessage = JsonObject().apply {
-            put("type", TYPE_REGISTER)
-            put("payload", JsonObject().apply {
-                put("name", deploymentID())
-                put("config", config())
-            })
+            udp?.send(registerMessage.toBuffer(), uri.port, uri.host) { asr ->
+                if (asr.failed()) {
+                    logger.error(asr.cause()) { "DatagramSocket 'send()' failed." }
+                }
+            }
         }
-
-        socket.send(registerMessage.toBuffer(), remoteUri.port, remoteUri.host) {}
     }
 
     private fun handle(message: JsonObject) {
@@ -123,8 +94,7 @@ class ManagementSocket : AbstractVerticle() {
 
         when (type) {
             TYPE_SDP_SESSION -> {
-                val payload = message.getJsonObject("payload")
-                val sdpSession: SdpSession = payload.mapTo(SdpSession::class.java)
+                val sdpSession = message.getJsonObject("payload").mapTo(SdpSession::class.java)
                 vertx.eventBus().localPublish(RoutesCE.sdp, sdpSession)
             }
             else -> logger.error("Unknown message type. Message: ${message.encodePrettily()}")
