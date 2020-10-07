@@ -106,7 +106,7 @@
                     <plugin>
                         <groupId>io.reactiverse</groupId>
                         <artifactId>vertx-maven-plugin</artifactId>
-                        <version>1.0.18</version>
+                        <version>${vertx-maven-plugin.version}</version>
                         <executions>
                             <execution>
                                 <id>vmp</id>
