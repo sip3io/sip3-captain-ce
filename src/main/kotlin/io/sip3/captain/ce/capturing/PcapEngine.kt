@@ -20,6 +20,7 @@ import io.micrometer.core.instrument.Metrics
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.pipeline.EthernetHandler
+import io.sip3.captain.ce.pipeline.Ipv4Handler
 import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.vertx.annotations.ConditionalOnProperty
 import io.sip3.commons.vertx.annotations.Instance
@@ -47,10 +48,16 @@ class PcapEngine : AbstractVerticle() {
     companion object {
 
         const val SNAP_LENGTH = 65535
+
+        val DATA_LINK_TYPES = setOf(
+                "EN10MB",
+                "RAW"
+        )
     }
 
     var dir: String? = null
     var dev: String? = null
+    var dlt = "EN10MB"
     var bpfFilter = ""
     var bufferSize = 2097152
     var bulkSize = 256
@@ -58,6 +65,7 @@ class PcapEngine : AbstractVerticle() {
     private var useJniLib = false
 
     private lateinit var ethernetHandler: EthernetHandler
+    private lateinit var ipv4Handler: Ipv4Handler
 
     private val packetsCaptured = Metrics.counter("packets_captured", "source", "pcap")
 
@@ -79,6 +87,12 @@ class PcapEngine : AbstractVerticle() {
             config.getString("dev")?.let {
                 dev = it
             }
+            config.getString("dlt")?.let {
+                if (!DATA_LINK_TYPES.contains(it)) {
+                    throw IllegalArgumentException("Unsupported datalink type: $it")
+                }
+                dlt = it
+            }
             config.getString("bpf-filter")?.let {
                 bpfFilter = it
             }
@@ -94,6 +108,7 @@ class PcapEngine : AbstractVerticle() {
         }
 
         ethernetHandler = EthernetHandler(vertx.orCreateContext, true)
+        ipv4Handler = Ipv4Handler(vertx.orCreateContext, true)
 
         dir?.let {
             logger.info("Listening folder: $it")
@@ -139,7 +154,7 @@ class PcapEngine : AbstractVerticle() {
 
                 override fun onPacket(packet: Packet) {
                     packetsCaptured.increment()
-                    ethernetHandler.handle(packet)
+                    handle(packet)
                 }
             }
 
@@ -183,8 +198,15 @@ class PcapEngine : AbstractVerticle() {
                 this.timestamp = getTimestamp()
                 this.payload = ByteBufPayload(Unpooled.wrappedBuffer(buffer))
             }
-            ethernetHandler.handle(packet)
+            handle(packet)
         }), Executors.newSingleThreadExecutor())
+    }
+
+    private fun handle(packet: Packet) {
+        when (dlt) {
+            "EN10MB" -> ethernetHandler.handle(packet)
+            "RAW" -> ipv4Handler.handle(packet)
+        }
     }
 }
 
