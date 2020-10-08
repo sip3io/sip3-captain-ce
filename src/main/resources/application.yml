@@ -15,6 +15,7 @@ name: sip3-captain
 #pcap:
 #  dir: /tmp/sip3-captain
 #  dev: eth0
+#  dlt: EN10MB
 #  bpf-filter: udp
 #  buffer-size: 2097152
 #  bulk-size: 256

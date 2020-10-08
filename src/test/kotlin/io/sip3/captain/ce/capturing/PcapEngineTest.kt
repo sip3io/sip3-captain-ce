@@ -20,6 +20,7 @@ import io.mockk.*
 import io.mockk.junit5.MockKExtension
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.pipeline.EthernetHandler
+import io.sip3.captain.ce.pipeline.Ipv4Handler
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.vertx.test.VertxTest
 import io.vertx.core.buffer.Buffer
@@ -93,7 +94,7 @@ class PcapEngineTest : VertxTest() {
     }
 
     @Test
-    fun `Capture some packets in online mode`() {
+    fun `Capture some 'EN10MB' packets in online mode`() {
         val packetSlot = slot<Packet>()
         mockkConstructor(EthernetHandler::class) {
             every {
@@ -120,6 +121,46 @@ class PcapEngineTest : VertxTest() {
                         vertx.executeBlocking<Any>({
                             context.verify {
                                 verify(timeout = 10000) { anyConstructed<EthernetHandler>().handle(any()) }
+                                val buffer = (packetSlot.captured.payload as Encodable).encode()
+                                val received = Buffer.buffer(buffer).toString()
+                                assertTrue(received.endsWith(MESSAGE))
+                            }
+                            context.completeNow()
+                        }, {})
+                    }
+            )
+        }
+    }
+
+    @Test
+    fun `Capture some 'RAW' packets in online mode`() {
+        val packetSlot = slot<Packet>()
+        mockkConstructor(Ipv4Handler::class) {
+            every {
+                anyConstructed<Ipv4Handler>().handle(capture(packetSlot))
+            } just Runs
+
+            runTest(
+                    deploy = {
+                        vertx.deployTestVerticle(PcapEngine::class, JsonObject().apply {
+                            put("pcap", JsonObject().apply {
+                                val dev = Pcaps.getDevByAddress(loopback).name
+                                put("dev", dev)
+                                put("dlt", "RAW")
+                                put("bpf-filter", "udp and port $port")
+                                put("timeout-millis", 10)
+                            })
+                        })
+                    },
+                    execute = {
+                        vertx.setPeriodic(100) {
+                            vertx.createDatagramSocket().send(MESSAGE, port, loopback.hostAddress) {}
+                        }
+                    },
+                    assert = {
+                        vertx.executeBlocking<Any>({
+                            context.verify {
+                                verify(timeout = 10000) { anyConstructed<Ipv4Handler>().handle(any()) }
                                 val buffer = (packetSlot.captured.payload as Encodable).encode()
                                 val received = Buffer.buffer(buffer).toString()
                                 assertTrue(received.endsWith(MESSAGE))
