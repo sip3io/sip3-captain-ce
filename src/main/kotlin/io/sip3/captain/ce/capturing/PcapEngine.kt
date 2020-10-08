@@ -88,9 +88,7 @@ class PcapEngine : AbstractVerticle() {
                 dev = it
             }
             config.getString("dlt")?.let {
-                if (!DATA_LINK_TYPES.contains(it)) {
-                    throw IllegalArgumentException("Unsupported datalink type: $it")
-                }
+                require(DATA_LINK_TYPES.contains(it)) { "Unsupported datalink type: $it" }
                 dlt = it
             }
             config.getString("bpf-filter")?.let {
