@@ -20,16 +20,11 @@ import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.PacketTypes
-import io.sip3.commons.domain.Codec
-import io.sip3.commons.domain.SdpSession
 import io.sip3.commons.domain.payload.ByteBufPayload
-import io.sip3.commons.domain.payload.RtpReportPayload
-import io.sip3.commons.util.IpUtil
+import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.vertx.test.VertxTest
-import io.sip3.commons.vertx.util.localPublish
-import io.vertx.core.json.JsonObject
+import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.sql.Timestamp
 
@@ -42,10 +37,7 @@ class RtcpHandlerTest : VertxTest() {
         val DST_ADDR = byteArrayOf(0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte())
         const val DST_PORT = 13057
 
-        private val SESSION_ID = run {
-            val srcAddrAsLong = IpUtil.convertToInt(SRC_ADDR).toLong()
-            ((srcAddrAsLong shl 32) or (SRC_PORT - 1).toLong())
-        }
+        val NOW = System.currentTimeMillis()
 
         // RTCP Sender Report only
         val PACKET_1 = byteArrayOf(
@@ -64,83 +56,6 @@ class RtcpHandlerTest : VertxTest() {
                 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), // LSR Timestamp
                 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte()  // Delay since last SR
         )
-
-        // RTCP Sender Report and Source description
-        val PACKET_2 = byteArrayOf(
-                // SR
-                0x81.toByte(), 0xc8.toByte(), 0x00.toByte(), 0x0c.toByte(),
-                0x01.toByte(), 0xa8.toByte(), 0xbd.toByte(), 0xe3.toByte(),
-                0xe1.toByte(), 0x37.toByte(), 0x70.toByte(), 0x1a.toByte(),
-                0xd5.toByte(), 0xa3.toByte(), 0x6e.toByte(), 0x2e.toByte(),
-                0x00.toByte(), 0x00.toByte(), 0xfa.toByte(), 0xa0.toByte(),
-                0x00.toByte(), 0x00.toByte(), 0x01.toByte(), 0x8c.toByte(),
-                0x00.toByte(), 0x00.toByte(), 0xf7.toByte(), 0x80.toByte(),
-                0x00.toByte(), 0x8e.toByte(), 0xb0.toByte(), 0x44.toByte(),
-                0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x01.toByte(),
-                0x00.toByte(), 0x00.toByte(), 0x2c.toByte(), 0xea.toByte(),
-                0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x37.toByte(),
-                0x70.toByte(), 0x1a.toByte(), 0x03.toByte(), 0xd7.toByte(),
-                0x00.toByte(), 0x00.toByte(), 0x80.toByte(), 0x01.toByte(),
-
-                // SD
-                0x81.toByte(), 0xca.toByte(), 0x00.toByte(), 0x0a.toByte(),
-                0x23.toByte(), 0x43.toByte(), 0x50.toByte(), 0x1f.toByte(),
-                0x01.toByte(), 0x07.toByte(), 0x4d.toByte(), 0x59.toByte(),
-                0x43.toByte(), 0x4e.toByte(), 0x41.toByte(), 0x4d.toByte(),
-                0x45.toByte(), 0x05.toByte(), 0x08.toByte(), 0x61.toByte(),
-                0x17.toByte(), 0x01.toByte(), 0x40.toByte(), 0xff.toByte(),
-                0xff.toByte(), 0xff.toByte(), 0xff.toByte(), 0x07.toByte(),
-                0x07.toByte(), 0xf8.toByte(), 0xfa.toByte(), 0xdf.toByte(),
-                0xad.toByte(), 0x60.toByte(), 0x12.toByte(), 0x13.toByte(),
-                0x08.toByte(), 0x02.toByte(), 0xdf.toByte(), 0xad.toByte(),
-                0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte()
-        )
-
-        // RTCP Sender Report and Source Description is first
-        val PACKET_3 = byteArrayOf(
-                // SD
-                0x81.toByte(), 0xca.toByte(), 0x00.toByte(), 0x0a.toByte(),
-                0x23.toByte(), 0x43.toByte(), 0x50.toByte(), 0x1f.toByte(),
-                0x01.toByte(), 0x07.toByte(), 0x4d.toByte(), 0x59.toByte(),
-                0x43.toByte(), 0x4e.toByte(), 0x41.toByte(), 0x4d.toByte(),
-                0x45.toByte(), 0x05.toByte(), 0x08.toByte(), 0x61.toByte(),
-                0x17.toByte(), 0x01.toByte(), 0x40.toByte(), 0xff.toByte(),
-                0xff.toByte(), 0xff.toByte(), 0xff.toByte(), 0x07.toByte(),
-                0x07.toByte(), 0xf8.toByte(), 0xfa.toByte(), 0xdf.toByte(),
-                0xad.toByte(), 0x60.toByte(), 0x12.toByte(), 0x13.toByte(),
-                0x08.toByte(), 0x02.toByte(), 0xdf.toByte(), 0xad.toByte(),
-                0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(),
-
-                // SR
-                0x81.toByte(), 0xc8.toByte(), 0x00.toByte(), 0x0c.toByte(),
-                0x01.toByte(), 0xa8.toByte(), 0xbd.toByte(), 0xe3.toByte(),
-                0xe1.toByte(), 0x37.toByte(), 0x70.toByte(), 0x1e.toByte(),
-                0xda.toByte(), 0xc1.toByte(), 0x4c.toByte(), 0x66.toByte(),
-                0x00.toByte(), 0x01.toByte(), 0x78.toByte(), 0x40.toByte(),
-                0x00.toByte(), 0x00.toByte(), 0x02.toByte(), 0x55.toByte(),
-                0x00.toByte(), 0x01.toByte(), 0x75.toByte(), 0x20.toByte(),
-                0x00.toByte(), 0x8e.toByte(), 0xb0.toByte(), 0x44.toByte(),
-                0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x01.toByte(),
-                0x00.toByte(), 0x00.toByte(), 0x2d.toByte(), 0xb3.toByte(),
-                0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x4a.toByte(),
-                0x70.toByte(), 0x1a.toByte(), 0x03.toByte(), 0xd7.toByte(),
-                0x00.toByte(), 0x04.toByte(), 0x85.toByte(), 0x1f.toByte()
-        )
-
-        // SDP
-        val SDP_SESSION = SdpSession().apply {
-            id = SESSION_ID
-            callId = "callId_uuid@domain.io"
-            timestamp = System.currentTimeMillis()
-
-            codec = Codec().apply {
-                name = "PCMU"
-                payloadType = 0
-                clockRate = 8000
-                bpl = 4.3F
-                ie = 0F
-            }
-        }
     }
 
     @Test
@@ -150,81 +65,39 @@ class RtcpHandlerTest : VertxTest() {
                     // Do nothing...
                 },
                 execute = {
-                    vertx.orCreateContext.config().put("rtcp", JsonObject().apply {
-                        put("expiration-delay", 2000)
-                        put("aggregation-timeout", 2000)
-                    })
                     val rtcpHandler = RtcpHandler(vertx.orCreateContext, false)
 
-                    vertx.eventBus().localPublish(RoutesCE.sdp, SDP_SESSION)
                     vertx.setTimer(200L) {
-                        listOf(PACKET_1, PACKET_2, PACKET_3).map { payload ->
-                            Packet().apply {
-                                srcAddr = SRC_ADDR
-                                srcPort = SRC_PORT
-                                dstAddr = DST_ADDR
-                                dstPort = DST_PORT
-                                this.payload = ByteBufPayload(Unpooled.wrappedBuffer(payload))
-                                timestamp = Timestamp(System.currentTimeMillis())
-                            }
-                        }.forEach { rtcpHandler.handle(it) }
+                        val packet = Packet().apply {
+                            srcAddr = SRC_ADDR
+                            srcPort = SRC_PORT
+                            dstAddr = DST_ADDR
+                            dstPort = DST_PORT
+                            this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
+                            timestamp = Timestamp(NOW)
+                        }
+
+                        rtcpHandler.handle(packet)
                     }
                 },
                 assert = {
-                    var packetCount = 0
                     vertx.eventBus().consumer<List<Packet>>(RoutesCE.encoder) { event ->
                         context.verify {
                             val packets = event.body()
                             assertEquals(1, packets.size)
-                            packetCount++
-                            val packet = packets.first()
-                            val report = packet.payload as RtpReportPayload
-                            assertEquals(PacketTypes.RTPR, packet.protocolCode)
-                            // Assert SDP session data in RTP-R
-                            assertEquals(SDP_SESSION.callId, report.callId)
-                            assertEquals(SDP_SESSION.codec.name, report.codecName)
-                            assertEquals(SDP_SESSION.codec.payloadType, report.payloadType)
 
-                            when (packetCount) {
-                                1 -> {
-                                    assertEquals(196, report.expectedPacketCount)
-                                    assertEquals(1, report.lostPacketCount)
-                                    assertEquals(28F, report.lastJitter)
-                                    assertEquals(28F, report.minJitter)
-                                    assertEquals(28F, report.maxJitter)
-                                    assertEquals(28F, report.avgJitter)
-                                }
-                                2 -> {
-                                    assertEquals(201, report.expectedPacketCount)
-                                    assertEquals(0, report.lostPacketCount)
-                                    assertEquals(55F, report.lastJitter)
-                                    assertEquals(55F, report.minJitter)
-                                    assertEquals(55F, report.maxJitter)
-                                    assertEquals(55F, report.avgJitter)
-                                }
-                                3 -> {
-                                    assertEquals(201, report.expectedPacketCount)
-                                    assertEquals(0, report.lostPacketCount)
-                                    assertEquals(74F, report.lastJitter)
-                                    assertEquals(74F, report.minJitter)
-                                    assertEquals(74F, report.maxJitter)
-                                    assertEquals(74F, report.avgJitter)
-                                }
-                                4 -> {
-                                    assertEquals(196 + 201 + 201, report.expectedPacketCount)
-                                    assertEquals(1, report.lostPacketCount)
-                                    assertEquals(74F, report.lastJitter)
-                                    assertEquals(28F, report.minJitter)
-                                    assertEquals(74F, report.maxJitter)
-                                    assertEquals((28F + 55F + 74F)/3, report.avgJitter)
-                                    assertTrue(report.cumulative)
-                                }
+                            with(packets.first()) {
+                                assertEquals(SRC_ADDR, srcAddr)
+                                assertEquals(SRC_PORT, srcPort)
+                                assertEquals(DST_ADDR, dstAddr)
+                                assertEquals(DST_PORT, dstPort)
+                                assertArrayEquals(PACKET_1, (payload as Encodable).encode().array())
+                                assertEquals(PacketTypes.RTCP, protocolCode)
+                                assertEquals(NOW, timestamp.time)
                             }
                         }
 
-                        if (packetCount == 4) {
-                            context.completeNow()
-                        }
+                        context.completeNow()
                     }
                 }
         )
