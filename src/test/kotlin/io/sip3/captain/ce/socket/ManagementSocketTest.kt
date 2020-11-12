@@ -38,15 +38,19 @@ class ManagementSocketTest : VertxTest() {
         val SDP_INFO = JsonObject().apply {
             put("type", ManagementSocket.TYPE_SDP_SESSION)
             put("payload", JsonObject().apply {
-                put("id", 10070L)
                 put("timestamp", System.currentTimeMillis())
-                put("codec", JsonObject().apply {
+
+                put("address", "127.0.0.1")
+                put("rtp_port", 1000)
+                put("rtcp_port", 1001)
+
+                put("codecs", listOf(JsonObject().apply {
                     put("name", "PCMU")
+                    put("payload_types", listOf(0))
+                    put("clock_rate", 8000)
                     put("ie", 1F)
                     put("bpl", 2F)
-                    put("payload_type", 0)
-                    put("clock_rate", 8000)
-                })
+                }))
                 put("ptime", 20)
                 put("call_id", "f81d4fae-7dec-11d0-a765-00a0c91e6bf6@foo.bar.com")
             })

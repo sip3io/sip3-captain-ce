@@ -18,10 +18,10 @@ package io.sip3.captain.ce.pipeline
 
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Packet
-import io.sip3.captain.ce.util.toIntRange
 import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.domain.payload.RtpHeaderPayload
+import io.sip3.commons.util.toIntRange
 import io.sip3.commons.vertx.util.localRequest
 import io.vertx.core.Context
 import io.vertx.core.Vertx
