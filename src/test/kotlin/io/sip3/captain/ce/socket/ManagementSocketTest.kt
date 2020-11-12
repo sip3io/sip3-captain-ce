@@ -79,10 +79,10 @@ class ManagementSocketTest : VertxTest() {
                             assertEquals(ManagementSocket.TYPE_REGISTER, json.getString("type"))
 
                             val payload = json.getJsonObject("payload")
-                            assertNotNull(payload.getString("name"))
 
-                            val config = payload.getJsonObject("config")
-                            assertEquals(HOST, config.getJsonObject("host"))
+                            assertNotNull(payload.getLong("timestamp"))
+                            assertNotNull(payload.getString("name"))
+                            assertEquals(HOST, payload.getJsonObject("config")?.getJsonObject("host"))
                         }
 
                         val sender = packet.sender()
