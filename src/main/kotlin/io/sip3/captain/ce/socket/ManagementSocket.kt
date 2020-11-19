@@ -76,8 +76,9 @@ class ManagementSocket : AbstractVerticle() {
             val registerMessage = JsonObject().apply {
                 put("type", TYPE_REGISTER)
                 put("payload", JsonObject().apply {
-                    put("config", config())
+                    put("timestamp", System.currentTimeMillis())
                     put("name", deploymentID())
+                    put("config", config())
                 })
             }
 
