@@ -46,60 +46,60 @@ class SenderTest : VertxTest() {
     @Test
     fun `Send UDP packet`() {
         runTest(
-                deploy = {
-                    vertx.deployTestVerticle(Sender::class,
-                            config = JsonObject().apply {
-                                put("sender", JsonObject().apply {
-                                    put("uri", "udp://$address:$port")
-                                })
-                            })
-                },
-                execute = {
-                    val message = Buffer.buffer(MESSAGE)
-                    vertx.eventBus().localRequest<Any>(RoutesCE.sender, listOf(message))
-                },
-                assert = {
-                    vertx.createDatagramSocket()
-                            .handler { packet ->
-                                val message = packet.data().toString()
-                                context.verify {
-                                    assertEquals(MESSAGE, message)
-                                }
-                                context.completeNow()
-                            }
-                            .listenAwait(port, address)
-                }
+            deploy = {
+                vertx.deployTestVerticle(Sender::class,
+                    config = JsonObject().apply {
+                        put("sender", JsonObject().apply {
+                            put("uri", "udp://$address:$port")
+                        })
+                    })
+            },
+            execute = {
+                val message = Buffer.buffer(MESSAGE)
+                vertx.eventBus().localRequest<Any>(RoutesCE.sender, listOf(message))
+            },
+            assert = {
+                vertx.createDatagramSocket()
+                    .handler { packet ->
+                        val message = packet.data().toString()
+                        context.verify {
+                            assertEquals(MESSAGE, message)
+                        }
+                        context.completeNow()
+                    }
+                    .listenAwait(port, address)
+            }
         )
     }
 
     @Test
     fun `Send TCP packet`() {
         runTest(
-                deploy = {
-                    vertx.deployTestVerticle(Sender::class,
-                            config = JsonObject().apply {
-                                put("sender", JsonObject().apply {
-                                    put("uri", "tcp://$address:$port")
-                                })
-                            })
-                },
-                execute = {
-                    val message = Buffer.buffer(MESSAGE)
-                    vertx.setPeriodic(100) { vertx.eventBus().localRequest<Any>(RoutesCE.sender, listOf(message)) }
-                },
-                assert = {
-                    vertx.createNetServer()
-                            .connectHandler { socket ->
-                                socket.handler { buffer ->
-                                    val message = buffer.toString()
-                                    context.verify {
-                                        assertEquals(MESSAGE, message)
-                                    }
-                                    context.completeNow()
-                                }
+            deploy = {
+                vertx.deployTestVerticle(Sender::class,
+                    config = JsonObject().apply {
+                        put("sender", JsonObject().apply {
+                            put("uri", "tcp://$address:$port")
+                        })
+                    })
+            },
+            execute = {
+                val message = Buffer.buffer(MESSAGE)
+                vertx.setPeriodic(100) { vertx.eventBus().localRequest<Any>(RoutesCE.sender, listOf(message)) }
+            },
+            assert = {
+                vertx.createNetServer()
+                    .connectHandler { socket ->
+                        socket.handler { buffer ->
+                            val message = buffer.toString()
+                            context.verify {
+                                assertEquals(MESSAGE, message)
                             }
-                            .listenAwait(port, address)
-                }
+                            context.completeNow()
+                        }
+                    }
+                    .listenAwait(port, address)
+            }
         )
     }
 }

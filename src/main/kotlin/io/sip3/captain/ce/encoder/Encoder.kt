@@ -41,10 +41,10 @@ class Encoder : AbstractVerticle() {
     companion object {
 
         val PREFIX = byteArrayOf(
-                0x53.toByte(), // S
-                0x49.toByte(), // I
-                0x50.toByte(), // P
-                0x33.toByte()  // 3
+            0x53.toByte(), // S
+            0x49.toByte(), // I
+            0x50.toByte(), // P
+            0x33.toByte()  // 3
         )
 
         const val TYPE = 0x01 // Type
@@ -103,17 +103,17 @@ class Encoder : AbstractVerticle() {
             }
 
             val packetLength = arrayListOf(
-                    4,                         // Prefix
-                    3,                         // Compressed & Type & Version
-                    2,                         // Length
-                    11,                        // Milliseconds
-                    7,                         // Nanoseconds
-                    3 + srcAddrLength,         // Source Address
-                    3 + dstAddrLength,         // Destination Address
-                    5,                         // Source Port
-                    5,                         // Destination Port
-                    4,                         // Protocol Code
-                    3 + payloadLength          // Payload
+                4,                         // Prefix
+                3,                         // Compressed & Type & Version
+                2,                         // Length
+                11,                        // Milliseconds
+                7,                         // Nanoseconds
+                3 + srcAddrLength,         // Source Address
+                3 + dstAddrLength,         // Destination Address
+                5,                         // Source Port
+                5,                         // Destination Port
+                4,                         // Protocol Code
+                3 + payloadLength          // Payload
 
             ).sum()
 

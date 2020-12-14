@@ -38,46 +38,46 @@ class TcpHandlerTest : VertxTest() {
 
         // Payload: TCP (SIP message - entire)
         val PACKET_1 = byteArrayOf(
-                0x13.toByte(), 0xc4.toByte(), 0x9d.toByte(), 0x70.toByte(), 0xd3.toByte(), 0x7e.toByte(), 0xa1.toByte(),
-                0xba.toByte(), 0x47.toByte(), 0x16.toByte(), 0xd2.toByte(), 0x7e.toByte(), 0x80.toByte(), 0x18.toByte(),
-                0x80.toByte(), 0x00.toByte(), 0xf3.toByte(), 0xf6.toByte(), 0x00.toByte(), 0x00.toByte(), 0x01.toByte(),
-                0x01.toByte(), 0x08.toByte(), 0x0a.toByte(), 0x18.toByte(), 0x92.toByte(), 0x7a.toByte(), 0x0a.toByte(),
-                0x86.toByte(), 0x37.toByte(), 0x26.toByte(), 0xb0.toByte(), 0x53.toByte(), 0x49.toByte(), 0x50.toByte(),
-                0x2f.toByte(), 0x32.toByte(), 0x2e.toByte(), 0x30.toByte(), 0x20.toByte(), 0x31.toByte(), 0x30.toByte(),
-                0x30.toByte(), 0x20.toByte(), 0x54.toByte(), 0x72.toByte(), 0x79.toByte(), 0x69.toByte(), 0x6e.toByte(),
-                0x67.toByte(), 0x0a.toByte(), 0x0d.toByte(), 0x0a.toByte()
+            0x13.toByte(), 0xc4.toByte(), 0x9d.toByte(), 0x70.toByte(), 0xd3.toByte(), 0x7e.toByte(), 0xa1.toByte(),
+            0xba.toByte(), 0x47.toByte(), 0x16.toByte(), 0xd2.toByte(), 0x7e.toByte(), 0x80.toByte(), 0x18.toByte(),
+            0x80.toByte(), 0x00.toByte(), 0xf3.toByte(), 0xf6.toByte(), 0x00.toByte(), 0x00.toByte(), 0x01.toByte(),
+            0x01.toByte(), 0x08.toByte(), 0x0a.toByte(), 0x18.toByte(), 0x92.toByte(), 0x7a.toByte(), 0x0a.toByte(),
+            0x86.toByte(), 0x37.toByte(), 0x26.toByte(), 0xb0.toByte(), 0x53.toByte(), 0x49.toByte(), 0x50.toByte(),
+            0x2f.toByte(), 0x32.toByte(), 0x2e.toByte(), 0x30.toByte(), 0x20.toByte(), 0x31.toByte(), 0x30.toByte(),
+            0x30.toByte(), 0x20.toByte(), 0x54.toByte(), 0x72.toByte(), 0x79.toByte(), 0x69.toByte(), 0x6e.toByte(),
+            0x67.toByte(), 0x0a.toByte(), 0x0d.toByte(), 0x0a.toByte()
         )
 
         // Payload: TCP (SIP message - part 1)
         val PACKET_2 = byteArrayOf(
-                0x13.toByte(), 0xc4.toByte(), 0x9d.toByte(), 0x70.toByte(), 0xd3.toByte(), 0x7e.toByte(), 0xa1.toByte(),
-                0xa7.toByte(), 0x47.toByte(), 0x16.toByte(), 0xd2.toByte(), 0x7e.toByte(), 0x80.toByte(), 0x18.toByte(),
-                0x80.toByte(), 0x00.toByte(), 0xf3.toByte(), 0xf6.toByte(), 0x00.toByte(), 0x00.toByte(), 0x01.toByte(),
-                0x01.toByte(), 0x08.toByte(), 0x0a.toByte(), 0x18.toByte(), 0x92.toByte(), 0x7a.toByte(), 0x0a.toByte(),
-                0x86.toByte(), 0x37.toByte(), 0x26.toByte(), 0xb0.toByte(), 0x53.toByte(), 0x49.toByte(), 0x50.toByte(),
-                0x2f.toByte(), 0x32.toByte(), 0x2e.toByte(), 0x30.toByte(), 0x20.toByte(), 0x31.toByte(), 0x30.toByte(),
-                0x30.toByte(), 0x20.toByte(), 0x54.toByte(), 0x72.toByte(), 0x79.toByte(), 0x69.toByte(), 0x6e.toByte(),
-                0x67.toByte(), 0x0a.toByte()
+            0x13.toByte(), 0xc4.toByte(), 0x9d.toByte(), 0x70.toByte(), 0xd3.toByte(), 0x7e.toByte(), 0xa1.toByte(),
+            0xa7.toByte(), 0x47.toByte(), 0x16.toByte(), 0xd2.toByte(), 0x7e.toByte(), 0x80.toByte(), 0x18.toByte(),
+            0x80.toByte(), 0x00.toByte(), 0xf3.toByte(), 0xf6.toByte(), 0x00.toByte(), 0x00.toByte(), 0x01.toByte(),
+            0x01.toByte(), 0x08.toByte(), 0x0a.toByte(), 0x18.toByte(), 0x92.toByte(), 0x7a.toByte(), 0x0a.toByte(),
+            0x86.toByte(), 0x37.toByte(), 0x26.toByte(), 0xb0.toByte(), 0x53.toByte(), 0x49.toByte(), 0x50.toByte(),
+            0x2f.toByte(), 0x32.toByte(), 0x2e.toByte(), 0x30.toByte(), 0x20.toByte(), 0x31.toByte(), 0x30.toByte(),
+            0x30.toByte(), 0x20.toByte(), 0x54.toByte(), 0x72.toByte(), 0x79.toByte(), 0x69.toByte(), 0x6e.toByte(),
+            0x67.toByte(), 0x0a.toByte()
         )
 
         // Payload: TCP (SIP message - part 2)
         val PACKET_3 = byteArrayOf(
-                0x13.toByte(), 0xc4.toByte(), 0x9d.toByte(), 0x70.toByte(), 0xd3.toByte(), 0x7e.toByte(), 0xa1.toByte(),
-                0xba.toByte(), 0x47.toByte(), 0x16.toByte(), 0xd2.toByte(), 0x7e.toByte(), 0x80.toByte(), 0x18.toByte(),
-                0x80.toByte(), 0x00.toByte(), 0xf3.toByte(), 0xf6.toByte(), 0x00.toByte(), 0x00.toByte(), 0x01.toByte(),
-                0x01.toByte(), 0x08.toByte(), 0x0a.toByte(), 0x18.toByte(), 0x92.toByte(), 0x7a.toByte(), 0x0a.toByte(),
-                0x86.toByte(), 0x37.toByte(), 0x26.toByte(), 0xb0.toByte(), 0x0d.toByte(), 0x0a.toByte()
+            0x13.toByte(), 0xc4.toByte(), 0x9d.toByte(), 0x70.toByte(), 0xd3.toByte(), 0x7e.toByte(), 0xa1.toByte(),
+            0xba.toByte(), 0x47.toByte(), 0x16.toByte(), 0xd2.toByte(), 0x7e.toByte(), 0x80.toByte(), 0x18.toByte(),
+            0x80.toByte(), 0x00.toByte(), 0xf3.toByte(), 0xf6.toByte(), 0x00.toByte(), 0x00.toByte(), 0x01.toByte(),
+            0x01.toByte(), 0x08.toByte(), 0x0a.toByte(), 0x18.toByte(), 0x92.toByte(), 0x7a.toByte(), 0x0a.toByte(),
+            0x86.toByte(), 0x37.toByte(), 0x26.toByte(), 0xb0.toByte(), 0x0d.toByte(), 0x0a.toByte()
         )
 
         // Payload: TCP (SMPP message - entire)
         val PACKET_4 = byteArrayOf(
-                0x13.toByte(), 0xc4.toByte(), 0x9d.toByte(), 0x70.toByte(), 0xd3.toByte(), 0x7e.toByte(), 0xa1.toByte(),
-                0xba.toByte(), 0x47.toByte(), 0x16.toByte(), 0xd2.toByte(), 0x7e.toByte(), 0x80.toByte(), 0x18.toByte(),
-                0x80.toByte(), 0x00.toByte(), 0xf3.toByte(), 0xf6.toByte(), 0x00.toByte(), 0x00.toByte(), 0x01.toByte(),
-                0x01.toByte(), 0x08.toByte(), 0x0a.toByte(), 0x18.toByte(), 0x92.toByte(), 0x7a.toByte(), 0x0a.toByte(),
-                0x86.toByte(), 0x37.toByte(), 0x26.toByte(), 0xb0.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(),
-                0x10.toByte(), 0x80.toByte(), 0x00.toByte(), 0x00.toByte(), 0x15.toByte(), 0x00.toByte(), 0x00.toByte(),
-                0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x04.toByte(), 0x58.toByte(), 0xae.toByte()
+            0x13.toByte(), 0xc4.toByte(), 0x9d.toByte(), 0x70.toByte(), 0xd3.toByte(), 0x7e.toByte(), 0xa1.toByte(),
+            0xba.toByte(), 0x47.toByte(), 0x16.toByte(), 0xd2.toByte(), 0x7e.toByte(), 0x80.toByte(), 0x18.toByte(),
+            0x80.toByte(), 0x00.toByte(), 0xf3.toByte(), 0xf6.toByte(), 0x00.toByte(), 0x00.toByte(), 0x01.toByte(),
+            0x01.toByte(), 0x08.toByte(), 0x0a.toByte(), 0x18.toByte(), 0x92.toByte(), 0x7a.toByte(), 0x0a.toByte(),
+            0x86.toByte(), 0x37.toByte(), 0x26.toByte(), 0xb0.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(),
+            0x10.toByte(), 0x80.toByte(), 0x00.toByte(), 0x00.toByte(), 0x15.toByte(), 0x00.toByte(), 0x00.toByte(),
+            0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x04.toByte(), 0x58.toByte(), 0xae.toByte()
         )
     }
 
@@ -89,29 +89,29 @@ class TcpHandlerTest : VertxTest() {
             anyConstructed<SipHandler>().handle(capture(packetSlot))
         } just Runs
         runTest(
-                deploy = {
-                    vertx.deployTestVerticle(TcpHandler::class)
-                },
-                execute = {
-                    val packet = Packet().apply {
-                        srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
-                        payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
-                    }
-                    vertx.eventBus().localRequest<Any>(RoutesCE.tcp, listOf(packet))
-                },
-                assert = {
-                    vertx.executeBlocking<Any>({
-                        context.verify {
-                            verify(timeout = 20000) { anyConstructed<SipHandler>().handle(any()) }
-                            val packet = packetSlot.captured
-                            assertEquals(5060, packet.srcPort)
-                            assertEquals(40304, packet.dstPort)
-                            val buffer = (packet.payload as Encodable).encode()
-                            assertEquals(21, buffer.remainingCapacity())
-                        }
-                        context.completeNow()
-                    }, {})
+            deploy = {
+                vertx.deployTestVerticle(TcpHandler::class)
+            },
+            execute = {
+                val packet = Packet().apply {
+                    srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
+                    payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
                 }
+                vertx.eventBus().localRequest<Any>(RoutesCE.tcp, listOf(packet))
+            },
+            assert = {
+                vertx.executeBlocking<Any>({
+                    context.verify {
+                        verify(timeout = 20000) { anyConstructed<SipHandler>().handle(any()) }
+                        val packet = packetSlot.captured
+                        assertEquals(5060, packet.srcPort)
+                        assertEquals(40304, packet.dstPort)
+                        val buffer = (packet.payload as Encodable).encode()
+                        assertEquals(21, buffer.remainingCapacity())
+                    }
+                    context.completeNow()
+                }, {})
+            }
         )
     }
 
@@ -123,33 +123,33 @@ class TcpHandlerTest : VertxTest() {
             anyConstructed<SipHandler>().handle(capture(packetSlot))
         } just Runs
         runTest(
-                deploy = {
-                    vertx.deployTestVerticle(TcpHandler::class)
-                },
-                execute = {
-                    val packet1 = Packet().apply {
-                        srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
-                        payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
-                    }
-                    val packet2 = Packet().apply {
-                        srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
-                        payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_3))
-                    }
-                    vertx.eventBus().localRequest<Any>(RoutesCE.tcp, listOf(packet1, packet2))
-                },
-                assert = {
-                    vertx.executeBlocking<Any>({
-                        context.verify {
-                            verify(timeout = 20000) { anyConstructed<SipHandler>().handle(any()) }
-                            val packet = packetSlot.captured
-                            assertEquals(5060, packet.srcPort)
-                            assertEquals(40304, packet.dstPort)
-                            val buffer = (packet.payload as Encodable).encode()
-                            assertEquals(21, buffer.remainingCapacity())
-                        }
-                        context.completeNow()
-                    }, {})
+            deploy = {
+                vertx.deployTestVerticle(TcpHandler::class)
+            },
+            execute = {
+                val packet1 = Packet().apply {
+                    srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
+                    payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
                 }
+                val packet2 = Packet().apply {
+                    srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
+                    payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_3))
+                }
+                vertx.eventBus().localRequest<Any>(RoutesCE.tcp, listOf(packet1, packet2))
+            },
+            assert = {
+                vertx.executeBlocking<Any>({
+                    context.verify {
+                        verify(timeout = 20000) { anyConstructed<SipHandler>().handle(any()) }
+                        val packet = packetSlot.captured
+                        assertEquals(5060, packet.srcPort)
+                        assertEquals(40304, packet.dstPort)
+                        val buffer = (packet.payload as Encodable).encode()
+                        assertEquals(21, buffer.remainingCapacity())
+                    }
+                    context.completeNow()
+                }, {})
+            }
         )
     }
 
@@ -161,29 +161,29 @@ class TcpHandlerTest : VertxTest() {
             anyConstructed<SmppHandler>().handle(capture(packetSlot))
         } just Runs
         runTest(
-                deploy = {
-                    vertx.deployTestVerticle(TcpHandler::class)
-                },
-                execute = {
-                    val packet = Packet().apply {
-                        srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
-                        payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_4))
-                    }
-                    vertx.eventBus().localRequest<Any>(RoutesCE.tcp, listOf(packet))
-                },
-                assert = {
-                    vertx.executeBlocking<Any>({
-                        context.verify {
-                            verify(timeout = 20000) { anyConstructed<SmppHandler>().handle(any()) }
-                            val packet = packetSlot.captured
-                            assertEquals(5060, packet.srcPort)
-                            assertEquals(40304, packet.dstPort)
-                            val buffer = (packet.payload as Encodable).encode()
-                            assertEquals(16, buffer.remainingCapacity())
-                        }
-                        context.completeNow()
-                    }, {})
+            deploy = {
+                vertx.deployTestVerticle(TcpHandler::class)
+            },
+            execute = {
+                val packet = Packet().apply {
+                    srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
+                    payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_4))
                 }
+                vertx.eventBus().localRequest<Any>(RoutesCE.tcp, listOf(packet))
+            },
+            assert = {
+                vertx.executeBlocking<Any>({
+                    context.verify {
+                        verify(timeout = 20000) { anyConstructed<SmppHandler>().handle(any()) }
+                        val packet = packetSlot.captured
+                        assertEquals(5060, packet.srcPort)
+                        assertEquals(40304, packet.dstPort)
+                        val buffer = (packet.payload as Encodable).encode()
+                        assertEquals(16, buffer.remainingCapacity())
+                    }
+                    context.completeNow()
+                }, {})
+            }
         )
     }
 

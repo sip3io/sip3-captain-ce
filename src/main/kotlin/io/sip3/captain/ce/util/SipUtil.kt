@@ -22,13 +22,13 @@ import io.sip3.commons.SipMethods
 object SipUtil {
 
     val SIP_WORDS = SipMethods.values()
-            .map(Any::toString)
-            .toMutableList()
-            .apply {
-                add("SIP/2.0 ")
-            }
-            .map { word -> word.toByteArray() }
-            .toList()
+        .map(Any::toString)
+        .toMutableList()
+        .apply {
+            add("SIP/2.0 ")
+        }
+        .map { word -> word.toByteArray() }
+        .toList()
 
     fun startsWithSipWord(buffer: ByteBuf, offset: Int = 0): Boolean {
         val i = offset + buffer.readerIndex()

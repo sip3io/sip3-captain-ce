@@ -34,43 +34,43 @@ class SipHandlerTest : VertxTest() {
 
         // Payload: SIP (1 message)
         val PACKET_1 = byteArrayOf(
-                0x53.toByte(), 0x49.toByte(), 0x50.toByte(), 0x2f.toByte(), 0x32.toByte(), 0x2e.toByte(), 0x30.toByte(),
-                0x20.toByte(), 0x32.toByte(), 0x30.toByte(), 0x30.toByte(), 0x20.toByte(), 0x4f.toByte(), 0x4b.toByte(),
-                0x0d.toByte(), 0x0a.toByte(), 0x0d.toByte(), 0x0a.toByte()
+            0x53.toByte(), 0x49.toByte(), 0x50.toByte(), 0x2f.toByte(), 0x32.toByte(), 0x2e.toByte(), 0x30.toByte(),
+            0x20.toByte(), 0x32.toByte(), 0x30.toByte(), 0x30.toByte(), 0x20.toByte(), 0x4f.toByte(), 0x4b.toByte(),
+            0x0d.toByte(), 0x0a.toByte(), 0x0d.toByte(), 0x0a.toByte()
         )
     }
 
     @Test
     fun `Parse SIP packet containing one message`() {
         runTest(
-                deploy = {
-                    // Do nothing...
-                },
-                execute = {
-                    val sipHandler = SipHandler(vertx.orCreateContext, false)
-                    val packet = Packet().apply {
-                        timestamp = Timestamp(System.currentTimeMillis())
-                        srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
-                        dstAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
-                        srcPort = 5060
-                        dstPort = 5060
-                        payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
-                    }
-                    sipHandler.handle(packet)
-                },
-                assert = {
-                    vertx.eventBus().consumer<List<Packet>>(RoutesCE.encoder) { event ->
-                        val packets = event.body()
-                        context.verify {
-                            assertEquals(1, packets.size)
-                            val packet = packets[0]
-                            assertEquals(PacketTypes.SIP, packet.protocolCode)
-                            val buffer = (packet.payload as Encodable).encode()
-                            assertEquals(18, buffer.remainingCapacity())
-                        }
-                        context.completeNow()
-                    }
+            deploy = {
+                // Do nothing...
+            },
+            execute = {
+                val sipHandler = SipHandler(vertx.orCreateContext, false)
+                val packet = Packet().apply {
+                    timestamp = Timestamp(System.currentTimeMillis())
+                    srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
+                    dstAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
+                    srcPort = 5060
+                    dstPort = 5060
+                    payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
                 }
+                sipHandler.handle(packet)
+            },
+            assert = {
+                vertx.eventBus().consumer<List<Packet>>(RoutesCE.encoder) { event ->
+                    val packets = event.body()
+                    context.verify {
+                        assertEquals(1, packets.size)
+                        val packet = packets[0]
+                        assertEquals(PacketTypes.SIP, packet.protocolCode)
+                        val buffer = (packet.payload as Encodable).encode()
+                        assertEquals(18, buffer.remainingCapacity())
+                    }
+                    context.completeNow()
+                }
+            }
         )
     }
 }
