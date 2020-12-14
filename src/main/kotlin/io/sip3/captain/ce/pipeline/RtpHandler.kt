@@ -50,15 +50,15 @@ class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
             }
 
             config.getJsonArray("payload-types")
-                    ?.flatMap { payloadType ->
-                        when (payloadType) {
-                            is Int -> setOf(payloadType.toByte())
-                            is String -> payloadType.toIntRange().map { it.toByte() }
-                            else -> emptySet()
-                        }
+                ?.flatMap { payloadType ->
+                    when (payloadType) {
+                        is Int -> setOf(payloadType.toByte())
+                        is String -> payloadType.toIntRange().map { it.toByte() }
+                        else -> emptySet()
                     }
-                    ?.toSet()
-                    ?.let { payloadTypes = it }
+                }
+                ?.toSet()
+                ?.let { payloadTypes = it }
         }
 
         vertx = context.owner()

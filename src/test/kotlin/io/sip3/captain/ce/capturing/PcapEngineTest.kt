@@ -62,32 +62,32 @@ class PcapEngineTest : VertxTest() {
             } just Runs
 
             runTest(
-                    deploy = {
-                        vertx.deployTestVerticle(PcapEngine::class, JsonObject().apply {
-                            put("pcap", JsonObject().apply {
-                                put("dir", tempDir.absolutePath)
-                            })
+                deploy = {
+                    vertx.deployTestVerticle(PcapEngine::class, JsonObject().apply {
+                        put("pcap", JsonObject().apply {
+                            put("dir", tempDir.absolutePath)
                         })
-                    },
-                    execute = {
-                        vertx.setPeriodic(100) {
-                            file.setLastModified(System.currentTimeMillis())
-                        }
-                    },
-                    assert = {
-                        vertx.executeBlocking<Any>({
-                            context.verify {
-                                verify(timeout = 10000) { anyConstructed<EthernetHandler>().handle(any()) }
-                                val buffer = (packetSlot.captured.payload as Encodable).encode()
-                                val received = Buffer.buffer(buffer).toString()
-                                assertTrue(received.endsWith(MESSAGE))
-                            }
-                            context.completeNow()
-                        }, {})
-                    },
-                    cleanup = {
-                        tempDir.deleteRecursively()
+                    })
+                },
+                execute = {
+                    vertx.setPeriodic(100) {
+                        file.setLastModified(System.currentTimeMillis())
                     }
+                },
+                assert = {
+                    vertx.executeBlocking<Any>({
+                        context.verify {
+                            verify(timeout = 10000) { anyConstructed<EthernetHandler>().handle(any()) }
+                            val buffer = (packetSlot.captured.payload as Encodable).encode()
+                            val received = Buffer.buffer(buffer).toString()
+                            assertTrue(received.endsWith(MESSAGE))
+                        }
+                        context.completeNow()
+                    }, {})
+                },
+                cleanup = {
+                    tempDir.deleteRecursively()
+                }
             )
         }
     }
@@ -101,32 +101,32 @@ class PcapEngineTest : VertxTest() {
             } just Runs
 
             runTest(
-                    deploy = {
-                        vertx.deployTestVerticle(PcapEngine::class, JsonObject().apply {
-                            put("pcap", JsonObject().apply {
-                                val dev = Pcaps.getDevByAddress(loopback).name
-                                put("dev", dev)
-                                put("bpf-filter", "udp and port $port")
-                                put("timeout-millis", 10)
-                            })
+                deploy = {
+                    vertx.deployTestVerticle(PcapEngine::class, JsonObject().apply {
+                        put("pcap", JsonObject().apply {
+                            val dev = Pcaps.getDevByAddress(loopback).name
+                            put("dev", dev)
+                            put("bpf-filter", "udp and port $port")
+                            put("timeout-millis", 10)
                         })
-                    },
-                    execute = {
-                        vertx.setPeriodic(100) {
-                            vertx.createDatagramSocket().send(MESSAGE, port, loopback.hostAddress) {}
-                        }
-                    },
-                    assert = {
-                        vertx.executeBlocking<Any>({
-                            context.verify {
-                                verify(timeout = 10000) { anyConstructed<EthernetHandler>().handle(any()) }
-                                val buffer = (packetSlot.captured.payload as Encodable).encode()
-                                val received = Buffer.buffer(buffer).toString()
-                                assertTrue(received.endsWith(MESSAGE))
-                            }
-                            context.completeNow()
-                        }, {})
+                    })
+                },
+                execute = {
+                    vertx.setPeriodic(100) {
+                        vertx.createDatagramSocket().send(MESSAGE, port, loopback.hostAddress) {}
                     }
+                },
+                assert = {
+                    vertx.executeBlocking<Any>({
+                        context.verify {
+                            verify(timeout = 10000) { anyConstructed<EthernetHandler>().handle(any()) }
+                            val buffer = (packetSlot.captured.payload as Encodable).encode()
+                            val received = Buffer.buffer(buffer).toString()
+                            assertTrue(received.endsWith(MESSAGE))
+                        }
+                        context.completeNow()
+                    }, {})
+                }
             )
         }
     }

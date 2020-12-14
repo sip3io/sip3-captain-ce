@@ -36,8 +36,8 @@ class GreHandlerTest {
 
         // GRE (without optional Sequence Number) Payload: ERSPAN
         val PACKET_1 = byteArrayOf(
-                0x10.toByte(), 0x00.toByte(), 0x88.toByte(), 0xbe.toByte(), 0x01.toByte(), 0xf6.toByte(), 0xa4.toByte(),
-                0x40.toByte(), 0x45.toByte(), 0xa0.toByte(), 0x00.toByte(), 0x1c.toByte(), 0xe8.toByte(), 0xdd.toByte()
+            0x10.toByte(), 0x00.toByte(), 0x88.toByte(), 0xbe.toByte(), 0x01.toByte(), 0xf6.toByte(), 0xa4.toByte(),
+            0x40.toByte(), 0x45.toByte(), 0xa0.toByte(), 0x00.toByte(), 0x1c.toByte(), 0xe8.toByte(), 0xdd.toByte()
         )
     }
 
