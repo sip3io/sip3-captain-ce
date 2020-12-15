@@ -76,10 +76,10 @@ class Sender : AbstractVerticle() {
     fun openUdpConnection() {
         logger.info("UDP connection opened: $uri")
         udp = DatagramChannel.open()
-                .apply {
-                    val addr = InetSocketAddress(uri.host, uri.port)
-                    connect(addr)
-                }
+            .apply {
+                val addr = InetSocketAddress(uri.host, uri.port)
+                connect(addr)
+            }
     }
 
     fun openTcpConnection() {
@@ -91,23 +91,23 @@ class Sender : AbstractVerticle() {
             }
         }
         vertx.createNetClient(options)
-                .connect(uri.port, uri.host) { asr ->
-                    if (asr.succeeded()) {
-                        logger.info("TCP connection opened: $uri")
-                        tcp = asr.result()
-                                .closeHandler {
-                                    logger.info("TCP connection closed: $uri")
-                                    reconnectionTimeout?.let { timeout ->
-                                        vertx.setTimer(timeout) { openTcpConnection() }
-                                    }
-                                }
-                    } else {
-                        logger.error("Sender 'openTcpConnection()' failed.", asr.cause())
-                        reconnectionTimeout?.let { timeout ->
-                            vertx.setTimer(timeout) { openTcpConnection() }
+            .connect(uri.port, uri.host) { asr ->
+                if (asr.succeeded()) {
+                    logger.info("TCP connection opened: $uri")
+                    tcp = asr.result()
+                        .closeHandler {
+                            logger.info("TCP connection closed: $uri")
+                            reconnectionTimeout?.let { timeout ->
+                                vertx.setTimer(timeout) { openTcpConnection() }
+                            }
                         }
+                } else {
+                    logger.error("Sender 'openTcpConnection()' failed.", asr.cause())
+                    reconnectionTimeout?.let { timeout ->
+                        vertx.setTimer(timeout) { openTcpConnection() }
                     }
                 }
+            }
     }
 
     fun send(buffers: List<Buffer>) {

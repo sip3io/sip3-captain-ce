@@ -35,30 +35,30 @@ class EthernetHandlerTest {
 
         // Header: Ethernet II
         val PACKET_1 = byteArrayOf(
-                0x00.toByte(), 0x00.toByte(), 0x5e.toByte(), 0x00.toByte(), 0x01.toByte(), 0x4b.toByte(), 0x00.toByte(),
-                0x08.toByte(), 0x25.toByte(), 0x20.toByte(), 0x1a.toByte(), 0xe0.toByte(), 0x08.toByte(), 0x00.toByte()
+            0x00.toByte(), 0x00.toByte(), 0x5e.toByte(), 0x00.toByte(), 0x01.toByte(), 0x4b.toByte(), 0x00.toByte(),
+            0x08.toByte(), 0x25.toByte(), 0x20.toByte(), 0x1a.toByte(), 0xe0.toByte(), 0x08.toByte(), 0x00.toByte()
         )
 
         // Header: Ethernet 802-1Q
         val PACKET_2 = byteArrayOf(
-                0x00.toByte(), 0x00.toByte(), 0x5e.toByte(), 0x00.toByte(), 0x01.toByte(), 0x4b.toByte(), 0x00.toByte(),
-                0x08.toByte(), 0x25.toByte(), 0x20.toByte(), 0x1a.toByte(), 0xe0.toByte(), 0x81.toByte(), 0x00.toByte(),
-                0x01.toByte(), 0x55.toByte(), 0x08.toByte(), 0x00.toByte()
+            0x00.toByte(), 0x00.toByte(), 0x5e.toByte(), 0x00.toByte(), 0x01.toByte(), 0x4b.toByte(), 0x00.toByte(),
+            0x08.toByte(), 0x25.toByte(), 0x20.toByte(), 0x1a.toByte(), 0xe0.toByte(), 0x81.toByte(), 0x00.toByte(),
+            0x01.toByte(), 0x55.toByte(), 0x08.toByte(), 0x00.toByte()
         )
 
         // Header: Ethernet 802-1AD
         val PACKET_3 = byteArrayOf(
-                0x00.toByte(), 0x00.toByte(), 0x5e.toByte(), 0x00.toByte(), 0x01.toByte(), 0x4b.toByte(), 0x00.toByte(),
-                0x08.toByte(), 0x25.toByte(), 0x20.toByte(), 0x1a.toByte(), 0xe0.toByte(), 0x88.toByte(), 0xa8.toByte(),
-                0x01.toByte(), 0x55.toByte(), 0x81.toByte(), 0x00.toByte(), 0x01.toByte(), 0x55.toByte(), 0x08.toByte(),
-                0x00.toByte()
+            0x00.toByte(), 0x00.toByte(), 0x5e.toByte(), 0x00.toByte(), 0x01.toByte(), 0x4b.toByte(), 0x00.toByte(),
+            0x08.toByte(), 0x25.toByte(), 0x20.toByte(), 0x1a.toByte(), 0xe0.toByte(), 0x88.toByte(), 0xa8.toByte(),
+            0x01.toByte(), 0x55.toByte(), 0x81.toByte(), 0x00.toByte(), 0x01.toByte(), 0x55.toByte(), 0x08.toByte(),
+            0x00.toByte()
         )
 
         // Header: Ethernet LinuxCookedCapture
         val PACKET_4 = byteArrayOf(
-                0x00.toByte(), 0x00.toByte(), 0x03.toByte(), 0x0a.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(),
-                0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(),
-                0x08.toByte(), 0x00.toByte()
+            0x00.toByte(), 0x00.toByte(), 0x03.toByte(), 0x0a.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(),
+            0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(),
+            0x08.toByte(), 0x00.toByte()
         )
     }
 

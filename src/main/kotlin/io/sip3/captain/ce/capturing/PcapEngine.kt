@@ -50,8 +50,8 @@ class PcapEngine : AbstractVerticle() {
         const val SNAP_LENGTH = 65535
 
         val DATA_LINK_TYPES = setOf(
-                "EN10MB",
-                "RAW"
+            "EN10MB",
+            "RAW"
         )
     }
 
@@ -125,23 +125,23 @@ class PcapEngine : AbstractVerticle() {
         watcher.addSourceDirectory(File(dir!!))
         watcher.addListener { changedFiles ->
             changedFiles.flatMap(ChangedFiles::getFiles)
-                    .map(ChangedFile::getFile)
-                    .forEach { file ->
-                        if (file.exists()) {
-                            logger.info("Started file reading: $file")
-                            val handle = Pcaps.openOffline(file.absolutePath)
-                            vertx.executeBlocking<Any>({
-                                try {
-                                    handle.loop()
-                                } catch (e: Exception) {
-                                    logger.error("Got exception...", e)
-                                }
-                            }, {
-                                handle.breakLoop()
-                                logger.info("Finished file reading: $file")
-                            })
-                        }
+                .map(ChangedFile::getFile)
+                .forEach { file ->
+                    if (file.exists()) {
+                        logger.info("Started file reading: $file")
+                        val handle = Pcaps.openOffline(file.absolutePath)
+                        vertx.executeBlocking<Any>({
+                            try {
+                                handle.loop()
+                            } catch (e: Exception) {
+                                logger.error("Got exception...", e)
+                            }
+                        }, {
+                            handle.breakLoop()
+                            logger.info("Finished file reading: $file")
+                        })
                     }
+                }
         }
         watcher.start()
     }
@@ -167,11 +167,11 @@ class PcapEngine : AbstractVerticle() {
             }
         } else {
             val handle = PcapHandle.Builder(dev)
-                    .promiscuousMode(PcapNetworkInterface.PromiscuousMode.PROMISCUOUS)
-                    .snaplen(SNAP_LENGTH)
-                    .bufferSize(bufferSize)
-                    .timeoutMillis(timeoutMillis)
-                    .build()
+                .promiscuousMode(PcapNetworkInterface.PromiscuousMode.PROMISCUOUS)
+                .snaplen(SNAP_LENGTH)
+                .bufferSize(bufferSize)
+                .timeoutMillis(timeoutMillis)
+                .build()
 
             // Vert.x asks to execute long blocking operations in separate application thread.
             Executors.newSingleThreadExecutor().execute {

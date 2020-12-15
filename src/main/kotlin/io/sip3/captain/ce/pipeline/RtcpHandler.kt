@@ -45,7 +45,7 @@ class RtcpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
         }
 
         vertx = context.owner()
-     }
+    }
 
     override fun onPacket(packet: Packet) {
         val buffer = (packet.payload as Encodable).encode()

@@ -35,17 +35,17 @@ class TzspHandlerTest {
 
         // TZSP Payload: Ethernet without tagged fields
         val PACKET_1 = byteArrayOf(
-                0x01.toByte(), 0x00.toByte(), 0x00.toByte(), 0x01.toByte(), 0x01.toByte(), 0x4b.toByte(), 0x00.toByte(),
-                0x08.toByte(), 0x25.toByte(), 0x20.toByte(), 0x1a.toByte(), 0xe0.toByte(), 0x08.toByte(), 0x00.toByte()
+            0x01.toByte(), 0x00.toByte(), 0x00.toByte(), 0x01.toByte(), 0x01.toByte(), 0x4b.toByte(), 0x00.toByte(),
+            0x08.toByte(), 0x25.toByte(), 0x20.toByte(), 0x1a.toByte(), 0xe0.toByte(), 0x08.toByte(), 0x00.toByte()
         )
 
         // TZSP Payload: Ethernet with tagged fields
         val PACKET_2 = byteArrayOf(
-                0x01.toByte(), 0x00.toByte(), 0x00.toByte(), 0x01.toByte(), 0x00.toByte(), 0x00.toByte(), 0x02.toByte(),
-                0x05.toByte(), 0x5e.toByte(), 0x00.toByte(), 0x01.toByte(), 0x4b.toByte(), 0x02.toByte(), 0x01.toByte(),
-                0x00.toByte(), 0x00.toByte(), 0x5e.toByte(), 0x00.toByte(), 0x01.toByte(), 0x4b.toByte(), 0x00.toByte(),
-                0x08.toByte(), 0x25.toByte(), 0x20.toByte(), 0x1a.toByte(), 0xe0.toByte(), 0x81.toByte(), 0x00.toByte(),
-                0x01.toByte(), 0x55.toByte(), 0x08.toByte(), 0x00.toByte()
+            0x01.toByte(), 0x00.toByte(), 0x00.toByte(), 0x01.toByte(), 0x00.toByte(), 0x00.toByte(), 0x02.toByte(),
+            0x05.toByte(), 0x5e.toByte(), 0x00.toByte(), 0x01.toByte(), 0x4b.toByte(), 0x02.toByte(), 0x01.toByte(),
+            0x00.toByte(), 0x00.toByte(), 0x5e.toByte(), 0x00.toByte(), 0x01.toByte(), 0x4b.toByte(), 0x00.toByte(),
+            0x08.toByte(), 0x25.toByte(), 0x20.toByte(), 0x1a.toByte(), 0xe0.toByte(), 0x81.toByte(), 0x00.toByte(),
+            0x01.toByte(), 0x55.toByte(), 0x08.toByte(), 0x00.toByte()
         )
     }
 

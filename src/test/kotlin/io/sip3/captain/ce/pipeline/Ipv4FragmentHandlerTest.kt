@@ -38,20 +38,20 @@ class Ipv4FragmentHandlerTest : VertxTest() {
 
         // Payload: IPv4 (Fragment 1/2)
         val PACKET_1 = byteArrayOf(
-                0x45.toByte(), 0xa0.toByte(), 0x00.toByte(), 0x1c.toByte(), 0xe8.toByte(), 0xdd.toByte(), 0x20.toByte(),
-                0x00.toByte(), 0x3c.toByte(), 0x11.toByte(), 0x75.toByte(), 0x6e.toByte(), 0x0a.toByte(), 0xfa.toByte(),
-                0xf4.toByte(), 0x05.toByte(), 0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte(), 0x32.toByte(),
-                0x40.toByte(), 0xe8.toByte(), 0x3c.toByte(), 0x00.toByte(), 0xb4.toByte(), 0x13.toByte(), 0x0b.toByte(),
-                0xfe.toByte(), 0xfe.toByte(), 0xfe.toByte(), 0xfe.toByte(), 0xfe.toByte(), 0xfe.toByte(), 0xfe.toByte()
+            0x45.toByte(), 0xa0.toByte(), 0x00.toByte(), 0x1c.toByte(), 0xe8.toByte(), 0xdd.toByte(), 0x20.toByte(),
+            0x00.toByte(), 0x3c.toByte(), 0x11.toByte(), 0x75.toByte(), 0x6e.toByte(), 0x0a.toByte(), 0xfa.toByte(),
+            0xf4.toByte(), 0x05.toByte(), 0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte(), 0x32.toByte(),
+            0x40.toByte(), 0xe8.toByte(), 0x3c.toByte(), 0x00.toByte(), 0xb4.toByte(), 0x13.toByte(), 0x0b.toByte(),
+            0xfe.toByte(), 0xfe.toByte(), 0xfe.toByte(), 0xfe.toByte(), 0xfe.toByte(), 0xfe.toByte(), 0xfe.toByte()
         )
 
         // Payload: IPv4 (Fragment 2/2)
         val PACKET_2 = byteArrayOf(
-                0x45.toByte(), 0xa0.toByte(), 0x00.toByte(), 0x1c.toByte(), 0xe8.toByte(), 0xdd.toByte(), 0x00.toByte(),
-                0x01.toByte(), 0x3c.toByte(), 0x11.toByte(), 0x75.toByte(), 0x6e.toByte(), 0x0a.toByte(), 0xfa.toByte(),
-                0xf4.toByte(), 0x05.toByte(), 0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte(), 0x32.toByte(),
-                0x40.toByte(), 0xe8.toByte(), 0x3c.toByte(), 0x00.toByte(), 0xb4.toByte(), 0x13.toByte(), 0x0b.toByte(),
-                0xfe.toByte(), 0xfe.toByte(), 0xfe.toByte(), 0xfe.toByte()
+            0x45.toByte(), 0xa0.toByte(), 0x00.toByte(), 0x1c.toByte(), 0xe8.toByte(), 0xdd.toByte(), 0x00.toByte(),
+            0x01.toByte(), 0x3c.toByte(), 0x11.toByte(), 0x75.toByte(), 0x6e.toByte(), 0x0a.toByte(), 0xfa.toByte(),
+            0xf4.toByte(), 0x05.toByte(), 0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte(), 0x32.toByte(),
+            0x40.toByte(), 0xe8.toByte(), 0x3c.toByte(), 0x00.toByte(), 0xb4.toByte(), 0x13.toByte(), 0x0b.toByte(),
+            0xfe.toByte(), 0xfe.toByte(), 0xfe.toByte(), 0xfe.toByte()
         )
     }
 
@@ -64,36 +64,36 @@ class Ipv4FragmentHandlerTest : VertxTest() {
             anyConstructed<Ipv4Handler>().routePacket(capture(packetSlot))
         } just Runs
         runTest(
-                deploy = {
-                    vertx.deployTestVerticle(Ipv4FragmentHandler::class)
-                },
-                execute = {
-                    val ipv4Handler = Ipv4Handler(vertx.orCreateContext, false)
-                    val packet1 = Packet().apply {
-                        timestamp = expectedTimestamp
-                        payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
-                    }
-                    ipv4Handler.handle(packet1)
-                    val packet2 = Packet().apply {
-                        timestamp = Timestamp(System.currentTimeMillis())
-                        payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
-                    }
-                    ipv4Handler.handle(packet2)
-                },
-                assert = {
-                    vertx.executeBlocking<Any>({
-                        context.verify {
-                            verify(timeout = 10000) { anyConstructed<Ipv4Handler>().routePacket(any()) }
-                            val packet = packetSlot.captured
-                            assertEquals(expectedTimestamp, packet.timestamp)
-                            assertEquals(Ipv4Handler.TYPE_UDP, packet.protocolNumber)
-                            val buffer = (packet.payload as Encodable).encode()
-                            assertEquals(16, buffer.capacity())
-                            assertFalse(buffer.getBytes().contains(0xfe.toByte()))
-                        }
-                        context.completeNow()
-                    }, {})
+            deploy = {
+                vertx.deployTestVerticle(Ipv4FragmentHandler::class)
+            },
+            execute = {
+                val ipv4Handler = Ipv4Handler(vertx.orCreateContext, false)
+                val packet1 = Packet().apply {
+                    timestamp = expectedTimestamp
+                    payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
                 }
+                ipv4Handler.handle(packet1)
+                val packet2 = Packet().apply {
+                    timestamp = Timestamp(System.currentTimeMillis())
+                    payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
+                }
+                ipv4Handler.handle(packet2)
+            },
+            assert = {
+                vertx.executeBlocking<Any>({
+                    context.verify {
+                        verify(timeout = 10000) { anyConstructed<Ipv4Handler>().routePacket(any()) }
+                        val packet = packetSlot.captured
+                        assertEquals(expectedTimestamp, packet.timestamp)
+                        assertEquals(Ipv4Handler.TYPE_UDP, packet.protocolNumber)
+                        val buffer = (packet.payload as Encodable).encode()
+                        assertEquals(16, buffer.capacity())
+                        assertFalse(buffer.getBytes().contains(0xfe.toByte()))
+                    }
+                    context.completeNow()
+                }, {})
+            }
         )
     }
 
@@ -106,36 +106,36 @@ class Ipv4FragmentHandlerTest : VertxTest() {
             anyConstructed<Ipv4Handler>().routePacket(capture(packetSlot))
         } just Runs
         runTest(
-                deploy = {
-                    vertx.deployTestVerticle(Ipv4FragmentHandler::class)
-                },
-                execute = {
-                    val ipv4Handler = Ipv4Handler(vertx.orCreateContext, false)
-                    val packet2 = Packet().apply {
-                        timestamp = expectedTimestamp
-                        payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
-                    }
-                    ipv4Handler.handle(packet2)
-                    val packet1 = Packet().apply {
-                        timestamp = Timestamp(System.currentTimeMillis())
-                        payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
-                    }
-                    ipv4Handler.handle(packet1)
-                },
-                assert = {
-                    vertx.executeBlocking<Any>({
-                        context.verify {
-                            verify(timeout = 10000) { anyConstructed<Ipv4Handler>().routePacket(any()) }
-                            val packet = packetSlot.captured
-                            assertEquals(expectedTimestamp, packet.timestamp)
-                            assertEquals(Ipv4Handler.TYPE_UDP, packet.protocolNumber)
-                            val buffer = (packet.payload as Encodable).encode()
-                            assertEquals(16, buffer.capacity())
-                            assertFalse(buffer.getBytes().contains(0xfe.toByte()))
-                        }
-                        context.completeNow()
-                    }, {})
+            deploy = {
+                vertx.deployTestVerticle(Ipv4FragmentHandler::class)
+            },
+            execute = {
+                val ipv4Handler = Ipv4Handler(vertx.orCreateContext, false)
+                val packet2 = Packet().apply {
+                    timestamp = expectedTimestamp
+                    payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
                 }
+                ipv4Handler.handle(packet2)
+                val packet1 = Packet().apply {
+                    timestamp = Timestamp(System.currentTimeMillis())
+                    payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
+                }
+                ipv4Handler.handle(packet1)
+            },
+            assert = {
+                vertx.executeBlocking<Any>({
+                    context.verify {
+                        verify(timeout = 10000) { anyConstructed<Ipv4Handler>().routePacket(any()) }
+                        val packet = packetSlot.captured
+                        assertEquals(expectedTimestamp, packet.timestamp)
+                        assertEquals(Ipv4Handler.TYPE_UDP, packet.protocolNumber)
+                        val buffer = (packet.payload as Encodable).encode()
+                        assertEquals(16, buffer.capacity())
+                        assertFalse(buffer.getBytes().contains(0xfe.toByte()))
+                    }
+                    context.completeNow()
+                }, {})
+            }
         )
     }
 

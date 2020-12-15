@@ -27,9 +27,9 @@ class SmppUtilTest {
 
         // Payload: SMPP (Enquire Link)
         val PACKET_1 = byteArrayOf(
-                0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x10.toByte(), 0x80.toByte(), 0x00.toByte(), 0x00.toByte(),
-                0x15.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x04.toByte(),
-                0x58.toByte(), 0xae.toByte()
+            0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x10.toByte(), 0x80.toByte(), 0x00.toByte(), 0x00.toByte(),
+            0x15.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x04.toByte(),
+            0x58.toByte(), 0xae.toByte()
         )
     }
 
