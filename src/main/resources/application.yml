@@ -58,8 +58,6 @@ sender:
 #rtcp:
 #  enabled: false
 #  bulk-size: 1
-#  expiration-delay: 4000
-#  aggregation-timeout: 30000
 
 #! Metrics
 #metrics:
