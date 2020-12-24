@@ -20,12 +20,13 @@ import io.sip3.captain.ce.encoder.Encoder
 import io.sip3.commons.PacketTypes
 import io.sip3.commons.vertx.test.VertxTest
 import io.vertx.core.json.JsonObject
-import io.vertx.kotlin.core.datagram.listenAwait
+import io.vertx.kotlin.coroutines.await
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.io.File
 import java.net.InetAddress
+import java.nio.file.Files.createTempDirectory
 
 class BootstrapTest : VertxTest() {
 
@@ -36,7 +37,7 @@ class BootstrapTest : VertxTest() {
 
     @Test
     fun `Send some packets trough the entire pipeline to SIP3 Salto`() {
-        val tempdir = createTempDir()
+        val tempdir = createTempDirectory("tmp").toFile()
         val file = tempdir.resolve(PCAP_FILE.name)
 
         val address = InetAddress.getLoopbackAddress().hostAddress
@@ -107,7 +108,7 @@ class BootstrapTest : VertxTest() {
                         }
                         context.completeNow()
                     }
-                    .listenAwait(port, address)
+                    .listen(port, address).await()
             },
             cleanup = {
                 tempdir.deleteRecursively()

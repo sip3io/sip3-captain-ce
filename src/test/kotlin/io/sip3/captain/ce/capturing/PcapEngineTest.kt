@@ -32,6 +32,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.pcap4j.core.Pcaps
 import java.io.File
 import java.net.InetAddress
+import java.nio.file.Files.createTempDirectory
 
 @ExtendWith(MockKExtension::class)
 class PcapEngineTest : VertxTest() {
@@ -52,7 +53,7 @@ class PcapEngineTest : VertxTest() {
 
     @Test
     fun `Capture some packets in offline mode`() {
-        val tempDir = createTempDir()
+        val tempDir = createTempDirectory("sip3-captain").toFile()
         val file = tempDir.resolve(PCAP_FILE.name)
         PCAP_FILE.copyTo(file)
         val packetSlot = slot<Packet>()

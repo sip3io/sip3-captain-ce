@@ -21,8 +21,7 @@ import io.sip3.commons.vertx.test.VertxTest
 import io.sip3.commons.vertx.util.localRequest
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
-import io.vertx.kotlin.core.datagram.listenAwait
-import io.vertx.kotlin.core.net.listenAwait
+import io.vertx.kotlin.coroutines.await
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -67,7 +66,7 @@ class SenderTest : VertxTest() {
                         }
                         context.completeNow()
                     }
-                    .listenAwait(port, address)
+                    .listen(port, address).await()
             }
         )
     }
@@ -98,7 +97,7 @@ class SenderTest : VertxTest() {
                             context.completeNow()
                         }
                     }
-                    .listenAwait(port, address)
+                    .listen(port, address).await()
             }
         )
     }
