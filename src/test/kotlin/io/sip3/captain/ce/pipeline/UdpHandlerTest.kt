@@ -66,6 +66,16 @@ class UdpHandlerTest {
             0x4e.toByte(), 0x01.toByte(), 0x00.toByte(), 0x01.toByte(), 0x01.toByte(), 0x33.toByte(), 0x40.toByte(),
             0xdf.toByte(), 0x98.toByte(), 0x00.toByte(), 0xb4.toByte(), 0x31.toByte(), 0x4e.toByte()
         )
+
+        // Payload: VXLAN
+        val PACKET_5 = byteArrayOf(
+            0xff.toByte(), 0xfc.toByte(), 0x12.toByte(), 0xb5.toByte(), 0x02.toByte(), 0x66.toByte(), 0x00.toByte(),
+            0x00.toByte(), 0x08.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0xa1.toByte(), 0x49.toByte(),
+            0x73.toByte(), 0x00.toByte(), 0x02.toByte(), 0x03.toByte(), 0xe0.toByte(), 0x87.toByte(), 0x1b.toByte(),
+            0x04.toByte(), 0x02.toByte(), 0x73.toByte(), 0x95.toByte(), 0xb2.toByte(), 0xab.toByte(), 0xa0.toByte(),
+            0x08.toByte(), 0x00.toByte()
+        )
+
     }
 
     @Test
@@ -222,6 +232,39 @@ class UdpHandlerTest {
         assertEquals(13120, packet.srcPort)
         assertEquals(57240, packet.dstPort)
         assertEquals(12, buffer.remainingCapacity())
+    }
+
+    @Test
+    fun `Parse UDP - VXLAN`() {
+        // Init
+        mockkConstructor(VxlanHandler::class)
+        val packetSlot = slot<Packet>()
+        every {
+            anyConstructed<VxlanHandler>().handle(capture(packetSlot))
+        } just Runs
+
+        mockkConstructor(EventLoopContext::class)
+        every {
+            anyConstructed<EventLoopContext>().config()
+        } returns JsonObject().apply {
+            put("vxlan", JsonObject().apply {
+                put("enabled", true)
+            })
+        }
+
+        // Execute
+        val udpHandler = UdpHandler(Vertx.vertx().orCreateContext, false)
+        var packet = Packet().apply {
+            this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_5))
+        }
+        udpHandler.handle(packet)
+        // Assert
+        verify { anyConstructed<VxlanHandler>().handle(any()) }
+        packet = packetSlot.captured
+        val buffer = (packet.payload as Encodable).encode()
+        assertEquals(65532, packet.srcPort)
+        assertEquals(4789, packet.dstPort)
+        assertEquals(22, buffer.remainingCapacity())
     }
 
     @AfterEach

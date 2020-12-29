@@ -108,7 +108,7 @@ class BootstrapTest : VertxTest() {
                         }
                         context.completeNow()
                     }
-                    .listen(port, address).await()
+                    .listen(port, address) {}
             },
             cleanup = {
                 tempdir.deleteRecursively()
