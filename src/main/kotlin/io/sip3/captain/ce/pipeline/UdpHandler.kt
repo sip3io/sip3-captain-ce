@@ -26,6 +26,11 @@ import io.vertx.core.Context
  */
 class UdpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(context, bulkOperationsEnabled) {
 
+    companion object {
+
+        const val TYPE_VXLAN = 0x0800
+    }
+
     private val rtcpHandler: RtcpHandler by lazy {
         RtcpHandler(context, bulkOperationsEnabled)
     }
@@ -35,6 +40,9 @@ class UdpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
     private val sipHandler: SipHandler by lazy {
         SipHandler(context, bulkOperationsEnabled)
     }
+    private val vxlanHandler: VxlanHandler by lazy {
+        VxlanHandler(context, bulkOperationsEnabled)
+    }
     private val tzspHandler: TzspHandler by lazy {
         TzspHandler(context, bulkOperationsEnabled)
     }
@@ -42,6 +50,7 @@ class UdpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
     private var rtcpEnabled = false
     private var rtpEnabled = false
     private var sipEnabled = true
+    private var vxlanEnabled = false
     private var tzspEnabled = false
 
     init {
@@ -53,6 +62,9 @@ class UdpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
         }
         context.config().getJsonObject("sip")?.getBoolean("enabled")?.let {
             sipEnabled = it
+        }
+        context.config().getJsonObject("vxlan")?.getBoolean("enabled")?.let {
+            vxlanEnabled = it
         }
         context.config().getJsonObject("tzsp")?.getBoolean("enabled")?.let {
             tzspEnabled = it
@@ -96,6 +108,13 @@ class UdpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
                 // Skip ICMP(SIP) packet
                 if (!packet.rejected) {
                     sipHandler.handle(packet)
+                }
+            }
+            // VXLAN packet
+            vxlanEnabled && buffer.getUnsignedShort(offset) == TYPE_VXLAN -> {
+                // Skip ICMP(VXLAN) packet
+                if (!packet.rejected) {
+                    vxlanHandler.handle(packet)
                 }
             }
             // TZSP packet
