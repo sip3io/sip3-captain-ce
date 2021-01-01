@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 SIP3.IO, Inc.
+ * Copyright 2018-2021 SIP3.IO, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import io.sip3.captain.ce.encoder.Encoder
 import io.sip3.commons.PacketTypes
 import io.sip3.commons.vertx.test.VertxTest
 import io.vertx.core.json.JsonObject
-import io.vertx.kotlin.coroutines.await
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
