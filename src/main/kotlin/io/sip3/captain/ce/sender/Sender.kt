@@ -28,6 +28,7 @@ import java.net.InetSocketAddress
 import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.channels.DatagramChannel
+import java.security.Security
 
 /**
  * Sends encoded packets to `SIP3 Salto`.
@@ -38,10 +39,13 @@ class Sender : AbstractVerticle() {
     private val logger = KotlinLogging.logger {}
 
     lateinit var uri: URI
+    lateinit var socketAddress: InetSocketAddress
+
     var reconnectionTimeout: Long? = null
     var isSSl = false
     var keyStore: String? = null
     var keyStorePassword: String? = null
+    var dnsCacheTtl: Long? = null
 
     var udp: DatagramChannel? = null
     var tcp: NetSocket? = null
@@ -51,18 +55,35 @@ class Sender : AbstractVerticle() {
     override fun start() {
         config().getJsonObject("sender").let { config ->
             uri = URI(config.getString("uri") ?: throw IllegalArgumentException("uri"))
+            socketAddress = InetSocketAddress(uri.host, uri.port)
+
             reconnectionTimeout = config.getLong("reconnection-timeout")
             config.getJsonObject("ssl")?.let { sslConfig ->
                 isSSl = true
                 keyStore = sslConfig.getString("key-store")
                 keyStorePassword = sslConfig.getString("key-store-password")
             }
+
+            // AWS resources use DNS name entries. But some JVMs will never refresh DNS entries by default.
+            // That's why we can overwrite default TTL with a specific value.
+            config.getLong("dns-cache-ttl")?.let {
+                Security.setProperty("networkaddress.cache.ttl", (it / 1000).toString())
+                dnsCacheTtl = it
+            }
         }
+
         when (uri.scheme) {
             "udp" -> openUdpConnection()
             "tcp" -> openTcpConnection()
             else -> throw NotImplementedError("Unknown protocol: $uri")
         }
+
+        dnsCacheTtl?.let { ttl ->
+            vertx.setPeriodic(ttl) {
+                socketAddress = InetSocketAddress(uri.host, uri.port)
+            }
+        }
+
         vertx.eventBus().localConsumer<List<Buffer>>(RoutesCE.sender) { event ->
             try {
                 val buffers = event.body()
@@ -75,11 +96,11 @@ class Sender : AbstractVerticle() {
 
     fun openUdpConnection() {
         logger.info("UDP connection opened: $uri")
-        udp = DatagramChannel.open()
-            .apply {
-                val addr = InetSocketAddress(uri.host, uri.port)
-                connect(addr)
+        udp = DatagramChannel.open().apply {
+            if (dnsCacheTtl == null) {
+                connect(socketAddress)
             }
+        }
     }
 
     fun openTcpConnection() {
@@ -90,32 +111,35 @@ class Sender : AbstractVerticle() {
                 isTrustAll = true
             }
         }
-        vertx.createNetClient(options)
-            .connect(uri.port, uri.host) { asr ->
-                if (asr.succeeded()) {
-                    logger.info("TCP connection opened: $uri")
-                    tcp = asr.result()
-                        .closeHandler {
-                            logger.info("TCP connection closed: $uri")
-                            reconnectionTimeout?.let { timeout ->
-                                vertx.setTimer(timeout) { openTcpConnection() }
-                            }
-                        }
-                } else {
-                    logger.error("Sender 'openTcpConnection()' failed.", asr.cause())
+        vertx.createNetClient(options).connect(uri.port, uri.host) { asr ->
+            if (asr.succeeded()) {
+                logger.info("TCP connection opened: $uri")
+                tcp = asr.result().closeHandler {
+                    logger.info("TCP connection closed: $uri")
                     reconnectionTimeout?.let { timeout ->
                         vertx.setTimer(timeout) { openTcpConnection() }
                     }
                 }
+            } else {
+                logger.error("Sender 'openTcpConnection()' failed.", asr.cause())
+                reconnectionTimeout?.let { timeout ->
+                    vertx.setTimer(timeout) { openTcpConnection() }
+                }
             }
+        }
     }
 
     fun send(buffers: List<Buffer>) {
         packetsSent.increment(buffers.size.toDouble())
 
-        buffers.forEach { buffer ->
-            udp?.write(ByteBuffer.wrap(buffer.bytes))
-            tcp?.write(buffer) {}
+        udp?.let { socket ->
+            buffers.map { ByteBuffer.wrap(it.bytes) }.forEach { buffer ->
+                if (dnsCacheTtl == null) socket.write(buffer) else socket.send(buffer, socketAddress)
+            }
+        }
+
+        tcp?.let { socket ->
+            buffers.forEach { socket.write(it) }
         }
     }
 }
