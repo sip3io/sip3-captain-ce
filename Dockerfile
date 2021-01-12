@@ -23,4 +23,4 @@ ENV LOGBACK_FILE $HOME/logback.xml
 ADD src/main/resources/logback.xml $LOGBACK_FILE
 
 ENV JAVA_OPTS "-Xms64m -Xmx128m"
-ENTRYPOINT java $JAVA_OPTS -jar $EXECUTABLE_FILE --options=$VERTX_OPTIONS_FILE -Dconfig.location=$CONFIG_FILE -Dlogback.configurationFile=$LOGBACK_FILE
+ENTRYPOINT java $JAVA_OPTS -Dlogback.configurationFile=$LOGBACK_FILE -jar $EXECUTABLE_FILE --options=$VERTX_OPTIONS_FILE -Dconfig.location=$CONFIG_FILE
