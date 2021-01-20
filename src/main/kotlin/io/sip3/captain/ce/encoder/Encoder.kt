@@ -142,7 +142,7 @@ class Encoder : AbstractVerticle() {
         }
 
         if (buffers.size >= bulkSize) {
-            vertx.eventBus().localSend<Any>(RoutesCE.sender, buffers.toList())
+            vertx.eventBus().localSend(RoutesCE.sender, buffers.toList())
             buffers.clear()
         }
     }

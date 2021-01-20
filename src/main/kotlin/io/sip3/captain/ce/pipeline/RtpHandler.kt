@@ -96,7 +96,7 @@ class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
         packet.payload = payload
         packetsByIndex.add(packet)
         if (packetsByIndex.size >= bulkSize) {
-            vertx.eventBus().localSend<Any>(RoutesCE.rtp + "_$index", packetsByIndex.toList())
+            vertx.eventBus().localSend(RoutesCE.rtp + "_$index", packetsByIndex.toList())
             packetsByIndex.clear()
         }
     }

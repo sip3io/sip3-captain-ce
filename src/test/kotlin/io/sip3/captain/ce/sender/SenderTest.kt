@@ -55,7 +55,7 @@ class SenderTest : VertxTest() {
             },
             execute = {
                 val message = Buffer.buffer(MESSAGE)
-                vertx.eventBus().localSend<Any>(RoutesCE.sender, listOf(message))
+                vertx.eventBus().localSend(RoutesCE.sender, listOf(message))
             },
             assert = {
                 vertx.createDatagramSocket()
@@ -84,7 +84,7 @@ class SenderTest : VertxTest() {
             },
             execute = {
                 val message = Buffer.buffer(MESSAGE)
-                vertx.setPeriodic(100) { vertx.eventBus().localSend<Any>(RoutesCE.sender, listOf(message)) }
+                vertx.setPeriodic(100) { vertx.eventBus().localSend(RoutesCE.sender, listOf(message)) }
             },
             assert = {
                 vertx.createNetServer()

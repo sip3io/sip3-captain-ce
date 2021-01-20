@@ -84,7 +84,7 @@ class EncoderTest : VertxTest() {
                     protocolCode = PacketTypes.ICMP
                     payload = ByteArrayPayload(PACKET_1)
                 }
-                vertx.eventBus().localSend<Any>(RoutesCE.encoder, listOf(packet))
+                vertx.eventBus().localSend(RoutesCE.encoder, listOf(packet))
             },
             assert = {
                 vertx.eventBus().consumer<List<Buffer>>(RoutesCE.sender) { event ->
@@ -170,7 +170,7 @@ class EncoderTest : VertxTest() {
                     protocolCode = PacketTypes.ICMP
                     payload = ByteArrayPayload(PACKET_2)
                 }
-                vertx.eventBus().localSend<Any>(RoutesCE.encoder, listOf(packet))
+                vertx.eventBus().localSend(RoutesCE.encoder, listOf(packet))
             },
             assert = {
                 vertx.eventBus().consumer<List<Buffer>>(RoutesCE.sender) { event ->

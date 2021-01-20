@@ -65,7 +65,7 @@ class RtcpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
         packets.add(p)
 
         if (packets.size >= bulkSize) {
-            vertx.eventBus().localSend<Any>(RoutesCE.encoder, packets.toList())
+            vertx.eventBus().localSend(RoutesCE.encoder, packets.toList())
             packets.clear()
         }
     }
