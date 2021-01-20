@@ -25,7 +25,7 @@ import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.remainingCapacity
 import io.sip3.commons.vertx.test.VertxTest
-import io.sip3.commons.vertx.util.localRequest
+import io.sip3.commons.vertx.util.localSend
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -97,7 +97,7 @@ class TcpHandlerTest : VertxTest() {
                     srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
                     payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
                 }
-                vertx.eventBus().localRequest<Any>(RoutesCE.tcp, listOf(packet))
+                vertx.eventBus().localSend<Any>(RoutesCE.tcp, listOf(packet))
             },
             assert = {
                 vertx.executeBlocking<Any>({
@@ -135,7 +135,7 @@ class TcpHandlerTest : VertxTest() {
                     srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
                     payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_3))
                 }
-                vertx.eventBus().localRequest<Any>(RoutesCE.tcp, listOf(packet1, packet2))
+                vertx.eventBus().localSend<Any>(RoutesCE.tcp, listOf(packet1, packet2))
             },
             assert = {
                 vertx.executeBlocking<Any>({
@@ -169,7 +169,7 @@ class TcpHandlerTest : VertxTest() {
                     srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
                     payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_4))
                 }
-                vertx.eventBus().localRequest<Any>(RoutesCE.tcp, listOf(packet))
+                vertx.eventBus().localSend<Any>(RoutesCE.tcp, listOf(packet))
             },
             assert = {
                 vertx.executeBlocking<Any>({

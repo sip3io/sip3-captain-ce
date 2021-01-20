@@ -21,7 +21,7 @@ import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.payload.ByteArrayPayload
 import io.sip3.commons.vertx.test.VertxTest
-import io.sip3.commons.vertx.util.localRequest
+import io.sip3.commons.vertx.util.localSend
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.Assertions.assertArrayEquals
@@ -84,7 +84,7 @@ class EncoderTest : VertxTest() {
                     protocolCode = PacketTypes.ICMP
                     payload = ByteArrayPayload(PACKET_1)
                 }
-                vertx.eventBus().localRequest<Any>(RoutesCE.encoder, listOf(packet))
+                vertx.eventBus().localSend<Any>(RoutesCE.encoder, listOf(packet))
             },
             assert = {
                 vertx.eventBus().consumer<List<Buffer>>(RoutesCE.sender) { event ->
@@ -170,7 +170,7 @@ class EncoderTest : VertxTest() {
                     protocolCode = PacketTypes.ICMP
                     payload = ByteArrayPayload(PACKET_2)
                 }
-                vertx.eventBus().localRequest<Any>(RoutesCE.encoder, listOf(packet))
+                vertx.eventBus().localSend<Any>(RoutesCE.encoder, listOf(packet))
             },
             assert = {
                 vertx.eventBus().consumer<List<Buffer>>(RoutesCE.sender) { event ->

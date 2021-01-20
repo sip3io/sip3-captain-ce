@@ -25,7 +25,7 @@ import io.sip3.commons.domain.payload.ByteArrayPayload
 import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.getBytes
-import io.sip3.commons.vertx.util.localRequest
+import io.sip3.commons.vertx.util.localSend
 import io.vertx.core.Context
 import io.vertx.core.Vertx
 
@@ -87,7 +87,7 @@ class Ipv4Handler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
             ipv4Packets.add(Pair(ipv4Header, packet))
 
             if (ipv4Packets.size >= bulkSize) {
-                vertx.eventBus().localRequest<Any>(RoutesCE.fragment, ipv4Packets.toList())
+                vertx.eventBus().localSend<Any>(RoutesCE.fragment, ipv4Packets.toList())
                 ipv4Packets.clear()
             }
         } else {
@@ -142,7 +142,7 @@ class Ipv4Handler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
                 tcpPackets.add(packet)
 
                 if (tcpPackets.size >= bulkSize) {
-                    vertx.eventBus().localRequest<Any>(RoutesCE.tcp, tcpPackets.toList())
+                    vertx.eventBus().localSend<Any>(RoutesCE.tcp, tcpPackets.toList())
                     tcpPackets.clear()
                 }
             }
@@ -155,7 +155,7 @@ class Ipv4Handler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
                 sctpPackets.add(packet)
 
                 if (sctpPackets.size >= bulkSize) {
-                    vertx.eventBus().localRequest<Any>(RoutesCE.sctp, sctpPackets.toList())
+                    vertx.eventBus().localSend<Any>(RoutesCE.sctp, sctpPackets.toList())
                     sctpPackets.clear()
                 }
             }
