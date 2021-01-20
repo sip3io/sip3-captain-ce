@@ -22,7 +22,7 @@ import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.payload.ByteArrayPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.getBytes
-import io.sip3.commons.vertx.util.localRequest
+import io.sip3.commons.vertx.util.localSend
 import io.vertx.core.Context
 import io.vertx.core.Vertx
 
@@ -65,7 +65,7 @@ class RtcpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
         packets.add(p)
 
         if (packets.size >= bulkSize) {
-            vertx.eventBus().localRequest<Any>(RoutesCE.encoder, packets.toList())
+            vertx.eventBus().localSend(RoutesCE.encoder, packets.toList())
             packets.clear()
         }
     }

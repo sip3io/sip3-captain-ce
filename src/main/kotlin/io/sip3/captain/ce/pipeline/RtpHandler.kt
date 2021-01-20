@@ -22,7 +22,7 @@ import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.domain.payload.RtpHeaderPayload
 import io.sip3.commons.util.toIntRange
-import io.sip3.commons.vertx.util.localRequest
+import io.sip3.commons.vertx.util.localSend
 import io.vertx.core.Context
 import io.vertx.core.Vertx
 import kotlin.experimental.and
@@ -96,7 +96,7 @@ class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
         packet.payload = payload
         packetsByIndex.add(packet)
         if (packetsByIndex.size >= bulkSize) {
-            vertx.eventBus().localRequest<Any>(RoutesCE.rtp + "_$index", packetsByIndex.toList())
+            vertx.eventBus().localSend(RoutesCE.rtp + "_$index", packetsByIndex.toList())
             packetsByIndex.clear()
         }
     }

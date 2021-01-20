@@ -18,7 +18,7 @@ package io.sip3.captain.ce.sender
 
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.commons.vertx.test.VertxTest
-import io.sip3.commons.vertx.util.localRequest
+import io.sip3.commons.vertx.util.localSend
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.coroutines.await
@@ -55,7 +55,7 @@ class SenderTest : VertxTest() {
             },
             execute = {
                 val message = Buffer.buffer(MESSAGE)
-                vertx.eventBus().localRequest<Any>(RoutesCE.sender, listOf(message))
+                vertx.eventBus().localSend(RoutesCE.sender, listOf(message))
             },
             assert = {
                 vertx.createDatagramSocket()
@@ -84,7 +84,7 @@ class SenderTest : VertxTest() {
             },
             execute = {
                 val message = Buffer.buffer(MESSAGE)
-                vertx.setPeriodic(100) { vertx.eventBus().localRequest<Any>(RoutesCE.sender, listOf(message)) }
+                vertx.setPeriodic(100) { vertx.eventBus().localSend(RoutesCE.sender, listOf(message)) }
             },
             assert = {
                 vertx.createNetServer()

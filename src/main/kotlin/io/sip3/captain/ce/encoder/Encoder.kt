@@ -23,7 +23,7 @@ import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.getBytes
 import io.sip3.commons.util.writeTlv
 import io.sip3.commons.vertx.annotations.Instance
-import io.sip3.commons.vertx.util.localRequest
+import io.sip3.commons.vertx.util.localSend
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.buffer.Buffer
 import mu.KotlinLogging
@@ -142,7 +142,7 @@ class Encoder : AbstractVerticle() {
         }
 
         if (buffers.size >= bulkSize) {
-            vertx.eventBus().localRequest<Any>(RoutesCE.sender, buffers.toList())
+            vertx.eventBus().localSend(RoutesCE.sender, buffers.toList())
             buffers.clear()
         }
     }
