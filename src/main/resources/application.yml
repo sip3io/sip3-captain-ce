@@ -29,7 +29,7 @@ name: sip3-captain
 
 #! Encoder
 #encoder:
-#  min-size-to-compress: 9000
+#  mtu-size: 1450
 
 #! Sender
 sender:
