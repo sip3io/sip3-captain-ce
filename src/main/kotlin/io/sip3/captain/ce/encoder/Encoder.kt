@@ -29,8 +29,8 @@ import io.sip3.commons.vertx.util.localSend
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.buffer.Buffer
 import mu.KotlinLogging
-import java.io.ByteArrayInputStream
-import java.util.zip.InflaterInputStream
+import java.io.ByteArrayOutputStream
+import java.util.zip.DeflaterOutputStream
 
 /**
  * Encodes packets to SIP3 protocol
@@ -91,21 +91,22 @@ class Encoder : AbstractVerticle() {
         var cumulativeBuffer = encodeHeader()
 
         packets.map { encodePacket(it) }.forEach { packet ->
-            // Check if packet is smaller than MTU
+            // Check if packet is smaller or equal MTU
             // Otherwise, compress and send it separately
-            if (packet.writerIndex() >= mtuSize) {
-                val bytes = packet.getBytes()
-                InflaterInputStream(ByteArrayInputStream(bytes)).use { inflater ->
-                    val compressedBuffer = encodeHeader(1).apply {
-                        addComponent(true, Unpooled.wrappedBuffer(inflater.readBytes()))
-                    }
-                    send(compressedBuffer)
+            if (packet.writerIndex() > mtuSize) {
+                val os = ByteArrayOutputStream()
+                DeflaterOutputStream(os).use { it.write(packet.getBytes()) }
+                val compressedBuffer = encodeHeader(1).apply {
+                    addComponent(true, Unpooled.wrappedBuffer(os.toByteArray()))
                 }
+                send(compressedBuffer)
+
+                return@forEach
             }
 
             // Check if cumulative buffer has enough capacity
             // Otherwise, send it further and create a new one
-            if (cumulativeBuffer.writerIndex() + packet.writerIndex() >= mtuSize) {
+            if (cumulativeBuffer.writerIndex() + packet.writerIndex() - 6 > mtuSize) {
                 send(cumulativeBuffer)
                 cumulativeBuffer = encodeHeader()
             }
