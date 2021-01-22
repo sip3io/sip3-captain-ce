@@ -114,7 +114,7 @@ class Encoder : AbstractVerticle() {
             cumulativeBuffer.addComponent(true, packet)
         }
 
-        if (cumulativeBuffer.writerIndex() > 0) {
+        if (cumulativeBuffer.writerIndex() > 6) {
             send(cumulativeBuffer)
         }
     }
