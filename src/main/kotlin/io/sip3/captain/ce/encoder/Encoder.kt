@@ -42,7 +42,7 @@ class Encoder : AbstractVerticle() {
 
     companion object {
 
-        const val PREFIX_LENGTH = 6
+        const val HEADER_LENGTH = 6 // Prefix + Protocol Version + Compressed Flag
 
         val PREFIX = byteArrayOf(
             0x53.toByte(), // S
@@ -108,7 +108,7 @@ class Encoder : AbstractVerticle() {
 
             // Check if cumulative buffer has enough capacity
             // Otherwise, send it further and create a new one
-            if (cumulativeBuffer.writerIndex() + packet.writerIndex() - PREFIX_LENGTH > mtuSize) {
+            if (cumulativeBuffer.writerIndex() + packet.writerIndex() - HEADER_LENGTH > mtuSize) {
                 send(cumulativeBuffer)
                 cumulativeBuffer = encodeHeader()
             }
@@ -116,13 +116,13 @@ class Encoder : AbstractVerticle() {
             cumulativeBuffer.addComponent(true, packet)
         }
 
-        if (cumulativeBuffer.writerIndex() > PREFIX_LENGTH) {
+        if (cumulativeBuffer.writerIndex() > HEADER_LENGTH) {
             send(cumulativeBuffer)
         }
     }
 
     private fun encodeHeader(compressed: Int = 0): CompositeByteBuf {
-        val header = Unpooled.buffer(PREFIX_LENGTH).apply {
+        val header = Unpooled.buffer(HEADER_LENGTH).apply {
             writeBytes(PREFIX)
             writeByte(PROTO_VERSION)
             writeByte(compressed)
