@@ -16,6 +16,8 @@
 
 package io.sip3.captain.ce.encoder
 
+import io.netty.buffer.ByteBuf
+import io.netty.buffer.CompositeByteBuf
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Packet
@@ -40,15 +42,18 @@ class Encoder : AbstractVerticle() {
 
     companion object {
 
+        const val HEADER_LENGTH = 6 // Prefix + Protocol Version + Compressed Flag
+
         val PREFIX = byteArrayOf(
             0x53.toByte(), // S
             0x49.toByte(), // I
             0x50.toByte(), // P
-            0x33.toByte()  // 3
+            0x33.toByte(), // 3
         )
 
-        const val TYPE = 0x01 // Type
-        const val VERSION = 0x01 // Version
+        const val PROTO_VERSION = 0x02
+        const val PACKET_TYPE = 0x01
+        const val PACKET_VERSION = 0x01
 
         const val TAG_TIMESTAMP_TIME = 1
         const val TAG_TIMESTAMP_NANOS = 2
@@ -61,13 +66,13 @@ class Encoder : AbstractVerticle() {
     }
 
     private val buffers = mutableListOf<Buffer>()
-    private var minSizeToCompress = 9000
+    private var mtuSize = 1450
     private var bulkSize = 1
 
     override fun start() {
         config().getJsonObject("encoder")?.let { config ->
-            config.getInteger("min-size-to-compress")?.let {
-                minSizeToCompress = it
+            config.getInteger("mtu-size")?.let {
+                mtuSize = it
             }
             config.getInteger("bulk-size")?.let {
                 bulkSize = it
@@ -77,69 +82,103 @@ class Encoder : AbstractVerticle() {
         vertx.eventBus().localConsumer<List<Packet>>(RoutesCE.encoder) { event ->
             try {
                 val packets = event.body()
-                encode(packets)
+                handle(packets)
             } catch (e: Exception) {
-                logger.error("Encoder 'encode()' failed.", e)
+                logger.error("Encoder 'handle()' failed.", e)
             }
         }
     }
 
-    fun encode(packets: List<Packet>) {
-        packets.forEach { packet ->
-            val srcAddrLength = packet.srcAddr.size
-            val dstAddrLength = packet.dstAddr.size
+    fun handle(packets: List<Packet>) {
+        var cumulativeBuffer = encodeHeader()
 
-            var compressed = false
-            var payload = (packet.payload as Encodable).encode().getBytes()
-            var payloadLength = payload.size
-
-            if (payloadLength >= minSizeToCompress) {
+        packets.map { encodePacket(it) }.forEach { packet ->
+            // Check if packet is smaller or equal MTU
+            // Otherwise, compress and send it separately
+            if (packet.writerIndex() > mtuSize) {
                 val os = ByteArrayOutputStream()
-                DeflaterOutputStream(os).use { it.write(payload) }
+                DeflaterOutputStream(os).use { it.write(packet.getBytes()) }
+                val compressedBuffer = encodeHeader(1).apply {
+                    addComponent(true, Unpooled.wrappedBuffer(os.toByteArray()))
+                }
+                send(compressedBuffer)
 
-                compressed = true
-                payload = os.toByteArray()
-                payloadLength = payload.size
+                return@forEach
             }
 
-            val packetLength = arrayListOf(
-                4,                         // Prefix
-                3,                         // Compressed & Type & Version
-                2,                         // Length
-                11,                        // Milliseconds
-                7,                         // Nanoseconds
-                3 + srcAddrLength,         // Source Address
-                3 + dstAddrLength,         // Destination Address
-                5,                         // Source Port
-                5,                         // Destination Port
-                4,                         // Protocol Code
-                3 + payloadLength          // Payload
-
-            ).sum()
-
-            val buffer = Unpooled.buffer(packetLength).apply {
-                // Prefix
-                writeBytes(PREFIX)
-                // Compressed & Type & Version
-                writeBoolean(compressed)
-                writeByte(TYPE)
-                writeByte(VERSION)
-                // Length
-                writeShort(packetLength - 5)
-
-                writeTlv(TAG_TIMESTAMP_TIME, packet.timestamp.time)
-                writeTlv(TAG_TIMESTAMP_NANOS, packet.timestamp.nanos)
-
-                writeTlv(TAG_SRC_ADDR, packet.srcAddr)
-                writeTlv(TAG_DST_ADDR, packet.dstAddr)
-                writeTlv(TAG_SRC_PORT, packet.srcPort.toShort())
-                writeTlv(TAG_DST_PORT, packet.dstPort.toShort())
-
-                writeTlv(TAG_PROTOCOL_CODE, packet.protocolCode)
-                writeTlv(TAG_PAYLOAD, payload)
+            // Check if cumulative buffer has enough capacity
+            // Otherwise, send it further and create a new one
+            if (cumulativeBuffer.writerIndex() + packet.writerIndex() - HEADER_LENGTH > mtuSize) {
+                send(cumulativeBuffer)
+                cumulativeBuffer = encodeHeader()
             }
-            buffers.add(Buffer.buffer(buffer))
+
+            cumulativeBuffer.addComponent(true, packet)
         }
+
+        if (cumulativeBuffer.writerIndex() > HEADER_LENGTH) {
+            send(cumulativeBuffer)
+        }
+    }
+
+    private fun encodeHeader(compressed: Int = 0): CompositeByteBuf {
+        val header = Unpooled.buffer(HEADER_LENGTH).apply {
+            writeBytes(PREFIX)
+            writeByte(PROTO_VERSION)
+            writeByte(compressed)
+        }
+
+        return Unpooled.compositeBuffer().apply {
+            addComponent(true, header)
+        }
+    }
+
+    private fun encodePacket(packet: Packet): ByteBuf {
+        val srcAddrLength = packet.srcAddr.size
+        val dstAddrLength = packet.dstAddr.size
+
+        val payload = (packet.payload as Encodable).encode().getBytes()
+        val payloadLength = payload.size
+
+        // Packet length will be calculated accordingly to the following formula
+        //
+        // Fixed Part:
+        // 2  - Type & Version
+        // 2  - Length
+        //
+        // Tag-Length-Value Part:
+        // 11 - Milliseconds
+        // 7  - Nanoseconds
+        // 3+ - Source Address
+        // 3+ - Destination Address
+        // 5  - Source Port
+        // 5  - Destination Port
+        // 4  - Protocol Code
+        // 3+ - Payload
+        //
+        // In total it will be 45+
+        val packetLength = 45 + srcAddrLength + dstAddrLength + payloadLength
+
+        return Unpooled.buffer(packetLength).apply {
+            writeByte(PACKET_TYPE)
+            writeByte(PACKET_VERSION)
+            writeShort(packetLength)
+
+            writeTlv(TAG_TIMESTAMP_TIME, packet.timestamp.time)
+            writeTlv(TAG_TIMESTAMP_NANOS, packet.timestamp.nanos)
+
+            writeTlv(TAG_SRC_ADDR, packet.srcAddr)
+            writeTlv(TAG_DST_ADDR, packet.dstAddr)
+            writeTlv(TAG_SRC_PORT, packet.srcPort.toShort())
+            writeTlv(TAG_DST_PORT, packet.dstPort.toShort())
+
+            writeTlv(TAG_PROTOCOL_CODE, packet.protocolCode)
+            writeTlv(TAG_PAYLOAD, payload)
+        }
+    }
+
+    private fun send(buffer: ByteBuf) {
+        buffers.add(Buffer.buffer(buffer))
 
         if (buffers.size >= bulkSize) {
             vertx.eventBus().localSend(RoutesCE.sender, buffers.toList())

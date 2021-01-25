@@ -60,50 +60,58 @@ class BootstrapTest : VertxTest() {
             assert = {
                 vertx.createDatagramSocket()
                     .handler { packet ->
-                        val buffer = packet.data()
+                        val buffer = packet.data().byteBuf
                         context.verify {
-                            assertEquals(989, buffer.length())
+                            assertEquals(990, buffer.capacity())
                             // Prefix
-                            assertArrayEquals(Encoder.PREFIX, buffer.getBytes(0, 4))
-                            // Compressed
-                            assertEquals(0, buffer.getByte(4))
-                            // Type
-                            assertEquals(1, buffer.getByte(5))
+                            var prefix = ByteArray(4)
+                            buffer.readBytes(prefix)
+                            assertArrayEquals(Encoder.PREFIX, prefix)
                             // Version
-                            assertEquals(1, buffer.getByte(6))
+                            assertEquals(2, buffer.readByte())
+                            // Compressed
+                            assertEquals(0, buffer.readByte())
+                            // Type
+                            assertEquals(1, buffer.readByte())
+                            // Version
+                            assertEquals(1, buffer.readByte())
                             // Length
-                            assertEquals(984, buffer.getShort(7))
+                            assertEquals(984, buffer.readShort())
                             // Milliseconds
-                            assertEquals(1, buffer.getByte(9))
-                            assertEquals(11, buffer.getShort(10))
-                            assertEquals(1549880240852, buffer.getLong(12))
+                            assertEquals(1, buffer.readByte())
+                            assertEquals(11, buffer.readShort())
+                            assertEquals(1549880240852, buffer.readLong())
                             // Nanoseconds
-                            assertEquals(2, buffer.getByte(20))
-                            assertEquals(7, buffer.getShort(21))
-                            assertEquals(852000000, buffer.getInt(23))
+                            assertEquals(2, buffer.readByte())
+                            assertEquals(7, buffer.readShort())
+                            assertEquals(852000000, buffer.readInt())
                             // Source Address
-                            assertEquals(3, buffer.getByte(27))
-                            assertEquals(7, buffer.getShort(28).toInt())
-                            assertArrayEquals(byteArrayOf(0x7c.toByte(), 0xad.toByte(), 0xd9.toByte(), 0x6b.toByte()), buffer.getBytes(30, 34))
+                            assertEquals(3, buffer.readByte())
+                            assertEquals(7, buffer.readShort())
+                            val srcAddr = ByteArray(4)
+                            buffer.readBytes(srcAddr)
+                            assertArrayEquals(byteArrayOf(0x7c.toByte(), 0xad.toByte(), 0xd9.toByte(), 0x6b.toByte()), srcAddr)
                             // Destination Address
-                            assertEquals(4, buffer.getByte(34))
-                            assertEquals(7, buffer.getShort(35).toInt())
-                            assertArrayEquals(byteArrayOf(0xe5.toByte(), 0x23.toByte(), 0xc1.toByte(), 0xc9.toByte()), buffer.getBytes(37, 41))
+                            assertEquals(4, buffer.readByte())
+                            assertEquals(7, buffer.readShort())
+                            val dstAddr = ByteArray(4)
+                            buffer.readBytes(dstAddr)
+                            assertArrayEquals(byteArrayOf(0xe5.toByte(), 0x23.toByte(), 0xc1.toByte(), 0xc9.toByte()), dstAddr)
                             // Source Port
-                            assertEquals(5, buffer.getByte(41))
-                            assertEquals(5, buffer.getShort(42))
-                            assertEquals(11236, buffer.getShort(44).toInt())
+                            assertEquals(5, buffer.readByte())
+                            assertEquals(5, buffer.readShort())
+                            assertEquals(11236, buffer.readShort())
                             // Destination Port
-                            assertEquals(6, buffer.getByte(46))
-                            assertEquals(5, buffer.getShort(47))
-                            assertEquals(3535, buffer.getShort(49).toInt())
+                            assertEquals(6, buffer.readByte())
+                            assertEquals(5, buffer.readShort())
+                            assertEquals(3535, buffer.readShort())
                             // Protocol Code
-                            assertEquals(7, buffer.getByte(51))
-                            assertEquals(4, buffer.getShort(52))
-                            assertEquals(PacketTypes.SIP, buffer.getByte(54))
+                            assertEquals(7, buffer.readByte())
+                            assertEquals(4, buffer.readShort())
+                            assertEquals(PacketTypes.SIP, buffer.readByte())
                             // Payload
-                            assertEquals(8, buffer.getByte(55))
-                            assertEquals(934, buffer.getShort(56).toInt())
+                            assertEquals(8, buffer.readByte())
+                            assertEquals(934, buffer.readShort())
                         }
                         context.completeNow()
                     }
