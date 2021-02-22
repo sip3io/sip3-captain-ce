@@ -91,10 +91,12 @@ class Ipv4Handler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
                 ipv4Packets.clear()
             }
         } else {
-            packet.srcAddr = ipv4Header.srcAddr
-            packet.dstAddr = ipv4Header.dstAddr
-            packet.protocolNumber = ipv4Header.protocolNumber
-            packet.payload = ByteBufPayload(slice)
+            packet.apply {
+                srcAddr = ipv4Header.srcAddr
+                dstAddr = ipv4Header.dstAddr
+                protocolNumber = ipv4Header.protocolNumber
+                payload = ByteBufPayload(slice)
+            }
 
             routePacket(packet)
         }
