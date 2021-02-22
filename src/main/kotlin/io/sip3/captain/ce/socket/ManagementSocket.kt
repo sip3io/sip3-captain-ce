@@ -17,7 +17,7 @@
 package io.sip3.captain.ce.socket
 
 import io.sip3.captain.ce.RoutesCE
-import io.sip3.commons.domain.SdpSession
+import io.sip3.commons.domain.media.MediaControl
 import io.sip3.commons.vertx.annotations.ConditionalOnProperty
 import io.sip3.commons.vertx.annotations.Instance
 import io.sip3.commons.vertx.util.localPublish
@@ -40,8 +40,8 @@ class ManagementSocket : AbstractVerticle() {
 
     companion object {
 
-        const val TYPE_SDP_SESSION = "sdp_session"
         const val TYPE_REGISTER = "register"
+        const val TYPE_MEDIA_CONTROL = "media_control"
     }
 
     lateinit var uri: URI
@@ -94,9 +94,9 @@ class ManagementSocket : AbstractVerticle() {
         val type = message.getString("type")
 
         when (type) {
-            TYPE_SDP_SESSION -> {
-                val sdpSession = message.getJsonObject("payload").mapTo(SdpSession::class.java)
-                vertx.eventBus().localPublish(RoutesCE.sdp, sdpSession)
+            TYPE_MEDIA_CONTROL -> {
+                val mediaControl = message.getJsonObject("payload").mapTo(MediaControl::class.java)
+                vertx.eventBus().localPublish(RoutesCE.media + "_control", mediaControl)
             }
             else -> logger.error("Unknown message type. Message: ${message.encodePrettily()}")
         }

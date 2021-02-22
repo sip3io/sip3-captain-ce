@@ -17,7 +17,8 @@
 package io.sip3.captain.ce.socket
 
 import io.sip3.captain.ce.RoutesCE
-import io.sip3.commons.domain.SdpSession
+import io.sip3.commons.domain.media.MediaControl
+import io.sip3.commons.domain.media.Recording
 import io.sip3.commons.vertx.test.VertxTest
 import io.vertx.core.json.Json
 import io.vertx.core.json.JsonObject
@@ -35,24 +36,38 @@ class ManagementSocketTest : VertxTest() {
             put("sip", arrayListOf("10.10.10.10", "10.10.20.10:5060"))
         }
 
-        val SDP_INFO = JsonObject().apply {
-            put("type", ManagementSocket.TYPE_SDP_SESSION)
+        val MEDIA_CONTROL = JsonObject().apply {
+            put("type", ManagementSocket.TYPE_MEDIA_CONTROL)
             put("payload", JsonObject().apply {
+                // Timestamp
                 put("timestamp", System.currentTimeMillis())
-
-                put("address", "127.0.0.1")
-                put("rtp_port", 1000)
-                put("rtcp_port", 1001)
-
-                put("codecs", listOf(JsonObject().apply {
-                    put("name", "PCMU")
-                    put("payload_types", listOf(0))
-                    put("clock_rate", 8000)
-                    put("ie", 1F)
-                    put("bpl", 2F)
-                }))
-                put("ptime", 20)
+                // Call ID
                 put("call_id", "f81d4fae-7dec-11d0-a765-00a0c91e6bf6@foo.bar.com")
+                // SDP Session
+                put("sdp_session", JsonObject().apply {
+                    put("src", JsonObject().apply {
+                        put("addr", "127.0.0.1")
+                        put("rtp_port", 1000)
+                        put("rtcp_port", 1001)
+                    })
+                    put("dst", JsonObject().apply {
+                        put("addr", "127.0.0.1")
+                        put("rtp_port", 2000)
+                        put("rtcp_port", 2001)
+                    })
+                    put("codecs", listOf(JsonObject().apply {
+                        put("name", "PCMU")
+                        put("payload_types", listOf(0))
+                        put("clock_rate", 8000)
+                        put("ie", 1F)
+                        put("bpl", 2F)
+                    }))
+                    put("ptime", 20)
+                })
+                // Recording
+                put("recording", JsonObject().apply {
+                    put("mode", Recording.RTP_GDPR)
+                })
             })
         }
     }
@@ -76,7 +91,7 @@ class ManagementSocketTest : VertxTest() {
                 val remoteSocket = vertx.createDatagramSocket().listen(remotePort, remoteAddr) {}
 
                 // 1. Retrieve and assert `REGISTER` message
-                // 2. Send back `SDP_INFO`
+                // 2. Send back `MEDIA_CONTROL`
                 remoteSocket.handler { packet ->
                     val json = packet.data().toJsonObject()
                     context.verify {
@@ -90,14 +105,14 @@ class ManagementSocketTest : VertxTest() {
                     }
 
                     val sender = packet.sender()
-                    remoteSocket.send(SDP_INFO.toBuffer(), sender.port(), sender.host()) {}
+                    remoteSocket.send(MEDIA_CONTROL.toBuffer(), sender.port(), sender.host()) {}
                 }
 
-                // 1. Retrieve and assert `SDP_INFO`
-                vertx.eventBus().consumer<SdpSession>(RoutesCE.sdp) { event ->
+                // 1. Retrieve and assert `MEDIA_CONTROL`
+                vertx.eventBus().consumer<MediaControl>(RoutesCE.media + "_control") { event ->
                     context.verify {
                         val payload = JsonObject(Json.encode(event.body()))
-                        assertEquals(SDP_INFO.getJsonObject("payload"), payload)
+                        assertEquals(MEDIA_CONTROL.getJsonObject("payload"), payload)
                     }
                     context.completeNow()
                 }

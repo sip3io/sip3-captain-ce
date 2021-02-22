@@ -26,7 +26,7 @@ interface RoutesCE : Routes {
     val tcp get() = "tcp"
     val sctp get() = "sctp"
     val rtp get() = "rtp"
-    val sdp get() = "sdp"
+    val media get() = "media"
     val sender get() = "sender"
     val encoder get() = "encoder"
 }

@@ -50,19 +50,14 @@ class RtcpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
     override fun onPacket(packet: Packet) {
         val buffer = (packet.payload as Encodable).encode()
 
-        val p = Packet().apply {
-            timestamp = packet.timestamp
-            srcAddr = packet.srcAddr
-            dstAddr = packet.dstAddr
-            srcPort = packet.srcPort
-            dstPort = packet.dstPort
+        packet.apply {
             protocolCode = PacketTypes.RTCP
             payload = run {
                 val bytes = buffer.getBytes()
                 return@run ByteArrayPayload(bytes)
             }
         }
-        packets.add(p)
+        packets.add(packet)
 
         if (packets.size >= bulkSize) {
             vertx.eventBus().localSend(RoutesCE.encoder, packets.toList())
