@@ -16,6 +16,7 @@
 
 package io.sip3.captain.ce.pipeline
 
+import io.netty.buffer.ByteBuf
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.PacketTypes
@@ -24,7 +25,6 @@ import io.sip3.commons.domain.payload.RtpHeaderPayload
 import io.sip3.commons.util.toIntRange
 import io.sip3.commons.vertx.util.localSend
 import io.vertx.core.Context
-import io.vertx.core.Vertx
 import kotlin.experimental.and
 
 /**
@@ -33,12 +33,18 @@ import kotlin.experimental.and
 class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(context, bulkOperationsEnabled) {
 
     private val packets = mutableMapOf<Long, MutableList<Packet>>()
+    private var bulkSize = 1
 
     private var instances: Int = 1
-    private var bulkSize = 1
-    private var payloadTypes: Set<Byte> = emptySet()
+    private var payloadTypes = mutableSetOf<Byte>()
+    private var recordingEnabled = false
+    private var collectorEnabled = false
 
-    private val vertx: Vertx
+    private val vertx = context.owner()
+
+    private val recordingHandler: RecordingHandler by lazy {
+        RecordingHandler(context, bulkOperationsEnabled)
+    }
 
     init {
         context.config().getJsonObject("vertx")?.getInteger("instances")?.let {
@@ -46,32 +52,78 @@ class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
         }
         context.config().getJsonObject("rtp")?.let { config ->
             if (bulkOperationsEnabled) {
-                config.getInteger("bulk-size")?.let { bulkSize = it }
+                config.getInteger("bulk-size")?.let {
+                    bulkSize = it
+                }
             }
 
-            config.getJsonArray("payload-types")
-                ?.flatMap { payloadType ->
-                    when (payloadType) {
-                        is Int -> setOf(payloadType.toByte())
-                        is String -> payloadType.toIntRange().map { it.toByte() }
-                        else -> emptySet()
+            config.getJsonArray("payload-types")?.forEach { payloadType ->
+                when (payloadType) {
+                    is Int -> payloadTypes.add(payloadType.toByte())
+                    is String -> {
+                        payloadType.toIntRange().forEach { payloadTypes.add(it.toByte()) }
                     }
                 }
-                ?.toSet()
-                ?.let { payloadTypes = it }
-        }
+            }
 
-        vertx = context.owner()
+            config.getJsonObject("recording")?.getBoolean("enabled")?.let {
+                recordingEnabled = it
+            }
+
+            config.getJsonObject("collector")?.getBoolean("enabled")?.let {
+                collectorEnabled = it
+            }
+        }
     }
 
     override fun onPacket(packet: Packet) {
         packet.protocolCode = PacketTypes.RTP
 
+        // Retrieve RTP packet buffer and mark it for further usage in `RecordingHandler`
         val buffer = (packet.payload as Encodable).encode()
+        buffer.markReaderIndex()
 
-        // Version & P & X & CC
-        buffer.skipBytes(1)
-        val payload = RtpHeaderPayload().apply {
+        // Read RTP header
+        val header = readRtpHeader(buffer)
+
+        // Filter non-RTP packets
+        if (header.ssrc <= 0 || header.payloadType < 0) {
+            return
+        }
+        // Filter packets by payloadType
+        if (payloadTypes.isNotEmpty() && !payloadTypes.contains(header.payloadType)) {
+            return
+        }
+
+        if (recordingEnabled) {
+            recordingHandler.onPacket(packet)
+        }
+
+        if (collectorEnabled) {
+            val index = header.ssrc % instances
+            val packetsByIndex = packets.getOrPut(index) { mutableListOf() }
+
+            val p = Packet().apply {
+                timestamp = packet.timestamp
+                srcAddr = packet.srcAddr
+                dstAddr = packet.dstAddr
+                srcPort = packet.srcPort
+                dstPort = packet.dstPort
+                protocolCode = PacketTypes.RTP
+                payload = header
+            }
+            packetsByIndex.add(p)
+            if (packetsByIndex.size >= bulkSize) {
+                vertx.eventBus().localSend(RoutesCE.rtp + "_$index", packetsByIndex.toList())
+                packetsByIndex.clear()
+            }
+        }
+    }
+
+    private fun readRtpHeader(buffer: ByteBuf): RtpHeaderPayload {
+        return RtpHeaderPayload().apply {
+            // Version & P & X & CC
+            buffer.skipBytes(1)
             buffer.readUnsignedByte().let { byte ->
                 payloadType = byte.and(127).toByte()
                 marker = (byte.and(128) == 128.toShort())
@@ -79,25 +131,6 @@ class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
             sequenceNumber = buffer.readUnsignedShort()
             timestamp = buffer.readUnsignedInt()
             ssrc = buffer.readUnsignedInt()
-        }
-
-        // Skip non-RTP packets
-        if (payload.ssrc <= 0 || payload.payloadType < 0) {
-            return
-        }
-        // Filter packets by payloadType
-        if (payloadTypes.isNotEmpty() && !payloadTypes.contains(payload.payloadType)) {
-            return
-        }
-
-        val index = payload.ssrc % instances
-        val packetsByIndex = packets.getOrPut(index) { mutableListOf() }
-
-        packet.payload = payload
-        packetsByIndex.add(packet)
-        if (packetsByIndex.size >= bulkSize) {
-            vertx.eventBus().localSend(RoutesCE.rtp + "_$index", packetsByIndex.toList())
-            packetsByIndex.clear()
         }
     }
 }
