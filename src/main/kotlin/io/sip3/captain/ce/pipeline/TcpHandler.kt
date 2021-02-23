@@ -97,7 +97,7 @@ class TcpHandler : AbstractVerticle() {
         buffer.readerIndex(offset + headerLength)
 
         // Skip TCP packets without payload
-        if (buffer.remainingCapacity() == 0) {
+        if (buffer.remainingCapacity() <= 0) {
             return
         }
 
