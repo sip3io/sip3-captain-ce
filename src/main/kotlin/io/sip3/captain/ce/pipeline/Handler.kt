@@ -24,7 +24,7 @@ abstract class Handler(val context: Context, val bulkOperationsEnabled: Boolean 
 
     private val logger = KotlinLogging.logger {}
 
-    protected abstract fun onPacket(packet: Packet)
+    abstract fun onPacket(packet: Packet)
 
     fun handle(packet: Packet) {
         try {

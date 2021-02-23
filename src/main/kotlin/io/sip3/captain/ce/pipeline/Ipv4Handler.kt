@@ -27,7 +27,6 @@ import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.getBytes
 import io.sip3.commons.vertx.util.localSend
 import io.vertx.core.Context
-import io.vertx.core.Vertx
 
 /**
  * Handles IPv4 packets
@@ -56,7 +55,7 @@ class Ipv4Handler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
         GreHandler(context, bulkOperationsEnabled)
     }
 
-    private val vertx: Vertx
+    private val vertx = context.owner()
 
     init {
         if (bulkOperationsEnabled) {
@@ -64,8 +63,6 @@ class Ipv4Handler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
                 config.getInteger("bulk-size")?.let { bulkSize = it }
             }
         }
-
-        vertx = context.owner()
     }
 
     override fun onPacket(packet: Packet) {

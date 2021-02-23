@@ -24,18 +24,16 @@ import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.getBytes
 import io.sip3.commons.vertx.util.localSend
 import io.vertx.core.Context
-import io.vertx.core.Vertx
 
 /**
  * Handles RTCP packets
  */
 class RtcpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(context, bulkOperationsEnabled) {
 
+    private val packets = mutableListOf<Packet>()
     private var bulkSize = 1
 
-    private val packets = mutableListOf<Packet>()
-
-    private val vertx: Vertx
+    private val vertx = context.owner()
 
     init {
         context.config().getJsonObject("rtcp")?.let { config ->
@@ -43,8 +41,6 @@ class RtcpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
                 config.getInteger("bulk-size")?.let { bulkSize = it }
             }
         }
-
-        vertx = context.owner()
     }
 
     override fun onPacket(packet: Packet) {

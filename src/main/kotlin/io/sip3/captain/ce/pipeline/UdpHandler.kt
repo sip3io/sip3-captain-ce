@@ -31,6 +31,12 @@ class UdpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
         const val TYPE_VXLAN = 0x0800
     }
 
+    private var rtcpEnabled = false
+    private var rtpEnabled = false
+    private var sipEnabled = true
+    private var vxlanEnabled = false
+    private var tzspEnabled = false
+
     private val rtcpHandler: RtcpHandler by lazy {
         RtcpHandler(context, bulkOperationsEnabled)
     }
@@ -46,12 +52,6 @@ class UdpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
     private val tzspHandler: TzspHandler by lazy {
         TzspHandler(context, bulkOperationsEnabled)
     }
-
-    private var rtcpEnabled = false
-    private var rtpEnabled = false
-    private var sipEnabled = true
-    private var vxlanEnabled = false
-    private var tzspEnabled = false
 
     init {
         context.config().getJsonObject("rtcp")?.getBoolean("enabled")?.let {
