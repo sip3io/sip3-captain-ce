@@ -65,14 +65,6 @@ sender:
 #  enabled: false
 #  bulk-size: 1
 #  payload-types: [0..10, 100]
-#  recording:
-#    enabled: true
-#    bulk-size: 1
-#    expiration-delay: 4000
-#    aggregation-timeout: 30000
-#  collector:
-#    enabled: false
-#    bulk-size: 1
 
 #! Metrics
 #metrics:

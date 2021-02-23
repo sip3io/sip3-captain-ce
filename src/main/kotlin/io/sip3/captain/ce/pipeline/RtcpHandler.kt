@@ -18,6 +18,7 @@ package io.sip3.captain.ce.pipeline
 
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Packet
+import io.sip3.captain.ce.recording.RecordingManager
 import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.payload.ByteArrayPayload
 import io.sip3.commons.domain.payload.Encodable
@@ -34,6 +35,7 @@ class RtcpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
     private var bulkSize = 1
 
     private val vertx = context.owner()
+    private val recordingManager = RecordingManager.getInstance(vertx)
 
     init {
         context.config().getJsonObject("rtcp")?.let { config ->
@@ -53,11 +55,16 @@ class RtcpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
                 return@run ByteArrayPayload(bytes)
             }
         }
-        packets.add(packet)
 
-        if (packets.size >= bulkSize) {
-            vertx.eventBus().localSend(RoutesCE.encoder, packets.toList())
-            packets.clear()
+        if (recordingManager.check(packet)) {
+            recordingManager.record(packet)
+        } else {
+            packets.add(packet)
+
+            if (packets.size >= bulkSize) {
+                vertx.eventBus().localSend(RoutesCE.encoder, packets.toList())
+                packets.clear()
+            }
         }
     }
 }
