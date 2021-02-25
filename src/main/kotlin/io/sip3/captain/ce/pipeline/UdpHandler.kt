@@ -96,7 +96,7 @@ class UdpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
                 val packetType = buffer.getUnsignedByte(offset + 1).toInt()
                 if (packetType in 200..211) {
                     // Skip ICMP(RTCP) packet
-                    if (rtcpEnabled && !packet.rejected) {
+                    if (rtcpEnabled && packet.rejected == null) {
                         rtcpHandler.handle(packet)
                     }
                 } else if (rtpEnabled) {
@@ -106,21 +106,21 @@ class UdpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
             // SIP packet
             sipEnabled && SipUtil.startsWithSipWord(buffer) -> {
                 // Skip ICMP(SIP) packet
-                if (!packet.rejected) {
+                if (packet.rejected == null) {
                     sipHandler.handle(packet)
                 }
             }
             // VXLAN packet
             vxlanEnabled && buffer.getUnsignedShort(offset) == TYPE_VXLAN -> {
                 // Skip ICMP(VXLAN) packet
-                if (!packet.rejected) {
+                if (packet.rejected == null) {
                     vxlanHandler.handle(packet)
                 }
             }
             // TZSP packet
             tzspEnabled && buffer.getByte(offset).toInt() == 1 -> {
                 // Skip ICMP(TZSP) packet
-                if (!packet.rejected) {
+                if (packet.rejected == null) {
                     tzspHandler.handle(packet)
                 }
             }

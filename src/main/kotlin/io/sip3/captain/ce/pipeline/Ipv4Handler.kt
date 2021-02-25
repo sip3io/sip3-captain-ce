@@ -161,17 +161,27 @@ class Ipv4Handler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
             // ICMP:
             TYPE_ICMP -> {
                 val buffer = (packet.payload as Encodable).encode()
+                packet.apply {
+                    protocolCode = PacketTypes.ICMP
+                    recordingMark = buffer.readerIndex()
+                }
+
                 // Type
                 val type = buffer.readByte().toInt()
                 // Code
                 val code = buffer.readByte().toInt()
                 // Checksum & Rest of Header
                 buffer.skipBytes(6)
+
                 // Destination Port Unreachable
                 if (type == 3 && code == 3) {
-                    packet.protocolCode = PacketTypes.ICMP
-                    packet.rejected = true
-                    onPacket(packet)
+                    val p = Packet().apply {
+                        timestamp = packet.timestamp
+                        payload = packet.payload
+
+                        rejected = packet
+                    }
+                    onPacket(p)
                 }
             }
             // IPv4:

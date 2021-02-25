@@ -189,7 +189,7 @@ class UdpHandlerTest {
         val udpHandler = UdpHandler(Vertx.vertx().orCreateContext, false)
         var packet = Packet().apply {
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
-            this.rejected = true
+            this.rejected = Packet()
         }
         udpHandler.handle(packet)
         // Assert

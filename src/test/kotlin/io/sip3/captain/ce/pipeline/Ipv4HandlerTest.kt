@@ -28,10 +28,11 @@ import io.sip3.commons.vertx.test.VertxTest
 import io.vertx.core.Vertx
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.net.InetAddress
+import java.sql.Timestamp
 
 @ExtendWith(MockKExtension::class)
 class Ipv4HandlerTest : VertxTest() {
@@ -187,6 +188,7 @@ class Ipv4HandlerTest : VertxTest() {
         // Execute
         val ipv4Handler = Ipv4Handler(Vertx.vertx().orCreateContext, false)
         var packet = Packet().apply {
+            this.timestamp = Timestamp(System.currentTimeMillis())
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_4))
         }
         ipv4Handler.handle(packet)
@@ -194,12 +196,14 @@ class Ipv4HandlerTest : VertxTest() {
         verify { anyConstructed<UdpHandler>().handle(any()) }
         packet = packetSlot.captured
         val buffer = (packet.payload as Encodable).encode()
-        assertTrue(packet.rejected)
         val srcAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte()))
         assertEquals(srcAddr, InetAddress.getByAddress(packet.srcAddr))
         val dstAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte()))
         assertEquals(dstAddr, InetAddress.getByAddress(packet.dstAddr))
         assertEquals(8, buffer.remainingCapacity())
+        val rejectedPacket = packet.rejected
+        assertNotNull(rejectedPacket)
+        assertEquals(20, rejectedPacket!!.recordingMark)
     }
 
     @Test
