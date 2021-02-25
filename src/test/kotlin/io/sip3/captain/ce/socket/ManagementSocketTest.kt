@@ -66,7 +66,7 @@ class ManagementSocketTest : VertxTest() {
                 })
                 // Recording
                 put("recording", JsonObject().apply {
-                    put("mode", Recording.RTP_GDPR)
+                    put("mode", Recording.GDPR)
                 })
             })
         }

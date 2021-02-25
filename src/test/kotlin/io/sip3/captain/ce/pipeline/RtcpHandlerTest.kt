@@ -69,13 +69,10 @@ class RtcpHandlerTest : VertxTest() {
     fun `Send RTCP packet through 'RecordingManager'`() {
         // Init
         mockkObject(RecordingManager)
-        every {
-            RecordingManager.check(any())
-        } returns true
         val packetSlot = slot<Packet>()
         every {
             RecordingManager.record(capture(packetSlot))
-        } just Runs
+        } returns true
 
         // Execute
         val rtcpHandler = RtcpHandler(Vertx.vertx().orCreateContext, false)
@@ -106,7 +103,7 @@ class RtcpHandlerTest : VertxTest() {
     fun `Send RTCP packet straight to 'Encoder'`() {
         mockkObject(RecordingManager)
         every {
-            RecordingManager.check(any())
+            RecordingManager.record(any())
         } returns false
         runTest(
             deploy = {

@@ -56,9 +56,7 @@ class RtcpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
             }
         }
 
-        if (recordingManager.check(packet)) {
-            recordingManager.record(packet)
-        } else {
+        if (!recordingManager.record(packet)) {
             packets.add(packet)
 
             if (packets.size >= bulkSize) {

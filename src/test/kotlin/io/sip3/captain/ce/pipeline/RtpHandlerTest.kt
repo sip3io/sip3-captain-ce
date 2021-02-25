@@ -30,9 +30,7 @@ import io.sip3.commons.vertx.test.VertxTest
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.sql.Timestamp
@@ -72,7 +70,7 @@ class RtpHandlerTest : VertxTest() {
     fun `Parse RTP`() {
         mockkObject(RecordingManager)
         every {
-            RecordingManager.check(any())
+            RecordingManager.record(any())
         } returns false
 
         runTest(
@@ -86,6 +84,11 @@ class RtpHandlerTest : VertxTest() {
             execute = {
                 val rtpHandler = RtpHandler(vertx.orCreateContext, false)
                 val packet = Packet().apply {
+                    timestamp = Timestamp(NOW)
+                    srcAddr = SRC_ADDR
+                    srcPort = SRC_PORT
+                    dstAddr = DST_ADDR
+                    dstPort = DST_PORT
                     this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
                 }
                 rtpHandler.handle(packet)
@@ -118,7 +121,7 @@ class RtpHandlerTest : VertxTest() {
     fun `Parse RTP with marker bit = 1`() {
         mockkObject(RecordingManager)
         every {
-            RecordingManager.check(any())
+            RecordingManager.record(any())
         } returns false
 
         runTest(
@@ -132,6 +135,11 @@ class RtpHandlerTest : VertxTest() {
             execute = {
                 val rtpHandler = RtpHandler(vertx.orCreateContext, false)
                 val packet = Packet().apply {
+                    timestamp = Timestamp(NOW)
+                    srcAddr = SRC_ADDR
+                    srcPort = SRC_PORT
+                    dstAddr = DST_ADDR
+                    dstPort = DST_PORT
                     this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
                 }
                 rtpHandler.handle(packet)
@@ -164,7 +172,7 @@ class RtpHandlerTest : VertxTest() {
     fun `Filter RTP by payload type`() {
         mockkObject(RecordingManager)
         every {
-            RecordingManager.check(any())
+            RecordingManager.record(any())
         } returns false
         runTest(
             deploy = {
@@ -179,6 +187,11 @@ class RtpHandlerTest : VertxTest() {
                 val rtpHandler = RtpHandler(vertx.orCreateContext, false)
                 listOf(PACKET_1, PACKET_2, PACKET_3).forEach { payload ->
                     val packet = Packet().apply {
+                        timestamp = Timestamp(NOW)
+                        srcAddr = SRC_ADDR
+                        srcPort = SRC_PORT
+                        dstAddr = DST_ADDR
+                        dstPort = DST_PORT
                         this.payload = ByteBufPayload(Unpooled.wrappedBuffer(payload))
                     }
                     rtpHandler.handle(packet)
@@ -212,13 +225,10 @@ class RtpHandlerTest : VertxTest() {
     fun `Record RTP packet`() {
         // Init
         mockkObject(RecordingManager)
-        every {
-            RecordingManager.check(any())
-        } returns true
         val packetSlot = slot<Packet>()
         every {
             RecordingManager.record(capture(packetSlot))
-        } just Runs
+        } returns true
 
         // Execute
         val rtpHandler = RtpHandler(Vertx.vertx().orCreateContext, false)
@@ -242,7 +252,7 @@ class RtpHandlerTest : VertxTest() {
             assertEquals(DST_PORT, dstPort)
             assertEquals(PacketTypes.RTP, protocolCode)
             assertEquals(0, recordingMark)
-            Assertions.assertArrayEquals(PACKET_1, (payload as Encodable).encode().array())
+            assertArrayEquals(PACKET_1, (payload as Encodable).encode().array())
         }
     }
 

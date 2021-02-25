@@ -18,9 +18,14 @@ package io.sip3.captain.ce.recording
 
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Packet
+import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.media.MediaControl
 import io.sip3.commons.domain.media.Recording
+import io.sip3.commons.domain.payload.Encodable
+import io.sip3.commons.domain.payload.RecordingPayload
 import io.sip3.commons.util.MediaUtil
+import io.sip3.commons.util.getBytes
+import io.sip3.commons.vertx.util.localSend
 import io.vertx.core.Vertx
 
 /**
@@ -29,7 +34,7 @@ import io.vertx.core.Vertx
 object RecordingManager {
 
     private val packets = mutableListOf<Packet>()
-    private var bulkSize = 16
+    private var bulkSize = 1
 
     private var expirationDelay: Long = 4000
     private var aggregationTimeout: Long = 30000
@@ -88,22 +93,57 @@ object RecordingManager {
         }
     }
 
-    fun check(packet: Packet): Boolean {
+    fun record(packet: Packet): Boolean {
         val stream = streams[MediaUtil.sdpSessionId(packet.srcAddr, packet.srcPort)]
-            ?: streams[MediaUtil.sdpSessionId(packet.dstAddr, packet.dstPort)]
+            ?: streams[MediaUtil.sdpSessionId(packet.dstAddr, packet.dstPort)] ?: return false
 
-        return stream?.apply { updatedAt = System.currentTimeMillis() } == null
-    }
+        stream.apply {
+            updatedAt = System.currentTimeMillis()
+        }
 
-    fun record(packet: Packet) {
-        // TODO...
+        val buffer = (packet.payload as Encodable).encode()
+
+        val recording = RecordingPayload().apply {
+            type = packet.rejected?.protocolCode ?: packet.protocolCode
+            mode = stream.mode
+            callId = stream.callId
+            payload = when(packet.protocolCode) {
+                // RTP
+                PacketTypes.RTP -> {
+                    val recordingMark = packet.rejected?.recordingMark ?: packet.recordingMark
+                    if (stream.mode == Recording.GDPR) {
+                        buffer.getBytes(recordingMark, buffer.readerIndex() - recordingMark)
+                    } else {
+                        buffer.getBytes(recordingMark, buffer.capacity() - recordingMark)
+                    }
+                }
+                // RTCP
+                else -> {
+                    val recordingMark = packet.rejected?.recordingMark ?: buffer.readerIndex()
+                    buffer.getBytes(recordingMark, buffer.capacity() - recordingMark)
+                }
+            }
+        }
+
+        val p = packet.rejected ?: packet
+        p.apply {
+            protocolCode = PacketTypes.REC
+            payload = recording
+        }
+        packets.add(p)
+
+        if (packets.size >= bulkSize) {
+            vertx!!.eventBus().localSend(RoutesCE.encoder, packets.toList())
+            packets.clear()
+        }
+
+        return true
     }
 }
 
 private class Stream {
 
     var updatedAt = System.currentTimeMillis()
-
-    var mode: Byte = Recording.RTP
+    var mode: Byte = Recording.FULL
     lateinit var callId: String
 }

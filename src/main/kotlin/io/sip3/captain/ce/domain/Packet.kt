@@ -22,19 +22,15 @@ import java.sql.Timestamp
 class Packet {
 
     lateinit var timestamp: Timestamp
-
     lateinit var srcAddr: ByteArray
     lateinit var dstAddr: ByteArray
     var protocolNumber: Int = 0
     var srcPort: Int = 0
     var dstPort: Int = 0
-
     var protocolCode: Byte = 0
     lateinit var payload: Payload
-
     var rejected: Packet? = null
     var recordingMark = -1
-
 
     fun copy(): Packet {
         val p = Packet()

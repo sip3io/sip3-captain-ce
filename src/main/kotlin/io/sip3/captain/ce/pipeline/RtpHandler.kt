@@ -90,9 +90,7 @@ class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
             return
         }
 
-        if (recordingManager.check(packet)) {
-            recordingManager.record(packet.copy())
-        }
+        recordingManager.record(if (!collectorEnabled) packet else packet.copy())
 
         if (collectorEnabled) {
             val index = header.ssrc % instances
