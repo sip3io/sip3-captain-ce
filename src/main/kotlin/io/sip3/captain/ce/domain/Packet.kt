@@ -34,4 +34,20 @@ class Packet {
 
     var rejected: Packet? = null
     var recordingMark = -1
+
+
+    fun copy(): Packet {
+        val p = Packet()
+        p.timestamp = timestamp
+        p.srcAddr = srcAddr
+        p.dstAddr = dstAddr
+        p.protocolNumber = protocolNumber
+        p.srcPort = srcPort
+        p.dstPort = dstPort
+        p.protocolCode = protocolCode
+        p.payload = payload
+        p.rejected = rejected
+        p.recordingMark = recordingMark
+        return p
+    }
 }

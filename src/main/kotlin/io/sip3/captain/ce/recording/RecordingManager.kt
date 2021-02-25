@@ -19,6 +19,7 @@ package io.sip3.captain.ce.recording
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.domain.media.MediaControl
+import io.sip3.commons.domain.media.Recording
 import io.sip3.commons.util.MediaUtil
 import io.vertx.core.Vertx
 
@@ -28,7 +29,7 @@ import io.vertx.core.Vertx
 object RecordingManager {
 
     private val packets = mutableListOf<Packet>()
-    private var bulkSize = 1
+    private var bulkSize = 16
 
     private var expirationDelay: Long = 4000
     private var aggregationTimeout: Long = 30000
@@ -70,8 +71,11 @@ object RecordingManager {
         vertx!!.eventBus().localConsumer<MediaControl>(RoutesCE.media + "_control") { event ->
             val mediaControl = event.body()
 
-            if (mediaControl.recording != null) {
-                val stream = Stream(mediaControl.callId)
+            mediaControl.recording?.let { recording ->
+                val stream = Stream().apply {
+                    mode = recording.mode
+                    callId = mediaControl.callId
+                }
 
                 val src = mediaControl.sdpSession.src
                 streams[src.rtpId] = stream
@@ -96,7 +100,10 @@ object RecordingManager {
     }
 }
 
-private class Stream(val callId: String) {
+private class Stream {
 
     var updatedAt = System.currentTimeMillis()
+
+    var mode: Byte = Recording.RTP
+    lateinit var callId: String
 }

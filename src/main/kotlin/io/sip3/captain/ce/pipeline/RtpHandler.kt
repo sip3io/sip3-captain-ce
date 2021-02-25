@@ -19,6 +19,7 @@ package io.sip3.captain.ce.pipeline
 import io.netty.buffer.ByteBuf
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Packet
+import io.sip3.captain.ce.recording.RecordingManager
 import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.domain.payload.RtpHeaderPayload
@@ -37,14 +38,10 @@ class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
 
     private var instances: Int = 1
     private var payloadTypes = mutableSetOf<Byte>()
-    private var recordingEnabled = false
     private var collectorEnabled = false
 
     private val vertx = context.owner()
-
-    private val recordingHandler: RecordingHandler by lazy {
-        RecordingHandler(context, bulkOperationsEnabled)
-    }
+    private val recordingManager = RecordingManager.getInstance(vertx)
 
     init {
         context.config().getJsonObject("vertx")?.getInteger("instances")?.let {
@@ -66,10 +63,6 @@ class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
                 }
             }
 
-            config.getJsonObject("recording")?.getBoolean("enabled")?.let {
-                recordingEnabled = it
-            }
-
             config.getJsonObject("collector")?.getBoolean("enabled")?.let {
                 collectorEnabled = it
             }
@@ -77,11 +70,12 @@ class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
     }
 
     override fun onPacket(packet: Packet) {
-        packet.protocolCode = PacketTypes.RTP
-
         // Retrieve RTP packet buffer and mark it for further usage in `RecordingHandler`
         val buffer = (packet.payload as Encodable).encode()
-        buffer.markReaderIndex()
+        packet.apply {
+            protocolCode = PacketTypes.RTP
+            recordingMark = buffer.readerIndex()
+        }
 
         // Read RTP header
         val header = readRtpHeader(buffer)
@@ -90,29 +84,25 @@ class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
         if (header.ssrc <= 0 || header.payloadType < 0) {
             return
         }
+
         // Filter packets by payloadType
         if (payloadTypes.isNotEmpty() && !payloadTypes.contains(header.payloadType)) {
             return
         }
 
-        if (recordingEnabled) {
-            recordingHandler.onPacket(packet)
+        if (recordingManager.check(packet)) {
+            recordingManager.record(packet.copy())
         }
 
         if (collectorEnabled) {
             val index = header.ssrc % instances
-            val packetsByIndex = packets.getOrPut(index) { mutableListOf() }
 
-            val p = Packet().apply {
-                timestamp = packet.timestamp
-                srcAddr = packet.srcAddr
-                dstAddr = packet.dstAddr
-                srcPort = packet.srcPort
-                dstPort = packet.dstPort
-                protocolCode = PacketTypes.RTP
+            val packetsByIndex = packets.getOrPut(index) { mutableListOf() }
+            packet.apply {
                 payload = header
             }
-            packetsByIndex.add(p)
+            packetsByIndex.add(packet)
+
             if (packetsByIndex.size >= bulkSize) {
                 vertx.eventBus().localSend(RoutesCE.rtp + "_$index", packetsByIndex.toList())
                 packetsByIndex.clear()
@@ -123,14 +113,31 @@ class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
     private fun readRtpHeader(buffer: ByteBuf): RtpHeaderPayload {
         return RtpHeaderPayload().apply {
             // Version & P & X & CC
-            buffer.skipBytes(1)
+            val flags = buffer.readByte()
+            val x = (flags.and(16) == 16.toByte())
+            val cc = flags.and(15)
+            // Marker & Payload Type
             buffer.readUnsignedByte().let { byte ->
-                payloadType = byte.and(127).toByte()
                 marker = (byte.and(128) == 128.toShort())
+                payloadType = byte.and(127).toByte()
             }
+            // Sequence Number
             sequenceNumber = buffer.readUnsignedShort()
+            // Timestamp
             timestamp = buffer.readUnsignedInt()
+            // SSRC
             ssrc = buffer.readUnsignedInt()
+            // CSRC
+            if (cc > 0) buffer.skipBytes(cc * 4)
+            // Header Extension
+            if (x) {
+                // Profile-Specific Identifier
+                buffer.skipBytes(2)
+                // Length
+                val length = buffer.readUnsignedShort()
+                // Extension Header
+                buffer.skipBytes(4 * length)
+            }
         }
     }
 }
