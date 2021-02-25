@@ -36,7 +36,7 @@ class SmppHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
     private val packets = mutableListOf<Packet>()
     private var bulkSize = 1
 
-    private val vertx: Vertx
+    private val vertx: Vertx = context.owner()
 
     init {
         if (bulkOperationsEnabled) {
@@ -44,8 +44,6 @@ class SmppHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
                 config.getInteger("bulk-size")?.let { bulkSize = it }
             }
         }
-
-        vertx = context.owner()
     }
 
     override fun onPacket(packet: Packet) {

@@ -16,28 +16,35 @@
 
 package io.sip3.captain.ce.pipeline
 
+import io.mockk.*
+import io.mockk.junit5.MockKExtension
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Packet
+import io.sip3.captain.ce.recording.RecordingManager
 import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.vertx.test.VertxTest
+import io.vertx.core.Vertx
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import java.sql.Timestamp
 
+@ExtendWith(MockKExtension::class)
 class RtcpHandlerTest : VertxTest() {
 
     companion object {
+
+        val NOW = System.currentTimeMillis()
 
         val SRC_ADDR = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
         const val SRC_PORT = 12057
         val DST_ADDR = byteArrayOf(0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte())
         const val DST_PORT = 13057
-
-        val NOW = System.currentTimeMillis()
 
         // RTCP Sender Report only
         val PACKET_1 = byteArrayOf(
@@ -59,7 +66,48 @@ class RtcpHandlerTest : VertxTest() {
     }
 
     @Test
-    fun `Parse RTCP`() {
+    fun `Send RTCP packet through 'RecordingManager'`() {
+        // Init
+        mockkObject(RecordingManager)
+        every {
+            RecordingManager.check(any())
+        } returns true
+        val packetSlot = slot<Packet>()
+        every {
+            RecordingManager.record(capture(packetSlot))
+        } just Runs
+
+        // Execute
+        val rtcpHandler = RtcpHandler(Vertx.vertx().orCreateContext, false)
+        val packet = Packet().apply {
+            timestamp = Timestamp(NOW)
+            srcAddr = SRC_ADDR
+            srcPort = SRC_PORT
+            dstAddr = DST_ADDR
+            dstPort = DST_PORT
+            this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
+        }
+        rtcpHandler.onPacket(packet)
+
+        // Assert
+        verify { RecordingManager.record(any()) }
+        packetSlot.captured.apply {
+            assertEquals(NOW, timestamp.time)
+            assertEquals(SRC_ADDR, srcAddr)
+            assertEquals(SRC_PORT, srcPort)
+            assertEquals(DST_ADDR, dstAddr)
+            assertEquals(DST_PORT, dstPort)
+            assertEquals(PacketTypes.RTCP, protocolCode)
+            assertArrayEquals(PACKET_1, (payload as Encodable).encode().array())
+        }
+    }
+
+    @Test
+    fun `Send RTCP packet straight to 'Encoder'`() {
+        mockkObject(RecordingManager)
+        every {
+            RecordingManager.check(any())
+        } returns false
         runTest(
             deploy = {
                 // Do nothing...
@@ -69,12 +117,12 @@ class RtcpHandlerTest : VertxTest() {
 
                 vertx.setTimer(200L) {
                     val packet = Packet().apply {
+                        timestamp = Timestamp(NOW)
                         srcAddr = SRC_ADDR
                         srcPort = SRC_PORT
                         dstAddr = DST_ADDR
                         dstPort = DST_PORT
                         this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
-                        timestamp = Timestamp(NOW)
                     }
 
                     rtcpHandler.handle(packet)
@@ -87,13 +135,13 @@ class RtcpHandlerTest : VertxTest() {
                         assertEquals(1, packets.size)
 
                         with(packets.first()) {
+                            assertEquals(NOW, timestamp.time)
                             assertEquals(SRC_ADDR, srcAddr)
                             assertEquals(SRC_PORT, srcPort)
                             assertEquals(DST_ADDR, dstAddr)
                             assertEquals(DST_PORT, dstPort)
-                            assertArrayEquals(PACKET_1, (payload as Encodable).encode().array())
                             assertEquals(PacketTypes.RTCP, protocolCode)
-                            assertEquals(NOW, timestamp.time)
+                            assertArrayEquals(PACKET_1, (payload as Encodable).encode().array())
                         }
                     }
 
@@ -101,5 +149,10 @@ class RtcpHandlerTest : VertxTest() {
                 }
             }
         )
+    }
+
+    @AfterEach
+    fun `Unmock all`() {
+        unmockkAll()
     }
 }
