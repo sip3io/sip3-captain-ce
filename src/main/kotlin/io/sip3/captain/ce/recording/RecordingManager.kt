@@ -65,7 +65,7 @@ object RecordingManager {
             val now = System.currentTimeMillis()
 
             streams.filterValues { steam ->
-                steam.updatedAt + aggregationTimeout > now
+                steam.updatedAt + aggregationTimeout < now
             }.forEach { (key, _) ->
                 streams.remove(key)
             }
