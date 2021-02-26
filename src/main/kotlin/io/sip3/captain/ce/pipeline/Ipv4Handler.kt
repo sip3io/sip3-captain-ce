@@ -27,7 +27,6 @@ import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.getBytes
 import io.sip3.commons.vertx.util.localSend
 import io.vertx.core.Context
-import io.vertx.core.Vertx
 
 /**
  * Handles IPv4 packets
@@ -56,7 +55,7 @@ class Ipv4Handler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
         GreHandler(context, bulkOperationsEnabled)
     }
 
-    private val vertx: Vertx
+    private val vertx = context.owner()
 
     init {
         if (bulkOperationsEnabled) {
@@ -64,8 +63,6 @@ class Ipv4Handler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
                 config.getInteger("bulk-size")?.let { bulkSize = it }
             }
         }
-
-        vertx = context.owner()
     }
 
     override fun onPacket(packet: Packet) {
@@ -91,10 +88,12 @@ class Ipv4Handler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
                 ipv4Packets.clear()
             }
         } else {
-            packet.srcAddr = ipv4Header.srcAddr
-            packet.dstAddr = ipv4Header.dstAddr
-            packet.protocolNumber = ipv4Header.protocolNumber
-            packet.payload = ByteBufPayload(slice)
+            packet.apply {
+                srcAddr = ipv4Header.srcAddr
+                dstAddr = ipv4Header.dstAddr
+                protocolNumber = ipv4Header.protocolNumber
+                payload = ByteBufPayload(slice)
+            }
 
             routePacket(packet)
         }
@@ -162,17 +161,27 @@ class Ipv4Handler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
             // ICMP:
             TYPE_ICMP -> {
                 val buffer = (packet.payload as Encodable).encode()
+                packet.apply {
+                    protocolCode = PacketTypes.ICMP
+                    recordingMark = buffer.readerIndex()
+                }
+
                 // Type
                 val type = buffer.readByte().toInt()
                 // Code
                 val code = buffer.readByte().toInt()
                 // Checksum & Rest of Header
                 buffer.skipBytes(6)
+
                 // Destination Port Unreachable
                 if (type == 3 && code == 3) {
-                    packet.protocolCode = PacketTypes.ICMP
-                    packet.rejected = true
-                    onPacket(packet)
+                    val p = Packet().apply {
+                        timestamp = packet.timestamp
+                        payload = packet.payload
+
+                        rejected = packet
+                    }
+                    onPacket(p)
                 }
             }
             // IPv4:

@@ -36,10 +36,10 @@ class Ipv4FragmentHandler : AbstractVerticle() {
 
     private val logger = KotlinLogging.logger {}
 
-    private lateinit var ipv4Handler: Ipv4Handler
-
     private lateinit var defragmentators: PassiveExpiringMap<String, Defragmentator>
     private var ttl: Long = 60000
+
+    private lateinit var ipv4Handler: Ipv4Handler
 
     override fun start() {
         config().getJsonObject("ipv4")?.let { config ->

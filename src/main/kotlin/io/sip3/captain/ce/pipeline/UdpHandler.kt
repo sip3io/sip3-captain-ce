@@ -31,6 +31,12 @@ class UdpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
         const val TYPE_VXLAN = 0x0800
     }
 
+    private var rtcpEnabled = false
+    private var rtpEnabled = false
+    private var sipEnabled = true
+    private var vxlanEnabled = false
+    private var tzspEnabled = false
+
     private val rtcpHandler: RtcpHandler by lazy {
         RtcpHandler(context, bulkOperationsEnabled)
     }
@@ -46,12 +52,6 @@ class UdpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
     private val tzspHandler: TzspHandler by lazy {
         TzspHandler(context, bulkOperationsEnabled)
     }
-
-    private var rtcpEnabled = false
-    private var rtpEnabled = false
-    private var sipEnabled = true
-    private var vxlanEnabled = false
-    private var tzspEnabled = false
 
     init {
         context.config().getJsonObject("rtcp")?.getBoolean("enabled")?.let {
@@ -96,7 +96,7 @@ class UdpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
                 val packetType = buffer.getUnsignedByte(offset + 1).toInt()
                 if (packetType in 200..211) {
                     // Skip ICMP(RTCP) packet
-                    if (rtcpEnabled && !packet.rejected) {
+                    if (rtcpEnabled && packet.rejected == null) {
                         rtcpHandler.handle(packet)
                     }
                 } else if (rtpEnabled) {
@@ -106,21 +106,21 @@ class UdpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
             // SIP packet
             sipEnabled && SipUtil.startsWithSipWord(buffer) -> {
                 // Skip ICMP(SIP) packet
-                if (!packet.rejected) {
+                if (packet.rejected == null) {
                     sipHandler.handle(packet)
                 }
             }
             // VXLAN packet
             vxlanEnabled && buffer.getUnsignedShort(offset) == TYPE_VXLAN -> {
                 // Skip ICMP(VXLAN) packet
-                if (!packet.rejected) {
+                if (packet.rejected == null) {
                     vxlanHandler.handle(packet)
                 }
             }
             // TZSP packet
             tzspEnabled && buffer.getByte(offset).toInt() == 1 -> {
                 // Skip ICMP(TZSP) packet
-                if (!packet.rejected) {
+                if (packet.rejected == null) {
                     tzspHandler.handle(packet)
                 }
             }

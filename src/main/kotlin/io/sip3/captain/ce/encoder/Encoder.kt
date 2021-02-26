@@ -66,8 +66,9 @@ class Encoder : AbstractVerticle() {
     }
 
     private val buffers = mutableListOf<Buffer>()
-    private var mtuSize = 1450
     private var bulkSize = 1
+
+    private var mtuSize = 1450
 
     override fun start() {
         config().getJsonObject("encoder")?.let { config ->

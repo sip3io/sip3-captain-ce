@@ -24,7 +24,6 @@ import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.getBytes
 import io.sip3.commons.vertx.util.localSend
 import io.vertx.core.Context
-import io.vertx.core.Vertx
 
 /**
  * Handles SIP packets
@@ -34,7 +33,7 @@ class SipHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
     private val packets = mutableListOf<Packet>()
     private var bulkSize = 1
 
-    private val vertx: Vertx
+    private val vertx = context.owner()
 
     init {
         if (bulkOperationsEnabled) {
@@ -42,26 +41,19 @@ class SipHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
                 config.getInteger("bulk-size")?.let { bulkSize = it }
             }
         }
-
-        vertx = context.owner()
     }
 
     override fun onPacket(packet: Packet) {
         val buffer = (packet.payload as Encodable).encode()
 
-        val p = Packet().apply {
-            timestamp = packet.timestamp
-            srcAddr = packet.srcAddr
-            dstAddr = packet.dstAddr
-            srcPort = packet.srcPort
-            dstPort = packet.dstPort
+        packet.apply {
             protocolCode = PacketTypes.SIP
             payload = run {
                 val bytes = buffer.getBytes()
                 return@run ByteArrayPayload(bytes)
             }
         }
-        packets.add(p)
+        packets.add(packet)
 
         if (packets.size >= bulkSize) {
             vertx.eventBus().localSend(RoutesCE.encoder, packets.toList())

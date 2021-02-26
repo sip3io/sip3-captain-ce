@@ -18,24 +18,24 @@ package io.sip3.captain.ce.pipeline
 
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Packet
+import io.sip3.captain.ce.recording.RecordingManager
 import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.payload.ByteArrayPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.getBytes
 import io.sip3.commons.vertx.util.localSend
 import io.vertx.core.Context
-import io.vertx.core.Vertx
 
 /**
  * Handles RTCP packets
  */
 class RtcpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(context, bulkOperationsEnabled) {
 
+    private val packets = mutableListOf<Packet>()
     private var bulkSize = 1
 
-    private val packets = mutableListOf<Packet>()
-
-    private val vertx: Vertx
+    private val vertx = context.owner()
+    private val recordingManager = RecordingManager.getInstance(vertx)
 
     init {
         context.config().getJsonObject("rtcp")?.let { config ->
@@ -43,26 +43,31 @@ class RtcpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
                 config.getInteger("bulk-size")?.let { bulkSize = it }
             }
         }
-
-        vertx = context.owner()
     }
 
     override fun onPacket(packet: Packet) {
         val buffer = (packet.payload as Encodable).encode()
 
-        val p = Packet().apply {
-            timestamp = packet.timestamp
-            srcAddr = packet.srcAddr
-            dstAddr = packet.dstAddr
-            srcPort = packet.srcPort
-            dstPort = packet.dstPort
+        packet.apply {
             protocolCode = PacketTypes.RTCP
             payload = run {
                 val bytes = buffer.getBytes()
                 return@run ByteArrayPayload(bytes)
             }
         }
-        packets.add(p)
+
+        val recording = recordingManager.record(packet)
+
+        if (recording != null) {
+            val p = packet.rejected ?: packet
+            p.apply {
+                protocolCode = PacketTypes.REC
+                payload = recording
+            }
+            packets.add(p)
+        } else {
+            packets.add(packet)
+        }
 
         if (packets.size >= bulkSize) {
             vertx.eventBus().localSend(RoutesCE.encoder, packets.toList())

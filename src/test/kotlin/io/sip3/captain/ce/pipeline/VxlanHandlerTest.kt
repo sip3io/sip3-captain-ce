@@ -24,7 +24,7 @@ import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.vertx.core.Vertx
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
@@ -61,7 +61,7 @@ class VxlanHandlerTest {
         // Assert
         verify { anyConstructed<EthernetHandler>().handle(any()) }
         val buffer = (packetSlot.captured.payload as Encodable).encode()
-        Assertions.assertEquals(8, buffer.readerIndex())
+        assertEquals(8, buffer.readerIndex())
     }
 
     @AfterEach
