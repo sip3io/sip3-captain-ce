@@ -56,13 +56,22 @@ class RtcpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
             }
         }
 
-        if (!recordingManager.record(packet)) {
-            packets.add(packet)
+        val recording = recordingManager.record(packet)
 
-            if (packets.size >= bulkSize) {
-                vertx.eventBus().localSend(RoutesCE.encoder, packets.toList())
-                packets.clear()
+        if (recording != null) {
+            val p = packet.rejected ?: packet
+            p.apply {
+                protocolCode = PacketTypes.REC
+                payload = recording
             }
+            packets.add(p)
+        } else {
+            packets.add(packet)
+        }
+
+        if (packets.size >= bulkSize) {
+            vertx.eventBus().localSend(RoutesCE.encoder, packets.toList())
+            packets.clear()
         }
     }
 }

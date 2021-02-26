@@ -34,6 +34,7 @@ import kotlin.experimental.and
 class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(context, bulkOperationsEnabled) {
 
     private val packets = mutableMapOf<Long, MutableList<Packet>>()
+    private val recordings = mutableListOf<Packet>()
     private var bulkSize = 1
 
     private var instances: Int = 1
@@ -90,7 +91,21 @@ class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
             return
         }
 
-        recordingManager.record(if (!collectorEnabled) packet else packet.copy())
+        val recording = recordingManager.record(packet)
+
+        if (recording != null) {
+            val p = packet.rejected ?: packet.copy()
+            p.apply {
+                protocolCode = PacketTypes.REC
+                payload = recording
+            }
+            recordings.add(p)
+
+            if (recordings.size >= bulkSize) {
+                vertx.eventBus().localSend(RoutesCE.encoder, recordings.toList())
+                recordings.clear()
+            }
+        }
 
         if (collectorEnabled) {
             val index = header.ssrc % instances

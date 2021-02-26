@@ -25,16 +25,15 @@ import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.domain.payload.RecordingPayload
 import io.sip3.commons.util.MediaUtil
 import io.sip3.commons.util.getBytes
-import io.sip3.commons.vertx.util.localSend
 import io.vertx.core.Vertx
+import mu.KotlinLogging
 
 /**
  * Records RTP/RTCP and related ICMP packets
  */
 object RecordingManager {
 
-    private val packets = mutableListOf<Packet>()
-    private var bulkSize = 1
+    private val logger = KotlinLogging.logger {}
 
     private var expirationDelay: Long = 4000
     private var aggregationTimeout: Long = 30000
@@ -54,9 +53,6 @@ object RecordingManager {
 
     private fun init() {
         vertx!!.orCreateContext.config().getJsonObject("recording")?.let { config ->
-            config.getInteger("bulk-size")?.let {
-                bulkSize = it
-            }
             config.getLong("expiration-delay")?.let {
                 expirationDelay = it
             }
@@ -74,28 +70,35 @@ object RecordingManager {
         }
 
         vertx!!.eventBus().localConsumer<MediaControl>(RoutesCE.media + "_control") { event ->
-            val mediaControl = event.body()
-
-            mediaControl.recording?.let { recording ->
-                val stream = Stream().apply {
-                    mode = recording.mode
-                    callId = mediaControl.callId
-                }
-
-                val src = mediaControl.sdpSession.src
-                streams[src.rtpId] = stream
-                streams[src.rtcpId] = stream
-
-                val dst = mediaControl.sdpSession.dst
-                streams[dst.rtpId] = stream
-                streams[dst.rtcpId] = stream
+            try {
+                val mediaControl = event.body()
+                handleMediaControl(mediaControl)
+            } catch (e: Exception) {
+                logger.error(e) { "RecordingManager 'handleMediaControl()' failed." }
             }
         }
     }
 
-    fun record(packet: Packet): Boolean {
+    private fun handleMediaControl(mediaControl: MediaControl) {
+        mediaControl.recording?.let { recording ->
+            val stream = Stream().apply {
+                mode = recording.mode
+                callId = mediaControl.callId
+            }
+
+            val src = mediaControl.sdpSession.src
+            streams[src.rtpId] = stream
+            streams[src.rtcpId] = stream
+
+            val dst = mediaControl.sdpSession.dst
+            streams[dst.rtpId] = stream
+            streams[dst.rtcpId] = stream
+        }
+    }
+
+    fun record(packet: Packet): RecordingPayload? {
         val stream = streams[MediaUtil.sdpSessionId(packet.srcAddr, packet.srcPort)]
-            ?: streams[MediaUtil.sdpSessionId(packet.dstAddr, packet.dstPort)] ?: return false
+            ?: streams[MediaUtil.sdpSessionId(packet.dstAddr, packet.dstPort)] ?: return null
 
         stream.apply {
             updatedAt = System.currentTimeMillis()
@@ -103,12 +106,11 @@ object RecordingManager {
 
         val buffer = (packet.payload as Encodable).encode()
 
-        val recording = RecordingPayload().apply {
+        return RecordingPayload().apply {
             type = packet.rejected?.protocolCode ?: packet.protocolCode
             mode = stream.mode
             callId = stream.callId
             payload = when(packet.protocolCode) {
-                // RTP
                 PacketTypes.RTP -> {
                     val recordingMark = packet.rejected?.recordingMark ?: packet.recordingMark
                     if (stream.mode == Recording.GDPR) {
@@ -117,27 +119,13 @@ object RecordingManager {
                         buffer.getBytes(recordingMark, buffer.capacity() - recordingMark)
                     }
                 }
-                // RTCP
-                else -> {
+                PacketTypes.RTCP -> {
                     val recordingMark = packet.rejected?.recordingMark ?: buffer.readerIndex()
                     buffer.getBytes(recordingMark, buffer.capacity() - recordingMark)
                 }
+                else -> return null
             }
         }
-
-        val p = packet.rejected ?: packet
-        p.apply {
-            protocolCode = PacketTypes.REC
-            payload = recording
-        }
-        packets.add(p)
-
-        if (packets.size >= bulkSize) {
-            vertx!!.eventBus().localSend(RoutesCE.encoder, packets.toList())
-            packets.clear()
-        }
-
-        return true
     }
 }
 
