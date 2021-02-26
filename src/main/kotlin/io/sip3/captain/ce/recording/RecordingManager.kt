@@ -40,7 +40,7 @@ object RecordingManager {
 
     private var vertx: Vertx? = null
 
-    private var streams = mutableMapOf<Long, Stream>()
+    private val streams = mutableMapOf<Long, Stream>()
 
     @Synchronized
     fun getInstance(vertx: Vertx): RecordingManager {
@@ -64,9 +64,11 @@ object RecordingManager {
         vertx!!.setPeriodic(expirationDelay) {
             val now = System.currentTimeMillis()
 
-            streams = streams.filterValues { steam ->
-                steam.updatedAt + aggregationTimeout < now
-            }.toMutableMap()
+            streams.filterValues { steam ->
+                steam.updatedAt + aggregationTimeout > now
+            }.forEach { (key, _) ->
+                streams.remove(key)
+            }
         }
 
         vertx!!.eventBus().localConsumer<MediaControl>(RoutesCE.media + "_control") { event ->
