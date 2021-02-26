@@ -24,6 +24,7 @@ import io.sip3.commons.domain.media.Recording
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.domain.payload.RecordingPayload
 import io.sip3.commons.util.MediaUtil
+import io.sip3.commons.util.MutableMapUtil
 import io.sip3.commons.util.getBytes
 import io.vertx.core.Vertx
 import mu.KotlinLogging
@@ -35,12 +36,13 @@ object RecordingManager {
 
     private val logger = KotlinLogging.logger {}
 
+    private var trimToSizeDelay: Long = 3600000
     private var expirationDelay: Long = 4000
     private var aggregationTimeout: Long = 30000
 
     private var vertx: Vertx? = null
 
-    private val streams = mutableMapOf<Long, Stream>()
+    private var streams = mutableMapOf<Long, Stream>()
 
     @Synchronized
     fun getInstance(vertx: Vertx): RecordingManager {
@@ -53,6 +55,9 @@ object RecordingManager {
 
     private fun init() {
         vertx!!.orCreateContext.config().getJsonObject("recording")?.let { config ->
+            config.getLong("trim-to-size-delay")?.let {
+                trimToSizeDelay = it
+            }
             config.getLong("expiration-delay")?.let {
                 expirationDelay = it
             }
@@ -61,6 +66,9 @@ object RecordingManager {
             }
         }
 
+        vertx!!.setPeriodic(trimToSizeDelay) {
+            streams = MutableMapUtil.mutableMapOf(streams)
+        }
         vertx!!.setPeriodic(expirationDelay) {
             val now = System.currentTimeMillis()
 
