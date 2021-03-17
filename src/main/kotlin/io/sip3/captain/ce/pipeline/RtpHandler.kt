@@ -79,20 +79,9 @@ class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
         }
 
         // Read RTP header
-        val header = readRtpHeader(buffer)
-
-        // Filter non-RTP packets
-        if (header.ssrc <= 0 || header.payloadType < 0) {
-            return
-        }
-
-        // Filter packets by payloadType
-        if (payloadTypes.isNotEmpty() && !payloadTypes.contains(header.payloadType)) {
-            return
-        }
+        val header = readRtpHeader(buffer) ?: return
 
         val recording = recordingManager.record(packet)
-
         if (recording != null) {
             val p = packet.rejected ?: packet.copy()
             p.apply {
@@ -123,7 +112,7 @@ class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
         }
     }
 
-    private fun readRtpHeader(buffer: ByteBuf): RtpHeaderPayload {
+    private fun readRtpHeader(buffer: ByteBuf): RtpHeaderPayload? {
         return RtpHeaderPayload().apply {
             // Version & P & X & CC
             val flags = buffer.readByte()
@@ -140,6 +129,12 @@ class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
             timestamp = buffer.readUnsignedInt()
             // SSRC
             ssrc = buffer.readUnsignedInt()
+
+            // Make sure the payload is RTP packet before parsing the rest of it
+            if (ssrc <= 0 || payloadType < 0 || (payloadTypes.isNotEmpty() && !payloadTypes.contains(payloadType))) {
+                return null
+            }
+
             // CSRC
             if (cc > 0) buffer.skipBytes(cc * 4)
             // Header Extension
