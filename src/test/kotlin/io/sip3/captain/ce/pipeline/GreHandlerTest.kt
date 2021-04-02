@@ -24,6 +24,7 @@ import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.remainingCapacity
 import io.vertx.core.Vertx
+import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -50,7 +51,7 @@ class GreHandlerTest {
             anyConstructed<ErspanHandler>().handle(capture(packetSlot))
         } just Runs
         // Execute
-        val greHandler = GreHandler(Vertx.vertx().orCreateContext, false)
+        val greHandler = GreHandler(Vertx.vertx(), JsonObject(), false)
         val packet = Packet().apply {
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
         }

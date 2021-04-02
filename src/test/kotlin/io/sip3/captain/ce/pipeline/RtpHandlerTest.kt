@@ -76,15 +76,14 @@ class RtpHandlerTest : VertxTest() {
         } returns null
 
         runTest(
-            deploy = {
-                vertx.orCreateContext.config().put("rtp", JsonObject().apply {
-                    put("collector", JsonObject().apply {
-                        put("enabled", true)
-                    })
-                })
-            },
             execute = {
-                val rtpHandler = RtpHandler(vertx.orCreateContext, false)
+                val rtpHandler = RtpHandler(vertx, JsonObject().apply {
+                    put("rtp", JsonObject().apply {
+                        put("collector", JsonObject().apply {
+                            put("enabled", true)
+                        })
+                    })
+                }, false)
                 val packet = Packet().apply {
                     timestamp = Timestamp(NOW)
                     srcAddr = SRC_ADDR
@@ -127,15 +126,14 @@ class RtpHandlerTest : VertxTest() {
         } returns null
 
         runTest(
-            deploy = {
-                vertx.orCreateContext.config().put("rtp", JsonObject().apply {
-                    put("collector", JsonObject().apply {
-                        put("enabled", true)
-                    })
-                })
-            },
             execute = {
-                val rtpHandler = RtpHandler(vertx.orCreateContext, false)
+                val rtpHandler = RtpHandler(vertx, JsonObject().apply {
+                    put("rtp", JsonObject().apply {
+                        put("collector", JsonObject().apply {
+                            put("enabled", true)
+                        })
+                    })
+                }, false)
                 val packet = Packet().apply {
                     timestamp = Timestamp(NOW)
                     srcAddr = SRC_ADDR
@@ -177,16 +175,15 @@ class RtpHandlerTest : VertxTest() {
             RecordingManager.record(any())
         } returns null
         runTest(
-            deploy = {
-                vertx.orCreateContext.config().put("rtp", JsonObject().apply {
-                    put("payload-types", listOf("0..7", 100))
-                    put("collector", JsonObject().apply {
-                        put("enabled", true)
-                    })
-                })
-            },
             execute = {
-                val rtpHandler = RtpHandler(vertx.orCreateContext, false)
+                val rtpHandler = RtpHandler(vertx, JsonObject().apply {
+                    put("rtp", JsonObject().apply {
+                        put("payload-types", listOf("0..7", 100))
+                        put("collector", JsonObject().apply {
+                            put("enabled", true)
+                        })
+                    })
+                }, false)
                 listOf(PACKET_1, PACKET_2, PACKET_3).forEach { payload ->
                     val packet = Packet().apply {
                         timestamp = Timestamp(NOW)
@@ -234,7 +231,7 @@ class RtpHandlerTest : VertxTest() {
                 // Do nothing...
             },
             execute = {
-                val rtpHandler = RtpHandler(vertx.orCreateContext, false)
+                val rtpHandler = RtpHandler(vertx, JsonObject(), false)
 
                 vertx.setTimer(200L) {
                     val packet = Packet().apply {

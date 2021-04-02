@@ -24,23 +24,23 @@ import io.sip3.commons.domain.payload.ByteArrayPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.getBytes
 import io.sip3.commons.vertx.util.localSend
-import io.vertx.core.Context
+import io.vertx.core.Vertx
+import io.vertx.core.json.JsonObject
 
 /**
  * Handles RTCP packets
  */
-class RtcpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(context, bulkOperationsEnabled) {
+class RtcpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolean) : Handler(vertx, config, bulkOperationsEnabled) {
 
     private val packets = mutableListOf<Packet>()
     private var bulkSize = 1
 
-    private val vertx = context.owner()
     private val recordingManager = RecordingManager.getInstance(vertx)
 
     init {
-        context.config().getJsonObject("rtcp")?.let { config ->
+        config.getJsonObject("rtcp")?.let { rtcpConfig ->
             if (bulkOperationsEnabled) {
-                config.getInteger("bulk-size")?.let { bulkSize = it }
+                rtcpConfig.getInteger("bulk-size")?.let { bulkSize = it }
             }
         }
     }

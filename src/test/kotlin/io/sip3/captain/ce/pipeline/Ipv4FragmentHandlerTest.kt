@@ -24,6 +24,7 @@ import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.getBytes
 import io.sip3.commons.vertx.test.VertxTest
+import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -68,7 +69,7 @@ class Ipv4FragmentHandlerTest : VertxTest() {
                 vertx.deployTestVerticle(Ipv4FragmentHandler::class)
             },
             execute = {
-                val ipv4Handler = Ipv4Handler(vertx.orCreateContext, false)
+                val ipv4Handler = Ipv4Handler(vertx, JsonObject(), false)
                 val packet1 = Packet().apply {
                     timestamp = expectedTimestamp
                     payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
@@ -110,7 +111,7 @@ class Ipv4FragmentHandlerTest : VertxTest() {
                 vertx.deployTestVerticle(Ipv4FragmentHandler::class)
             },
             execute = {
-                val ipv4Handler = Ipv4Handler(vertx.orCreateContext, false)
+                val ipv4Handler = Ipv4Handler(vertx, JsonObject(), false)
                 val packet2 = Packet().apply {
                     timestamp = expectedTimestamp
                     payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))

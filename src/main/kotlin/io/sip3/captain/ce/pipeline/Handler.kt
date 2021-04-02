@@ -17,10 +17,11 @@
 package io.sip3.captain.ce.pipeline
 
 import io.sip3.captain.ce.domain.Packet
-import io.vertx.core.Context
+import io.vertx.core.Vertx
+import io.vertx.core.json.JsonObject
 import mu.KotlinLogging
 
-abstract class Handler(val context: Context, val bulkOperationsEnabled: Boolean = true) {
+abstract class Handler(val vertx: Vertx, val config: JsonObject, val bulkOperationsEnabled: Boolean = true) {
 
     private val logger = KotlinLogging.logger {}
 

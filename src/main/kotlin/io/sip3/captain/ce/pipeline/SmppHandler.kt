@@ -25,23 +25,21 @@ import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.getBytes
 import io.sip3.commons.util.remainingCapacity
 import io.sip3.commons.vertx.util.localSend
-import io.vertx.core.Context
 import io.vertx.core.Vertx
+import io.vertx.core.json.JsonObject
 
 /**
  * Handles SMPP packets
  */
-class SmppHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(context, bulkOperationsEnabled) {
+class SmppHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolean) : Handler(vertx, config, bulkOperationsEnabled) {
 
     private val packets = mutableListOf<Packet>()
     private var bulkSize = 1
 
-    private val vertx: Vertx = context.owner()
-
     init {
         if (bulkOperationsEnabled) {
-            context.config().getJsonObject("smpp")?.let { config ->
-                config.getInteger("bulk-size")?.let { bulkSize = it }
+            config.getJsonObject("smpp")?.let { smppConfig ->
+                smppConfig.getInteger("bulk-size")?.let { bulkSize = it }
             }
         }
     }

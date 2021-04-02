@@ -23,22 +23,21 @@ import io.sip3.commons.domain.payload.ByteArrayPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.getBytes
 import io.sip3.commons.vertx.util.localSend
-import io.vertx.core.Context
+import io.vertx.core.Vertx
+import io.vertx.core.json.JsonObject
 
 /**
  * Handles SIP packets
  */
-class SipHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(context, bulkOperationsEnabled) {
+class SipHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolean) : Handler(vertx, config, bulkOperationsEnabled) {
 
     private val packets = mutableListOf<Packet>()
     private var bulkSize = 1
 
-    private val vertx = context.owner()
-
     init {
         if (bulkOperationsEnabled) {
-            context.config().getJsonObject("sip")?.let { config ->
-                config.getInteger("bulk-size")?.let { bulkSize = it }
+            config.getJsonObject("sip")?.let { sipConfig ->
+                sipConfig.getInteger("bulk-size")?.let { bulkSize = it }
             }
         }
     }

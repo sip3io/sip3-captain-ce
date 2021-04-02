@@ -29,6 +29,7 @@ import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.domain.payload.RecordingPayload
 import io.sip3.commons.vertx.test.VertxTest
+import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -77,7 +78,7 @@ class RtcpHandlerTest : VertxTest() {
                 // Do nothing...
             },
             execute = {
-                val rtcpHandler = RtcpHandler(vertx.orCreateContext, false)
+                val rtcpHandler = RtcpHandler(vertx, JsonObject(), false)
 
                 vertx.setTimer(200L) {
                     val packet = Packet().apply {
@@ -126,7 +127,7 @@ class RtcpHandlerTest : VertxTest() {
                 // Do nothing...
             },
             execute = {
-                val rtcpHandler = RtcpHandler(vertx.orCreateContext, false)
+                val rtcpHandler = RtcpHandler(vertx, JsonObject(), false)
 
                 vertx.setTimer(200L) {
                     val packet = Packet().apply {

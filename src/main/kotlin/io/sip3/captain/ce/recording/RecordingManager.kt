@@ -120,7 +120,7 @@ object RecordingManager {
             type = packet.rejected?.protocolCode ?: packet.protocolCode
             mode = stream.mode
             callId = stream.callId
-            payload = when(packet.protocolCode) {
+            payload = when (packet.protocolCode) {
                 PacketTypes.RTP -> {
                     val recordingMark = packet.rejected?.recordingMark ?: packet.recordingMark
                     if (stream.mode == Recording.GDPR) {

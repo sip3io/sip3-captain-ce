@@ -18,15 +18,16 @@ package io.sip3.captain.ce.pipeline
 
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.domain.payload.Encodable
-import io.vertx.core.Context
+import io.vertx.core.Vertx
+import io.vertx.core.json.JsonObject
 
 /**
  * Handles ERSPAN packets
  */
-class ErspanHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(context, bulkOperationsEnabled) {
+class ErspanHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolean) : Handler(vertx, config, bulkOperationsEnabled) {
 
     private val ethernetHandler: EthernetHandler by lazy {
-        EthernetHandler(context, bulkOperationsEnabled)
+        EthernetHandler(vertx, config, bulkOperationsEnabled)
     }
 
     override fun onPacket(packet: Packet) {
