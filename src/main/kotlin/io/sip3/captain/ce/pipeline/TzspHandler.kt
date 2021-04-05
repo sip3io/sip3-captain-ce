@@ -20,12 +20,13 @@ import io.netty.buffer.ByteBuf
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.remainingCapacity
-import io.vertx.core.Context
+import io.vertx.core.Vertx
+import io.vertx.core.json.JsonObject
 
 /**
  * Handles TZSP packets
  */
-class TzspHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(context, bulkOperationsEnabled) {
+class TzspHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolean) : Handler(vertx, config, bulkOperationsEnabled) {
 
     companion object {
 
@@ -34,7 +35,7 @@ class TzspHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(co
     }
 
     private val ethernetHandler: EthernetHandler by lazy {
-        EthernetHandler(context, bulkOperationsEnabled)
+        EthernetHandler(vertx, config, bulkOperationsEnabled)
     }
 
     override fun onPacket(packet: Packet) {

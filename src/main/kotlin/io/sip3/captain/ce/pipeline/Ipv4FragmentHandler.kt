@@ -49,7 +49,7 @@ class Ipv4FragmentHandler : AbstractVerticle() {
         defragmentators = PassiveExpiringMap(ttl)
         vertx.setPeriodic(ttl) { defragmentators.size }
 
-        ipv4Handler = Ipv4Handler(vertx.orCreateContext, false)
+        ipv4Handler = Ipv4Handler(vertx, config(), false)
 
         vertx.eventBus().localConsumer<List<Pair<Ipv4Header, Packet>>>(RoutesCE.fragment) { event ->
             val packets = event.body()

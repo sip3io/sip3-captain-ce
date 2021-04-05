@@ -26,6 +26,7 @@ import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.remainingCapacity
 import io.sip3.commons.vertx.test.VertxTest
 import io.vertx.core.Vertx
+import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -104,7 +105,7 @@ class Ipv4HandlerTest : VertxTest() {
             anyConstructed<UdpHandler>().handle(capture(packetSlot))
         } just Runs
         // Execute
-        val ipv4Handler = Ipv4Handler(Vertx.vertx().orCreateContext, false)
+        val ipv4Handler = Ipv4Handler(Vertx.vertx(), JsonObject(), false)
         var packet = Packet().apply {
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
         }
@@ -127,7 +128,7 @@ class Ipv4HandlerTest : VertxTest() {
                 // Do nothing...
             },
             execute = {
-                val ipv4Handler = Ipv4Handler(vertx.orCreateContext, false)
+                val ipv4Handler = Ipv4Handler(vertx, JsonObject(), false)
                 var packet = Packet().apply {
                     this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
                 }
@@ -161,7 +162,7 @@ class Ipv4HandlerTest : VertxTest() {
             anyConstructed<UdpHandler>().handle(capture(packetSlot))
         } just Runs
         // Execute
-        val ipv4Handler = Ipv4Handler(Vertx.vertx().orCreateContext, false)
+        val ipv4Handler = Ipv4Handler(Vertx.vertx(), JsonObject(), false)
         var packet = Packet().apply {
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_3))
         }
@@ -186,7 +187,7 @@ class Ipv4HandlerTest : VertxTest() {
             anyConstructed<UdpHandler>().handle(capture(packetSlot))
         } just Runs
         // Execute
-        val ipv4Handler = Ipv4Handler(Vertx.vertx().orCreateContext, false)
+        val ipv4Handler = Ipv4Handler(Vertx.vertx(), JsonObject(), false)
         var packet = Packet().apply {
             this.timestamp = Timestamp(System.currentTimeMillis())
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_4))
@@ -215,7 +216,7 @@ class Ipv4HandlerTest : VertxTest() {
             anyConstructed<GreHandler>().handle(capture(packetSlot))
         } just Runs
         // Execute
-        val ipv4Handler = Ipv4Handler(Vertx.vertx().orCreateContext, false)
+        val ipv4Handler = Ipv4Handler(Vertx.vertx(), JsonObject(), false)
         var packet = Packet().apply {
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_5))
         }
@@ -238,7 +239,7 @@ class Ipv4HandlerTest : VertxTest() {
                 // Do nothing...
             },
             execute = {
-                val ipv4Handler = Ipv4Handler(vertx.orCreateContext, false)
+                val ipv4Handler = Ipv4Handler(vertx, JsonObject(), false)
                 var packet = Packet().apply {
                     this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_6))
                 }

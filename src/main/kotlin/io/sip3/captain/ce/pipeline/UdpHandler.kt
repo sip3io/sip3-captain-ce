@@ -19,12 +19,13 @@ package io.sip3.captain.ce.pipeline
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.util.SipUtil
 import io.sip3.commons.domain.payload.Encodable
-import io.vertx.core.Context
+import io.vertx.core.Vertx
+import io.vertx.core.json.JsonObject
 
 /**
  * Handles UDP packets
  */
-class UdpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(context, bulkOperationsEnabled) {
+class UdpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolean) : Handler(vertx, config, bulkOperationsEnabled) {
 
     companion object {
 
@@ -38,35 +39,35 @@ class UdpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
     private var tzspEnabled = false
 
     private val rtcpHandler: RtcpHandler by lazy {
-        RtcpHandler(context, bulkOperationsEnabled)
+        RtcpHandler(vertx, config, bulkOperationsEnabled)
     }
     private val rtpHandler: RtpHandler by lazy {
-        RtpHandler(context, bulkOperationsEnabled)
+        RtpHandler(vertx, config, bulkOperationsEnabled)
     }
     private val sipHandler: SipHandler by lazy {
-        SipHandler(context, bulkOperationsEnabled)
+        SipHandler(vertx, config, bulkOperationsEnabled)
     }
     private val vxlanHandler: VxlanHandler by lazy {
-        VxlanHandler(context, bulkOperationsEnabled)
+        VxlanHandler(vertx, config, bulkOperationsEnabled)
     }
     private val tzspHandler: TzspHandler by lazy {
-        TzspHandler(context, bulkOperationsEnabled)
+        TzspHandler(vertx, config, bulkOperationsEnabled)
     }
 
     init {
-        context.config().getJsonObject("rtcp")?.getBoolean("enabled")?.let {
+        config.getJsonObject("rtcp")?.getBoolean("enabled")?.let {
             rtcpEnabled = it
         }
-        context.config().getJsonObject("rtp")?.getBoolean("enabled")?.let {
+        config.getJsonObject("rtp")?.getBoolean("enabled")?.let {
             rtpEnabled = it
         }
-        context.config().getJsonObject("sip")?.getBoolean("enabled")?.let {
+        config.getJsonObject("sip")?.getBoolean("enabled")?.let {
             sipEnabled = it
         }
-        context.config().getJsonObject("vxlan")?.getBoolean("enabled")?.let {
+        config.getJsonObject("vxlan")?.getBoolean("enabled")?.let {
             vxlanEnabled = it
         }
-        context.config().getJsonObject("tzsp")?.getBoolean("enabled")?.let {
+        config.getJsonObject("tzsp")?.getBoolean("enabled")?.let {
             tzspEnabled = it
         }
     }

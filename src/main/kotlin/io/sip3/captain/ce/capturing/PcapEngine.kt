@@ -105,8 +105,8 @@ class PcapEngine : AbstractVerticle() {
             }
         }
 
-        ethernetHandler = EthernetHandler(vertx.orCreateContext, true)
-        ipv4Handler = Ipv4Handler(vertx.orCreateContext, true)
+        ethernetHandler = EthernetHandler(vertx, config(), true)
+        ipv4Handler = Ipv4Handler(vertx, config(), true)
 
         dir?.let {
             logger.info("Listening folder: $it")

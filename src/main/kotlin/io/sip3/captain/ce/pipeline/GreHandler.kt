@@ -18,12 +18,13 @@ package io.sip3.captain.ce.pipeline
 
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.domain.payload.Encodable
-import io.vertx.core.Context
+import io.vertx.core.Vertx
+import io.vertx.core.json.JsonObject
 
 /**
  * Handles GRE(Generic Routing Encapsulation) packets
  */
-class GreHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(context, bulkOperationsEnabled) {
+class GreHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolean) : Handler(vertx, config, bulkOperationsEnabled) {
 
     companion object {
 
@@ -32,10 +33,10 @@ class GreHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
     }
 
     private val erspanHandler: ErspanHandler by lazy {
-        ErspanHandler(context, bulkOperationsEnabled)
+        ErspanHandler(vertx, config, bulkOperationsEnabled)
     }
     private val ipv4Handler: Ipv4Handler by lazy {
-        Ipv4Handler(context, bulkOperationsEnabled)
+        Ipv4Handler(vertx, config, bulkOperationsEnabled)
     }
 
     override fun onPacket(packet: Packet) {

@@ -24,7 +24,6 @@ import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.remainingCapacity
 import io.vertx.core.Vertx
-import io.vertx.core.impl.EventLoopContext
 import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -87,7 +86,7 @@ class UdpHandlerTest {
             anyConstructed<SipHandler>().handle(capture(packetSlot))
         } just Runs
         // Execute
-        val udpHandler = UdpHandler(Vertx.vertx().orCreateContext, false)
+        val udpHandler = UdpHandler(Vertx.vertx(), JsonObject(), false)
         var packet = Packet().apply {
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
         }
@@ -110,17 +109,12 @@ class UdpHandlerTest {
             anyConstructed<RtpHandler>().handle(capture(packetSlot))
         } just Runs
 
-        mockkConstructor(EventLoopContext::class)
-        every {
-            anyConstructed<EventLoopContext>().config()
-        } returns JsonObject().apply {
+        // Execute
+        val udpHandler = UdpHandler(Vertx.vertx(), JsonObject().apply {
             put("rtp", JsonObject().apply {
                 put("enabled", true)
             })
-        }
-
-        // Execute
-        val udpHandler = UdpHandler(Vertx.vertx().orCreateContext, false)
+        }, false)
         var packet = Packet().apply {
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
         }
@@ -143,17 +137,12 @@ class UdpHandlerTest {
             anyConstructed<RtcpHandler>().handle(capture(packetSlot))
         } just Runs
 
-        mockkConstructor(EventLoopContext::class)
-        every {
-            anyConstructed<EventLoopContext>().config()
-        } returns JsonObject().apply {
+        // Execute
+        val udpHandler = UdpHandler(Vertx.vertx(), JsonObject().apply {
             put("rtcp", JsonObject().apply {
                 put("enabled", true)
             })
-        }
-
-        // Execute
-        val udpHandler = UdpHandler(Vertx.vertx().orCreateContext, false)
+        }, false)
         var packet = Packet().apply {
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_3))
         }
@@ -176,17 +165,12 @@ class UdpHandlerTest {
             anyConstructed<RtpHandler>().handle(capture(packetSlot))
         } just Runs
 
-        mockkConstructor(EventLoopContext::class)
-        every {
-            anyConstructed<EventLoopContext>().config()
-        } returns JsonObject().apply {
+        // Execute
+        val udpHandler = UdpHandler(Vertx.vertx(), JsonObject().apply {
             put("rtp", JsonObject().apply {
                 put("enabled", true)
             })
-        }
-
-        // Execute
-        val udpHandler = UdpHandler(Vertx.vertx().orCreateContext, false)
+        }, false)
         var packet = Packet().apply {
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
             this.rejected = Packet()
@@ -210,17 +194,12 @@ class UdpHandlerTest {
             anyConstructed<TzspHandler>().handle(capture(packetSlot))
         } just Runs
 
-        mockkConstructor(EventLoopContext::class)
-        every {
-            anyConstructed<EventLoopContext>().config()
-        } returns JsonObject().apply {
+        // Execute
+        val udpHandler = UdpHandler(Vertx.vertx(), JsonObject().apply {
             put("tzsp", JsonObject().apply {
                 put("enabled", true)
             })
-        }
-
-        // Execute
-        val udpHandler = UdpHandler(Vertx.vertx().orCreateContext, false)
+        }, false)
         var packet = Packet().apply {
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_4))
         }
@@ -243,17 +222,12 @@ class UdpHandlerTest {
             anyConstructed<VxlanHandler>().handle(capture(packetSlot))
         } just Runs
 
-        mockkConstructor(EventLoopContext::class)
-        every {
-            anyConstructed<EventLoopContext>().config()
-        } returns JsonObject().apply {
+        // Execute
+        val udpHandler = UdpHandler(Vertx.vertx(), JsonObject().apply {
             put("vxlan", JsonObject().apply {
                 put("enabled", true)
             })
-        }
-
-        // Execute
-        val udpHandler = UdpHandler(Vertx.vertx().orCreateContext, false)
+        }, false)
         var packet = Packet().apply {
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_5))
         }

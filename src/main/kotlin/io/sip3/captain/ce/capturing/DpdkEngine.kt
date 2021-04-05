@@ -95,7 +95,7 @@ class DpdkEngine : AbstractVerticle() {
         cores[coreId] = Core().apply {
             this.packetsCaptured = AtomicLong(0)
             this.buffers = buffers
-            this.ethernetHandler = EthernetHandler(vertx.orCreateContext, true)
+            this.ethernetHandler = EthernetHandler(vertx, config(), true)
         }
     }
 

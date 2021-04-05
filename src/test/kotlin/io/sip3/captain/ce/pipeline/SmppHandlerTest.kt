@@ -24,6 +24,7 @@ import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.remainingCapacity
 import io.sip3.commons.vertx.test.VertxTest
+import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.sql.Timestamp
@@ -59,7 +60,7 @@ class SmppHandlerTest : VertxTest() {
                 // Do nothing...
             },
             execute = {
-                val smppHandler = SmppHandler(vertx.orCreateContext, false)
+                val smppHandler = SmppHandler(vertx, JsonObject(), false)
                 val packet = Packet().apply {
                     timestamp = Timestamp(System.currentTimeMillis())
                     srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
@@ -94,7 +95,7 @@ class SmppHandlerTest : VertxTest() {
                 // Do nothing...
             },
             execute = {
-                val smppHandler = SmppHandler(vertx.orCreateContext, false)
+                val smppHandler = SmppHandler(vertx, JsonObject(), false)
                 val packet = Packet().apply {
                     timestamp = Timestamp(System.currentTimeMillis())
                     srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())

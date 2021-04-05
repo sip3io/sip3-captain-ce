@@ -111,9 +111,9 @@ class TcpHandler : AbstractVerticle() {
         if (connection == null) {
             connection = when {
                 sipEnabled && SipUtil.startsWithSipWord(buffer) ->
-                    TcpConnection(SipHandler(vertx.orCreateContext, false)) { b: ByteBuf -> SipUtil.startsWithSipWord(b) }
+                    TcpConnection(SipHandler(vertx, config(), false)) { b: ByteBuf -> SipUtil.startsWithSipWord(b) }
                 SmppUtil.isPdu(buffer) ->
-                    TcpConnection(SmppHandler(vertx.orCreateContext, false)) { b: ByteBuf -> SmppUtil.isPdu(b) }
+                    TcpConnection(SmppHandler(vertx, config(), false)) { b: ByteBuf -> SmppUtil.isPdu(b) }
                 else -> return
             }
             connections[connectionId] = connection

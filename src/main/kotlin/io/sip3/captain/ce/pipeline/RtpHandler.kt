@@ -25,13 +25,14 @@ import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.domain.payload.RtpHeaderPayload
 import io.sip3.commons.util.toIntRange
 import io.sip3.commons.vertx.util.localSend
-import io.vertx.core.Context
+import io.vertx.core.Vertx
+import io.vertx.core.json.JsonObject
 import kotlin.experimental.and
 
 /**
  * Handles RTP packets
  */
-class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(context, bulkOperationsEnabled) {
+class RtpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolean) : Handler(vertx, config, bulkOperationsEnabled) {
 
     private val packets = mutableMapOf<Long, MutableList<Packet>>()
     private val recordings = mutableListOf<Packet>()
@@ -41,21 +42,20 @@ class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
     private var payloadTypes = mutableSetOf<Byte>()
     private var collectorEnabled = false
 
-    private val vertx = context.owner()
     private val recordingManager = RecordingManager.getInstance(vertx)
 
     init {
-        context.config().getJsonObject("vertx")?.getInteger("instances")?.let {
+        config.getJsonObject("vertx")?.getInteger("instances")?.let {
             instances = it
         }
-        context.config().getJsonObject("rtp")?.let { config ->
+        config.getJsonObject("rtp")?.let { rtpConfig ->
             if (bulkOperationsEnabled) {
-                config.getInteger("bulk-size")?.let {
+                rtpConfig.getInteger("bulk-size")?.let {
                     bulkSize = it
                 }
             }
 
-            config.getJsonArray("payload-types")?.forEach { payloadType ->
+            rtpConfig.getJsonArray("payload-types")?.forEach { payloadType ->
                 when (payloadType) {
                     is Int -> payloadTypes.add(payloadType.toByte())
                     is String -> {
@@ -64,7 +64,7 @@ class RtpHandler(context: Context, bulkOperationsEnabled: Boolean) : Handler(con
                 }
             }
 
-            config.getJsonObject("collector")?.getBoolean("enabled")?.let {
+            rtpConfig.getJsonObject("collector")?.getBoolean("enabled")?.let {
                 collectorEnabled = it
             }
         }

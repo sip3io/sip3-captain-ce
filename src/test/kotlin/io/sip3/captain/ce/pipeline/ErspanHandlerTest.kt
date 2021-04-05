@@ -23,6 +23,7 @@ import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.vertx.core.Vertx
+import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -51,7 +52,7 @@ class ErspanHandlerTest {
             anyConstructed<EthernetHandler>().handle(capture(packetSlot))
         } just Runs
         // Execute
-        val erspanHandler = ErspanHandler(Vertx.vertx().orCreateContext, false)
+        val erspanHandler = ErspanHandler(Vertx.vertx(), JsonObject(), false)
         val packet = Packet().apply {
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
         }
