@@ -107,6 +107,8 @@ object RecordingManager {
     }
 
     fun record(packet: Packet): RecordingPayload? {
+        if (streams.isEmpty()) return null
+
         val stream = streams[MediaUtil.sdpSessionId(packet.srcAddr, packet.srcPort)]
             ?: streams[MediaUtil.sdpSessionId(packet.dstAddr, packet.dstPort)] ?: return null
 
