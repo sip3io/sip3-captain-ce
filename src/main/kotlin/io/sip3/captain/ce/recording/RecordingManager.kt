@@ -39,7 +39,7 @@ object RecordingManager {
     private var trimToSizeDelay: Long = 3600000
     private var expirationDelay: Long = 4000
     private var aggregationTimeout: Long = 30000
-    private var maxDuration: Long = 1800000
+    private var durationTimeout: Long = 3600000
 
     private var vertx: Vertx? = null
 
@@ -65,8 +65,8 @@ object RecordingManager {
             config.getLong("aggregation-timeout")?.let {
                 expirationDelay = it
             }
-            config.getLong("max-duration")?.let {
-                maxDuration = it
+            config.getLong("duration-timeout")?.let {
+                durationTimeout = it
             }
         }
 
@@ -77,7 +77,7 @@ object RecordingManager {
             val now = System.currentTimeMillis()
 
             streams.filterValues { stream ->
-                stream.updatedAt + aggregationTimeout < now || stream.createdAt + maxDuration < now
+                stream.updatedAt + aggregationTimeout < now || stream.createdAt + durationTimeout < now
             }.forEach { (key, _) ->
                 streams.remove(key)
             }
