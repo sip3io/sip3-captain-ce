@@ -45,6 +45,7 @@ name: sip3-captain
 #  trim-to-size-delay: 3600000
 #  expiration-delay: 4000
 #  aggregation-timeout: 30000
+#  duration-timeout: 3600000
 
 #! Encoder
 #encoder:

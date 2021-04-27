@@ -39,6 +39,7 @@ object RecordingManager {
     private var trimToSizeDelay: Long = 3600000
     private var expirationDelay: Long = 4000
     private var aggregationTimeout: Long = 30000
+    private var durationTimeout: Long = 3600000
 
     private var vertx: Vertx? = null
 
@@ -64,6 +65,9 @@ object RecordingManager {
             config.getLong("aggregation-timeout")?.let {
                 expirationDelay = it
             }
+            config.getLong("duration-timeout")?.let {
+                durationTimeout = it
+            }
         }
 
         vertx!!.setPeriodic(trimToSizeDelay) {
@@ -72,8 +76,8 @@ object RecordingManager {
         vertx!!.setPeriodic(expirationDelay) {
             val now = System.currentTimeMillis()
 
-            streams.filterValues { steam ->
-                steam.updatedAt + aggregationTimeout < now
+            streams.filterValues { stream ->
+                stream.updatedAt + aggregationTimeout < now || stream.createdAt + durationTimeout < now
             }.forEach { (key, _) ->
                 streams.remove(key)
             }
@@ -143,6 +147,7 @@ object RecordingManager {
 
 private class Stream {
 
+    val createdAt = System.currentTimeMillis()
     var updatedAt = System.currentTimeMillis()
     var mode: Byte = Recording.FULL
     lateinit var callId: String
