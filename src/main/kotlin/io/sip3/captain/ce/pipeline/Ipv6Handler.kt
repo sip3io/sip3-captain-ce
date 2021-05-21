@@ -29,56 +29,85 @@ import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 
 /**
- * Handles IPv4 packets
+ * Handles IPv6 packets
  */
-class Ipv4Handler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolean) : IpHandler(vertx, config, bulkOperationsEnabled) {
+class Ipv6Handler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolean) : IpHandler(vertx, config, bulkOperationsEnabled) {
 
     companion object {
 
-        const val TYPE_ICMP = 0x01
-        const val TYPE_IPV4 = 0x04
-        const val TYPE_TCP = 0x06
-        const val TYPE_UDP = 0x11
-        const val TYPE_GRE = 0x2F
-        const val TYPE_SCTP = 0x84
+        private const val TYPE_ICMP = 0x3A
+        private const val TYPE_IPV6 = 0x29
+        private const val TYPE_TCP = 0x06
+        private const val TYPE_UDP = 0x11
+
+        val UPPER_LAYER_HEADERS = setOf(
+            TYPE_ICMP,
+            TYPE_IPV6,
+            TYPE_TCP,
+            TYPE_UDP,
+            // `No Next Header` technically not an upper layer header.
+            // However, in the SIP3 context it could be be considered such one
+            0x3B
+        )
     }
 
     private val tcpPackets = mutableListOf<Packet>()
-    private val sctpPackets = mutableListOf<Packet>()
 
     private val udpHandler: UdpHandler by lazy {
         UdpHandler(vertx, config, bulkOperationsEnabled)
     }
-    private val greHandler: GreHandler by lazy {
-        GreHandler(vertx, config, bulkOperationsEnabled)
-    }
 
     override fun readIpHeader(buffer: ByteBuf): IpHeader {
+        var nextHeader: Int
+
         return IpHeader().apply {
-            // Version & IHL
-            headerLength = 4 * buffer.readUnsignedByte().toInt().and(0x0f)
-            // DSCP & ECN
-            buffer.skipBytes(1)
-            // Total Length
+            headerLength = 40
+            // Version & Traffic Class & Flow Label
+            buffer.skipBytes(4)
+            // Payload Length
             totalLength = buffer.readUnsignedShort()
-            // Identification
-            identification = buffer.readUnsignedShort()
-            // Flags & Fragment Offset
-            val flagsAndFragmentOffset = buffer.readUnsignedShort()
-            moreFragments = flagsAndFragmentOffset.and(0x2000) != 0
-            fragmentOffset = flagsAndFragmentOffset.and(0x1fff)
-            // Time To Live
+            // Next Header
+            nextHeader = buffer.readByte().toInt()
+            // Hop Limit
             buffer.skipBytes(1)
-            // Protocol
-            protocolNumber = buffer.readUnsignedByte().toInt()
-            // Header Checksum
-            buffer.skipBytes(2)
             // Source IP
-            srcAddr = ByteArray(4)
+            srcAddr = ByteArray(16)
             buffer.readBytes(srcAddr)
             // Destination IP
-            dstAddr = ByteArray(4)
+            dstAddr = ByteArray(16)
             buffer.readBytes(dstAddr)
+
+            // Extension Headers
+            while (nextHeader !in UPPER_LAYER_HEADERS) {
+                when (nextHeader) {
+                    // Fragment Header
+                    0x2C -> {
+                        // Next Header
+                        nextHeader = buffer.readByte().toInt()
+                        // Reserved
+                        buffer.skipBytes(1)
+                        // Fragment Offset & Res & M
+                        val fragmentOffsetAndFlags = buffer.readUnsignedShort()
+                        fragmentOffset = fragmentOffsetAndFlags.shr(3)
+                        moreFragments = fragmentOffsetAndFlags.and(0x01) != 0
+                        // Identification
+                        identification = buffer.readInt()
+
+                        headerLength += 8
+                    }
+                    // Other headers
+                    else -> {
+                        // Next Header
+                        nextHeader = buffer.readByte().toInt()
+                        // Header Extension Length
+                        val length = 8 * (buffer.readUnsignedByte() + 1)
+                        // Specific Data
+                        buffer.skipBytes(length - 2)
+
+                        headerLength += length
+                    }
+                }
+            }
         }
     }
 
@@ -117,7 +146,7 @@ class Ipv4Handler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
                 buffer.skipBytes(6)
 
                 // Destination Port Unreachable
-                if (type == 3 && code == 3) {
+                if (type == 1 && code == 4) {
                     val p = Packet().apply {
                         timestamp = packet.timestamp
                         payload = packet.payload
@@ -127,26 +156,9 @@ class Ipv4Handler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
                     onPacket(p)
                 }
             }
-            // IPv4:
-            TYPE_IPV4 -> {
+            // IPv6:
+            TYPE_IPV6 -> {
                 onPacket(packet)
-            }
-            // GRE(Generic Routing Encapsulation):
-            TYPE_GRE -> {
-                greHandler.handle(packet)
-            }
-            // SCTP:
-            TYPE_SCTP -> {
-                packet.payload = run {
-                    val buffer = (packet.payload as Encodable).encode()
-                    return@run ByteArrayPayload(buffer.getBytes())
-                }
-                sctpPackets.add(packet)
-
-                if (sctpPackets.size >= bulkSize) {
-                    vertx.eventBus().localSend(RoutesCE.sctp, sctpPackets.toList())
-                    sctpPackets.clear()
-                }
             }
         }
     }

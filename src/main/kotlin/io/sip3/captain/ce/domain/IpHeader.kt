@@ -16,7 +16,7 @@
 
 package io.sip3.captain.ce.domain
 
-class Ipv4Header {
+class IpHeader {
 
     var headerLength = 0
     var totalLength = 0
@@ -24,6 +24,6 @@ class Ipv4Header {
     var moreFragments = false
     var fragmentOffset = 0
     var protocolNumber = 0
-    var srcAddr = ByteArray(4)
-    var dstAddr = ByteArray(4)
+    lateinit var srcAddr: ByteArray
+    lateinit var dstAddr: ByteArray
 }

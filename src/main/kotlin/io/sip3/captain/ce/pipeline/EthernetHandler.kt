@@ -30,6 +30,7 @@ class EthernetHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: B
     companion object {
 
         const val TYPE_IPV4 = 0x0800
+        const val TYPE_IPV6 = 0x86dd
         const val TYPE_802_1_Q = 0x8100
         const val TYPE_802_1_AD = 0x88a8
         const val TYPE_LINUX_COOKED_CAPTURE = 0x0000
@@ -37,6 +38,9 @@ class EthernetHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: B
 
     private val ipv4Handler: Ipv4Handler by lazy {
         Ipv4Handler(vertx, config, bulkOperationsEnabled)
+    }
+    private val ipv6Handler: Ipv6Handler by lazy {
+        Ipv6Handler(vertx, config, bulkOperationsEnabled)
     }
 
     override fun onPacket(packet: Packet) {
@@ -49,6 +53,7 @@ class EthernetHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: B
 
         when (etherType) {
             TYPE_IPV4 -> ipv4Handler.handle(packet)
+            TYPE_IPV6 -> ipv6Handler.handle(packet)
         }
     }
 

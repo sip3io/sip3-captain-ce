@@ -19,20 +19,23 @@ package io.sip3.captain.ce.pipeline
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.RoutesCE
-import io.sip3.captain.ce.domain.Ipv4Header
+import io.sip3.captain.ce.domain.IpHeader
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
+import io.sip3.commons.util.IpUtil
 import io.sip3.commons.vertx.annotations.Instance
 import io.vertx.core.AbstractVerticle
 import mu.KotlinLogging
 import org.apache.commons.collections4.map.PassiveExpiringMap
-import java.net.InetAddress
 import java.sql.Timestamp
 import java.util.*
 
+/**
+ * Handles IPv4 and IPv6 fragments
+ */
 @Instance(singleton = true)
-class Ipv4FragmentHandler : AbstractVerticle() {
+class IpFragmentHandler : AbstractVerticle() {
 
     private val logger = KotlinLogging.logger {}
 
@@ -40,35 +43,35 @@ class Ipv4FragmentHandler : AbstractVerticle() {
     private var ttl: Long = 60000
 
     private lateinit var ipv4Handler: Ipv4Handler
+    private lateinit var ipv6Handler: Ipv6Handler
 
     override fun start() {
-        config().getJsonObject("ipv4")?.let { config ->
-            config.getLong("fragment-ttl")?.let { ttl = it }
+        config().getJsonObject("ip")?.getLong("fragment-ttl")?.let {
+            ttl = it
         }
 
         defragmentators = PassiveExpiringMap(ttl)
         vertx.setPeriodic(ttl) { defragmentators.size }
 
         ipv4Handler = Ipv4Handler(vertx, config(), false)
+        ipv6Handler = Ipv6Handler(vertx, config(), false)
 
-        vertx.eventBus().localConsumer<List<Pair<Ipv4Header, Packet>>>(RoutesCE.fragment) { event ->
+        vertx.eventBus().localConsumer<List<Pair<IpHeader, Packet>>>(RoutesCE.fragment) { event ->
             val packets = event.body()
             packets.forEach { (header, packet) ->
                 try {
                     onPacket(header, packet)
                 } catch (e: Exception) {
-                    logger.error("Ipv4FragmentHandler 'onPacket()' failed.", e)
+                    logger.error("IpFragmentHandler 'onPacket()' failed.", e)
                 }
             }
         }
     }
 
-    fun onPacket(header: Ipv4Header, packet: Packet) {
-        val srcAddr = InetAddress.getByAddress(header.srcAddr)
-        val dstAddr = InetAddress.getByAddress(header.dstAddr)
-        val key = "${srcAddr.hostAddress}:${dstAddr.hostAddress}:${header.identification}"
+    fun onPacket(header: IpHeader, packet: Packet) {
+        val key = "${IpUtil.convertToString(header.srcAddr)}:${IpUtil.convertToString(header.srcAddr)}:${header.identification}"
 
-        var defragmentator = defragmentators.computeIfAbsent(key) { Defragmentator(packet.timestamp) }
+        val defragmentator = defragmentators.computeIfAbsent(key) { Defragmentator(packet.timestamp) }
         defragmentator.onPacket(header, (packet.payload as Encodable).encode())?.let { buffer ->
             val p = Packet().apply {
                 this.timestamp = defragmentator.timestamp
@@ -77,7 +80,12 @@ class Ipv4FragmentHandler : AbstractVerticle() {
                 this.protocolNumber = header.protocolNumber
                 this.payload = ByteBufPayload(buffer)
             }
-            ipv4Handler.routePacket(p)
+
+            if (header.srcAddr.size == 4) {
+                ipv4Handler.routePacket(p)
+            } else {
+                ipv6Handler.routePacket(p)
+            }
 
             defragmentators.remove(key)
         }
@@ -85,11 +93,11 @@ class Ipv4FragmentHandler : AbstractVerticle() {
 
     class Defragmentator(val timestamp: Timestamp) {
 
-        private val headers = TreeMap<Int, Ipv4Header>()
+        private val headers = TreeMap<Int, IpHeader>()
         private val buffers = TreeMap<Int, ByteBuf>()
         private var lastFragmentReceived = false
 
-        fun onPacket(header: Ipv4Header, buffer: ByteBuf): ByteBuf? {
+        fun onPacket(header: IpHeader, buffer: ByteBuf): ByteBuf? {
             headers[8 * header.fragmentOffset] = header
             buffers[8 * header.fragmentOffset] = buffer
             lastFragmentReceived = lastFragmentReceived || !header.moreFragments

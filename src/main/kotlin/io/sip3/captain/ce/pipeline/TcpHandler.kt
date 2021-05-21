@@ -46,7 +46,7 @@ class TcpHandler : AbstractVerticle() {
 
     private var sipEnabled = true
 
-    private val connections = mutableMapOf<Long, TcpConnection>()
+    private val connections = mutableMapOf<String, TcpConnection>()
 
     override fun start() {
         config().getJsonObject("tcp")?.let { config ->
@@ -102,9 +102,9 @@ class TcpHandler : AbstractVerticle() {
         }
 
         // Calculate TCP connection identifier
-        val srcAddr = IpUtil.convertToInt(packet.srcAddr).toLong()
+        val srcAddr = IpUtil.convertToString(packet.srcAddr)
         val srcPort = packet.srcPort.toLong()
-        val connectionId = (srcAddr shl 32) or srcPort
+        val connectionId = "$srcAddr:$srcPort"
 
         // Find existing connection or add a new one, but only after it's type defined
         var connection = connections[connectionId]

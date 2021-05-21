@@ -33,7 +33,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import java.sql.Timestamp
 
 @ExtendWith(MockKExtension::class)
-class Ipv4FragmentHandlerTest : VertxTest() {
+class IpFragmentHandlerTest : VertxTest() {
 
     companion object {
 
@@ -66,7 +66,7 @@ class Ipv4FragmentHandlerTest : VertxTest() {
         } just Runs
         runTest(
             deploy = {
-                vertx.deployTestVerticle(Ipv4FragmentHandler::class)
+                vertx.deployTestVerticle(IpFragmentHandler::class)
             },
             execute = {
                 val ipv4Handler = Ipv4Handler(vertx, JsonObject(), false)
@@ -108,7 +108,7 @@ class Ipv4FragmentHandlerTest : VertxTest() {
         } just Runs
         runTest(
             deploy = {
-                vertx.deployTestVerticle(Ipv4FragmentHandler::class)
+                vertx.deployTestVerticle(IpFragmentHandler::class)
             },
             execute = {
                 val ipv4Handler = Ipv4Handler(vertx, JsonObject(), false)
