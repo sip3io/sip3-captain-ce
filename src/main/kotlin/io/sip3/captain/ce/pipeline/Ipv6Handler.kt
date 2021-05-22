@@ -58,6 +58,7 @@ class Ipv6Handler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
     }
 
     override fun readIpHeader(buffer: ByteBuf): IpHeader {
+        var payloadLength: Int
         var nextHeader: Int
 
         return IpHeader().apply {
@@ -65,7 +66,7 @@ class Ipv6Handler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
             // Version & Traffic Class & Flow Label
             buffer.skipBytes(4)
             // Payload Length
-            totalLength = buffer.readUnsignedShort()
+            payloadLength = buffer.readUnsignedShort()
             // Next Header
             nextHeader = buffer.readByte().toInt()
             // Hop Limit
@@ -108,6 +109,9 @@ class Ipv6Handler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
                     }
                 }
             }
+
+            totalLength = headerLength + payloadLength
+            protocolNumber = nextHeader
         }
     }
 
