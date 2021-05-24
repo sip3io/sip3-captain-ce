@@ -34,32 +34,32 @@ class EthernetHandlerTest {
 
     companion object {
 
-        // Header: Ethernet II
+        // Header: Ethernet II (IPv4)
         val PACKET_1 = byteArrayOf(
             0x00.toByte(), 0x00.toByte(), 0x5e.toByte(), 0x00.toByte(), 0x01.toByte(), 0x4b.toByte(), 0x00.toByte(),
             0x08.toByte(), 0x25.toByte(), 0x20.toByte(), 0x1a.toByte(), 0xe0.toByte(), 0x08.toByte(), 0x00.toByte()
         )
 
-        // Header: Ethernet 802-1Q
+        // Header: Ethernet 802-1Q (IPv4)
         val PACKET_2 = byteArrayOf(
             0x00.toByte(), 0x00.toByte(), 0x5e.toByte(), 0x00.toByte(), 0x01.toByte(), 0x4b.toByte(), 0x00.toByte(),
             0x08.toByte(), 0x25.toByte(), 0x20.toByte(), 0x1a.toByte(), 0xe0.toByte(), 0x81.toByte(), 0x00.toByte(),
             0x01.toByte(), 0x55.toByte(), 0x08.toByte(), 0x00.toByte()
         )
 
-        // Header: Ethernet 802-1AD
+        // Header: Ethernet 802-1AD (IPv6)
         val PACKET_3 = byteArrayOf(
             0x00.toByte(), 0x00.toByte(), 0x5e.toByte(), 0x00.toByte(), 0x01.toByte(), 0x4b.toByte(), 0x00.toByte(),
             0x08.toByte(), 0x25.toByte(), 0x20.toByte(), 0x1a.toByte(), 0xe0.toByte(), 0x88.toByte(), 0xa8.toByte(),
-            0x01.toByte(), 0x55.toByte(), 0x81.toByte(), 0x00.toByte(), 0x01.toByte(), 0x55.toByte(), 0x08.toByte(),
-            0x00.toByte()
+            0x01.toByte(), 0x55.toByte(), 0x81.toByte(), 0x00.toByte(), 0x01.toByte(), 0x55.toByte(), 0x86.toByte(),
+            0xdd.toByte()
         )
 
-        // Header: Ethernet LinuxCookedCapture
+        // Header: Ethernet LinuxCookedCapture (IPv6)
         val PACKET_4 = byteArrayOf(
             0x00.toByte(), 0x00.toByte(), 0x03.toByte(), 0x0a.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(),
             0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(),
-            0x08.toByte(), 0x00.toByte()
+            0x86.toByte(), 0xdd.toByte()
         )
     }
 
@@ -106,12 +106,12 @@ class EthernetHandlerTest {
     }
 
     @Test
-    fun `Parse 802-1AD - IPv4`() {
+    fun `Parse 802-1AD - IPv6`() {
         // Init
-        mockkConstructor(Ipv4Handler::class) {
+        mockkConstructor(Ipv6Handler::class) {
             val packetSlot = slot<Packet>()
             every {
-                anyConstructed<Ipv4Handler>().handle(capture(packetSlot))
+                anyConstructed<Ipv6Handler>().handle(capture(packetSlot))
             } just Runs
             // Execute
             val ethernetHandler = EthernetHandler(Vertx.vertx(), JsonObject(), false)
@@ -120,19 +120,19 @@ class EthernetHandlerTest {
             }
             ethernetHandler.handle(packet)
             // Assert
-            verify(timeout = 10000) { anyConstructed<Ipv4Handler>().handle(any()) }
+            verify(timeout = 10000) { anyConstructed<Ipv6Handler>().handle(any()) }
             val buffer = (packetSlot.captured.payload as Encodable).encode()
             assertEquals(22, buffer.readerIndex())
         }
     }
 
     @Test
-    fun `Parse LinuxCookedCapture - IPv4`() {
+    fun `Parse LinuxCookedCapture - IPv6`() {
         // Init
-        mockkConstructor(Ipv4Handler::class) {
+        mockkConstructor(Ipv6Handler::class) {
             val packetSlot = slot<Packet>()
             every {
-                anyConstructed<Ipv4Handler>().handle(capture(packetSlot))
+                anyConstructed<Ipv6Handler>().handle(capture(packetSlot))
             } just Runs
             // Execute
             val ethernetHandler = EthernetHandler(Vertx.vertx(), JsonObject(), false)
@@ -141,7 +141,7 @@ class EthernetHandlerTest {
             }
             ethernetHandler.handle(packet)
             // Assert
-            verify(timeout = 10000) { anyConstructed<Ipv4Handler>().handle(any()) }
+            verify(timeout = 10000) { anyConstructed<Ipv6Handler>().handle(any()) }
             val buffer = (packetSlot.captured.payload as Encodable).encode()
             assertEquals(16, buffer.readerIndex())
         }

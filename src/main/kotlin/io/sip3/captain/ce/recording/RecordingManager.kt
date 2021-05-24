@@ -43,7 +43,7 @@ object RecordingManager {
 
     private var vertx: Vertx? = null
 
-    private var streams = mutableMapOf<Long, Stream>()
+    private var streams = mutableMapOf<String, Stream>()
 
     @Synchronized
     fun getInstance(vertx: Vertx): RecordingManager {

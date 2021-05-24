@@ -21,7 +21,9 @@ import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.pipeline.EthernetHandler
 import io.sip3.captain.ce.pipeline.Ipv4Handler
+import io.sip3.captain.ce.pipeline.Ipv6Handler
 import io.sip3.commons.domain.payload.ByteBufPayload
+import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.vertx.annotations.ConditionalOnProperty
 import io.sip3.commons.vertx.annotations.Instance
 import io.vertx.core.AbstractVerticle
@@ -66,6 +68,7 @@ class PcapEngine : AbstractVerticle() {
 
     private lateinit var ethernetHandler: EthernetHandler
     private lateinit var ipv4Handler: Ipv4Handler
+    private lateinit var ipv6Handler: Ipv6Handler
 
     private val packetsCaptured = Metrics.counter("packets_captured", "source", "pcap")
 
@@ -107,6 +110,7 @@ class PcapEngine : AbstractVerticle() {
 
         ethernetHandler = EthernetHandler(vertx, config(), true)
         ipv4Handler = Ipv4Handler(vertx, config(), true)
+        ipv6Handler = Ipv6Handler(vertx, config(), true)
 
         dir?.let {
             logger.info("Listening folder: $it")
@@ -202,8 +206,18 @@ class PcapEngine : AbstractVerticle() {
 
     private fun handle(packet: Packet) {
         when (dlt) {
-            "EN10MB" -> ethernetHandler.handle(packet)
-            "RAW" -> ipv4Handler.handle(packet)
+            "EN10MB" -> {
+                ethernetHandler.handle(packet)
+            }
+            "RAW" -> {
+                val version = (packet.payload as Encodable).encode().getByte(0).toInt()
+                when (version) {
+                    // IPv4
+                    4 -> ipv4Handler.handle(packet)
+                    // IPv6
+                    6 -> ipv6Handler.handle(packet)
+                }
+            }
         }
     }
 }

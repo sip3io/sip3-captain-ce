@@ -16,7 +16,9 @@
 
 package io.sip3.captain.ce.pipeline
 
+import io.netty.buffer.ByteBufUtil
 import io.sip3.captain.ce.domain.Packet
+import io.sip3.commons.domain.payload.Encodable
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 import mu.KotlinLogging
@@ -32,6 +34,11 @@ abstract class Handler(val vertx: Vertx, val config: JsonObject, val bulkOperati
             onPacket(packet)
         } catch (e: Exception) {
             logger.error("Handler 'onPacket()' failed.", e)
+            logger.debug {
+                val buffer = (packet.payload as Encodable).encode()
+                buffer.resetReaderIndex()
+                return@debug ByteBufUtil.prettyHexDump(buffer)
+            }
         }
     }
 }
