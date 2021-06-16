@@ -1,11 +1,11 @@
-FROM java:alpine
+FROM shipilev/openjdk:16
 
 MAINTAINER @agafox <agafox@sip3.io>
 MAINTAINER @windsent <windsent@sip3.io>
 
-RUN apk update && \
-    apk add libpcap && \
-    apk add openssl
+RUN apt-get update && \
+    apt-get install libpcap0.8 && \
+    apt-get install openssl
 
 ENV SERVICE_NAME sip3-captain
 ENV HOME /opt/$SERVICE_NAME
