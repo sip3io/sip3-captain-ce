@@ -55,7 +55,7 @@ class BootstrapTest : VertxTest() {
                 })
             },
             execute = {
-                vertx.setPeriodic(100) { file.setLastModified(System.currentTimeMillis()) }
+                vertx.setPeriodic(1000) { file.setLastModified(System.currentTimeMillis()) }
             },
             assert = {
                 vertx.createDatagramSocket()
