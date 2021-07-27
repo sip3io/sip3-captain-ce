@@ -21,14 +21,12 @@ import io.sip3.captain.ce.RoutesCE
 import io.sip3.commons.vertx.annotations.Instance
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.buffer.Buffer
+import io.vertx.core.datagram.DatagramSocket
 import io.vertx.core.net.NetClientOptions
 import io.vertx.core.net.NetSocket
 import mu.KotlinLogging
 import java.net.InetSocketAddress
 import java.net.URI
-import java.nio.ByteBuffer
-import java.nio.channels.DatagramChannel
-import java.security.Security
 
 /**
  * Sends encoded packets to `SIP3 Salto`.
@@ -45,9 +43,8 @@ class Sender : AbstractVerticle() {
     var isSSl = false
     var keyStore: String? = null
     var keyStorePassword: String? = null
-    var dnsCacheTtl: Long? = null
 
-    var udp: DatagramChannel? = null
+    var udp: DatagramSocket? = null
     var tcp: NetSocket? = null
 
     private val packetsSent = Metrics.counter("packets_sent")
@@ -63,25 +60,12 @@ class Sender : AbstractVerticle() {
                 keyStore = sslConfig.getString("key-store")
                 keyStorePassword = sslConfig.getString("key-store-password")
             }
-
-            // AWS resources use DNS name entries. But some JVMs will never refresh DNS entries by default.
-            // That's why we can overwrite default TTL with a specific value.
-            config.getLong("dns-cache-ttl")?.let {
-                Security.setProperty("networkaddress.cache.ttl", (it / 1000).toString())
-                dnsCacheTtl = it
-            }
         }
 
         when (uri.scheme) {
             "udp" -> openUdpConnection()
             "tcp" -> openTcpConnection()
             else -> throw NotImplementedError("Unknown protocol: $uri")
-        }
-
-        dnsCacheTtl?.let { ttl ->
-            vertx.setPeriodic(ttl) {
-                socketAddress = InetSocketAddress(uri.host, uri.port)
-            }
         }
 
         vertx.eventBus().localConsumer<List<Buffer>>(RoutesCE.sender) { event ->
@@ -95,12 +79,8 @@ class Sender : AbstractVerticle() {
     }
 
     fun openUdpConnection() {
+        udp = vertx.createDatagramSocket()
         logger.info("UDP connection opened: $uri")
-        udp = DatagramChannel.open().apply {
-            if (dnsCacheTtl == null) {
-                connect(socketAddress)
-            }
-        }
     }
 
     fun openTcpConnection() {
@@ -133,11 +113,8 @@ class Sender : AbstractVerticle() {
         packetsSent.increment(buffers.size.toDouble())
 
         udp?.let { socket ->
-            buffers.map { ByteBuffer.wrap(it.bytes) }.forEach { buffer ->
-                if (dnsCacheTtl == null) socket.write(buffer) else socket.send(buffer, socketAddress)
-            }
+            buffers.forEach { socket.send(it, uri.port, uri.host) }
         }
-
         tcp?.let { socket ->
             buffers.forEach { socket.write(it) }
         }

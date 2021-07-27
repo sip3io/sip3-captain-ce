@@ -58,7 +58,6 @@ sender:
 #  ssl:
 #    key-store: ...
 #    key-store-password: ...
-#  dns-cache-ttl: 60000
 
 #! ManagementSocket
 #management:

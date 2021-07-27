@@ -71,7 +71,7 @@ class PcapEngineTest : VertxTest() {
                     })
                 },
                 execute = {
-                    vertx.setPeriodic(100) {
+                    vertx.setPeriodic(1000) {
                         file.setLastModified(System.currentTimeMillis())
                     }
                 },
