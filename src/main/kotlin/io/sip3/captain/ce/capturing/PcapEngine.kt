@@ -244,11 +244,15 @@ abstract class PacketHandle {
     fun handle(sec: Long, usec: Int, size: Int) {
         val timestamp = Timestamp(sec * 1000 + usec / 1000).apply { nanos += usec % 1000 }
 
-        buffers.take(size).forEach { buffer ->
+        buffers.take(size).forEachIndexed { i, buffer ->
+            buffer.position(0)
+            buffer.limit(lengths[i])
+
             val packet = Packet().apply {
                 this.timestamp = timestamp
-                this.payload = ByteBufPayload(Unpooled.wrappedBuffer(buffer))
+                this.payload = ByteBufPayload(Unpooled.wrappedBuffer(buffer.slice()))
             }
+
             try {
                 onPacket(packet)
             } catch (e: Exception) {
