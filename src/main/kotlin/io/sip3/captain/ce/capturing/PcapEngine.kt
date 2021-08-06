@@ -49,8 +49,6 @@ class PcapEngine : AbstractVerticle() {
 
     companion object {
 
-        const val SNAP_LENGTH = 65535
-
         val DATA_LINK_TYPES = setOf(
             "EN10MB",
             "RAW"
@@ -60,10 +58,11 @@ class PcapEngine : AbstractVerticle() {
     var dir: String? = null
     var dev: String? = null
     var dlt = "EN10MB"
-    var bpfFilter = ""
-    var bufferSize = 2097152
     var bulkSize = 256
+    var snaplen = 65535
+    var bufferSize = 2097152
     var timeoutMillis = 1
+    var bpfFilter = ""
     private var useJniLib = false
 
     private lateinit var ethernetHandler: EthernetHandler
@@ -97,11 +96,14 @@ class PcapEngine : AbstractVerticle() {
             config.getString("bpf-filter")?.let {
                 bpfFilter = it
             }
-            config.getInteger("buffer-size")?.let {
-                bufferSize = it
-            }
             config.getInteger("bulk-size")?.let {
                 bulkSize = it
+            }
+            config.getInteger("snaplen")?.let {
+                snaplen = it
+            }
+            config.getInteger("buffer-size")?.let {
+                bufferSize = it
             }
             config.getInteger("timeout-millis")?.let {
                 timeoutMillis = it
@@ -163,7 +165,7 @@ class PcapEngine : AbstractVerticle() {
             // Vert.x asks to execute long blocking operations in separate application thread.
             Executors.newSingleThreadExecutor().execute {
                 try {
-                    handle.loop(dev!!, bpfFilter, bufferSize, bulkSize, timeoutMillis)
+                    handle.loop(dev!!, bulkSize, snaplen, bufferSize, timeoutMillis, bpfFilter)
                 } catch (t: Throwable) {
                     logger.error("Got exception...", t)
                     exitProcess(-1)
@@ -172,7 +174,7 @@ class PcapEngine : AbstractVerticle() {
         } else {
             val handle = PcapHandle.Builder(dev)
                 .promiscuousMode(PcapNetworkInterface.PromiscuousMode.PROMISCUOUS)
-                .snaplen(SNAP_LENGTH)
+                .snaplen(snaplen)
                 .bufferSize(bufferSize)
                 .timeoutMillis(timeoutMillis)
                 .build()
@@ -229,22 +231,28 @@ abstract class PacketHandle {
 
     private val logger = KotlinLogging.logger {}
 
-    private lateinit var packets: Array<ByteBuffer>
+    private lateinit var buffers: Array<ByteBuffer>
+    private lateinit var lengths: IntArray
 
-    external fun loop(dev: String, bpfFilter: String, bufferSize: Int, bulkSize: Int, timeoutMillis: Int)
+    external fun loop(dev: String, bulkSize: Int, snaplen: Int, bufferSize: Int, timeoutMillis: Int, bpfFilter: String)
 
-    fun init(packets: Array<ByteBuffer>) {
-        this.packets = packets
+    fun init(buffers: Array<ByteBuffer>, lengths: IntArray) {
+        this.buffers = buffers
+        this.lengths = lengths
     }
 
-    fun dispatch(sec: Long, usec: Int, bulkSize: Int) {
+    fun handle(sec: Long, usec: Int, size: Int) {
         val timestamp = Timestamp(sec * 1000 + usec / 1000).apply { nanos += usec % 1000 }
 
-        packets.take(bulkSize).forEach { buffer ->
+        buffers.take(size).forEachIndexed { i, buffer ->
+            buffer.position(0)
+            buffer.limit(lengths[i])
+
             val packet = Packet().apply {
                 this.timestamp = timestamp
-                this.payload = ByteBufPayload(Unpooled.wrappedBuffer(buffer))
+                this.payload = ByteBufPayload(Unpooled.wrappedBuffer(buffer.slice()))
             }
+
             try {
                 onPacket(packet)
             } catch (e: Exception) {
