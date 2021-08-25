@@ -231,25 +231,27 @@ abstract class PacketHandle {
 
     private val logger = KotlinLogging.logger {}
 
+    private lateinit var seconds: LongArray
+    private lateinit var millis: IntArray
     private lateinit var buffers: Array<ByteBuffer>
     private lateinit var lengths: IntArray
 
     external fun loop(dev: String, bulkSize: Int, snaplen: Int, bufferSize: Int, timeoutMillis: Int, bpfFilter: String)
 
-    fun init(buffers: Array<ByteBuffer>, lengths: IntArray) {
+    fun init(seconds: LongArray, millis: IntArray, buffers: Array<ByteBuffer>, lengths: IntArray) {
+        this.seconds = seconds
+        this.millis = millis
         this.buffers = buffers
         this.lengths = lengths
     }
 
-    fun handle(sec: Long, usec: Int, size: Int) {
-        val timestamp = Timestamp(sec * 1000 + usec / 1000).apply { nanos += usec % 1000 }
-
+    fun handle(size: Int) {
         buffers.take(size).forEachIndexed { i, buffer ->
             buffer.position(0)
             buffer.limit(lengths[i])
 
             val packet = Packet().apply {
-                this.timestamp = timestamp
+                this.timestamp = Timestamp(seconds[i] * 1000 + millis[i] / 1000).apply { nanos += millis[i] % 1000 }
                 this.payload = ByteBufPayload(Unpooled.wrappedBuffer(buffer.slice()))
             }
 
