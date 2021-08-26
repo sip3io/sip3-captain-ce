@@ -43,6 +43,9 @@ class ManagementSocketTest : VertxTest() {
                 put("timestamp", System.currentTimeMillis())
                 // Call ID
                 put("call_id", "f81d4fae-7dec-11d0-a765-00a0c91e6bf6@foo.bar.com")
+                // Users
+                put("caller", "123")
+                put("callee", "456")
                 // SDP Session
                 put("sdp_session", JsonObject().apply {
                     put("src", JsonObject().apply {
