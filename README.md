@@ -21,8 +21,8 @@ mvn clean package -P executable-jar
 
 ## 3. Documentation
 
-The entire SIP3 Documentation including `Getting Started Guide`, `Installation Guide`, `Features`, `Tutorials`
-and `Realease Notes` can be found [here](https://sip3.io/docs/GettingStartedGuide.html).
+The entire SIP3 Documentation including `Installation Guide`, `Features`, `Tutorials`
+and `Realease Notes` can be found [here](https://sip3.io/docs/InstallationGuide.html).
 
 ## 4. Support
 
