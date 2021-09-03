@@ -16,7 +16,7 @@ name: sip3-captain
 #  dir: /tmp/sip3-captain
 #  dev: eth0
 #  dlt: EN10MB
-#  bpf-filter: udp
+#  bpf-filter: ip and udp
 #  bulk-size: 256
 #  snaplen: 65535
 #  buffer-size: 2097152
