@@ -17,11 +17,11 @@
 package io.sip3.captain.ce.domain
 
 import io.sip3.commons.domain.payload.Payload
-import java.sql.Timestamp
 
 class Packet {
 
-    lateinit var timestamp: Timestamp
+    var timestamp: Long = 0
+    var nanos: Int = 0
     lateinit var srcAddr: ByteArray
     lateinit var dstAddr: ByteArray
     var protocolNumber: Int = 0
@@ -35,6 +35,7 @@ class Packet {
     fun copy(): Packet {
         val p = Packet()
         p.timestamp = timestamp
+        p.nanos = nanos
         p.srcAddr = srcAddr
         p.dstAddr = dstAddr
         p.protocolNumber = protocolNumber

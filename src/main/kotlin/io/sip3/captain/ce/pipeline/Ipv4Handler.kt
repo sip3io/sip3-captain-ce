@@ -120,6 +120,7 @@ class Ipv4Handler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
                 if (type == 3 && code == 3) {
                     val p = Packet().apply {
                         timestamp = packet.timestamp
+                        nanos = packet.nanos
                         payload = packet.payload
 
                         rejected = packet

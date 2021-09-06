@@ -34,7 +34,6 @@ import org.springframework.boot.devtools.filewatch.ChangedFiles
 import org.springframework.boot.devtools.filewatch.FileSystemWatcher
 import java.io.File
 import java.nio.ByteBuffer
-import java.sql.Timestamp
 import java.util.concurrent.Executors
 import kotlin.system.exitProcess
 
@@ -198,8 +197,11 @@ class PcapEngine : AbstractVerticle() {
         loop(0, (RawPacketListener { buffer ->
             packetsCaptured.increment()
 
+            val timestamp = timestamp
+
             val packet = Packet().apply {
-                this.timestamp = getTimestamp()
+                this.timestamp = timestamp.time
+                this.nanos = timestamp.nanos
                 this.payload = ByteBufPayload(Unpooled.wrappedBuffer(buffer))
             }
             handle(packet)
@@ -251,7 +253,8 @@ abstract class PacketHandle {
             buffer.limit(lengths[i])
 
             val packet = Packet().apply {
-                this.timestamp = Timestamp(seconds[i] * 1000 + millis[i] / 1000).apply { nanos += millis[i] % 1000 }
+                this.timestamp = seconds[i] * 1000 + millis[i] / 1000
+                this.nanos = millis[i] % 1000
                 this.payload = ByteBufPayload(Unpooled.wrappedBuffer(buffer.slice()))
             }
 

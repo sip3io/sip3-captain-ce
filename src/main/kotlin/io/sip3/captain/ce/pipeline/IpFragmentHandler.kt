@@ -28,7 +28,6 @@ import io.sip3.commons.vertx.annotations.Instance
 import io.vertx.core.AbstractVerticle
 import mu.KotlinLogging
 import org.apache.commons.collections4.map.PassiveExpiringMap
-import java.sql.Timestamp
 import java.util.*
 
 /**
@@ -71,10 +70,16 @@ class IpFragmentHandler : AbstractVerticle() {
     fun onPacket(header: IpHeader, packet: Packet) {
         val key = "${IpUtil.convertToString(header.srcAddr)}:${IpUtil.convertToString(header.srcAddr)}:${header.identification}"
 
-        val defragmentator = defragmentators.computeIfAbsent(key) { Defragmentator(packet.timestamp) }
+        val defragmentator = defragmentators.computeIfAbsent(key) {
+            Defragmentator().apply {
+                this.timestamp = packet.timestamp
+                this.nanos = packet.nanos
+            }
+        }
         defragmentator.onPacket(header, (packet.payload as Encodable).encode())?.let { buffer ->
             val p = Packet().apply {
                 this.timestamp = defragmentator.timestamp
+                this.nanos = defragmentator.nanos
                 this.srcAddr = header.srcAddr
                 this.dstAddr = header.dstAddr
                 this.protocolNumber = header.protocolNumber
@@ -91,7 +96,10 @@ class IpFragmentHandler : AbstractVerticle() {
         }
     }
 
-    class Defragmentator(val timestamp: Timestamp) {
+    class Defragmentator {
+
+        var timestamp: Long = 0
+        var nanos: Int = 0
 
         private val headers = TreeMap<Int, IpHeader>()
         private val buffers = TreeMap<Int, ByteBuf>()

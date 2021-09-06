@@ -30,7 +30,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import java.sql.Timestamp
 
 @ExtendWith(MockKExtension::class)
 class IpFragmentHandlerTest : VertxTest() {
@@ -58,7 +57,9 @@ class IpFragmentHandlerTest : VertxTest() {
 
     @Test
     fun `Assemble 2 fragments sent in order`() {
-        val expectedTimestamp = Timestamp(System.currentTimeMillis() - 10000)
+        val expectedTimestamp = System.currentTimeMillis() - 10000
+        val expectedNanos = 42
+
         val packetSlot = slot<Packet>()
         mockkConstructor(Ipv4Handler::class)
         every {
@@ -72,11 +73,13 @@ class IpFragmentHandlerTest : VertxTest() {
                 val ipv4Handler = Ipv4Handler(vertx, JsonObject(), false)
                 val packet1 = Packet().apply {
                     timestamp = expectedTimestamp
+                    nanos = 42
                     payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
                 }
                 ipv4Handler.handle(packet1)
                 val packet2 = Packet().apply {
-                    timestamp = Timestamp(System.currentTimeMillis())
+                    timestamp = System.currentTimeMillis()
+                    nanos = 24
                     payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
                 }
                 ipv4Handler.handle(packet2)
@@ -87,6 +90,7 @@ class IpFragmentHandlerTest : VertxTest() {
                         verify(timeout = 10000) { anyConstructed<Ipv4Handler>().routePacket(any()) }
                         val packet = packetSlot.captured
                         assertEquals(expectedTimestamp, packet.timestamp)
+                        assertEquals(expectedNanos, packet.nanos)
                         assertEquals(Ipv4Handler.TYPE_UDP, packet.protocolNumber)
                         val buffer = (packet.payload as Encodable).encode()
                         assertEquals(16, buffer.capacity())
@@ -100,7 +104,9 @@ class IpFragmentHandlerTest : VertxTest() {
 
     @Test
     fun `Assemble 2 fragments sent not in order`() {
-        val expectedTimestamp = Timestamp(System.currentTimeMillis() - 10000)
+        val expectedTimestamp = System.currentTimeMillis() - 10000
+        val expectedNanos = 42
+
         val packetSlot = slot<Packet>()
         mockkConstructor(Ipv4Handler::class)
         every {
@@ -114,11 +120,13 @@ class IpFragmentHandlerTest : VertxTest() {
                 val ipv4Handler = Ipv4Handler(vertx, JsonObject(), false)
                 val packet2 = Packet().apply {
                     timestamp = expectedTimestamp
+                    nanos = expectedNanos
                     payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
                 }
                 ipv4Handler.handle(packet2)
                 val packet1 = Packet().apply {
-                    timestamp = Timestamp(System.currentTimeMillis())
+                    timestamp = System.currentTimeMillis()
+                    nanos = 24
                     payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
                 }
                 ipv4Handler.handle(packet1)
@@ -129,6 +137,7 @@ class IpFragmentHandlerTest : VertxTest() {
                         verify(timeout = 10000) { anyConstructed<Ipv4Handler>().routePacket(any()) }
                         val packet = packetSlot.captured
                         assertEquals(expectedTimestamp, packet.timestamp)
+                        assertEquals(expectedNanos, packet.nanos)
                         assertEquals(Ipv4Handler.TYPE_UDP, packet.protocolNumber)
                         val buffer = (packet.payload as Encodable).encode()
                         assertEquals(16, buffer.capacity())

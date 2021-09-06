@@ -35,7 +35,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import java.sql.Timestamp
 
 @ExtendWith(MockKExtension::class)
 class RtpHandlerTest : VertxTest() {
@@ -85,7 +84,7 @@ class RtpHandlerTest : VertxTest() {
                     })
                 }, false)
                 val packet = Packet().apply {
-                    timestamp = Timestamp(NOW)
+                    timestamp = NOW
                     srcAddr = SRC_ADDR
                     srcPort = SRC_PORT
                     dstAddr = DST_ADDR
@@ -135,7 +134,7 @@ class RtpHandlerTest : VertxTest() {
                     })
                 }, false)
                 val packet = Packet().apply {
-                    timestamp = Timestamp(NOW)
+                    timestamp = NOW
                     srcAddr = SRC_ADDR
                     srcPort = SRC_PORT
                     dstAddr = DST_ADDR
@@ -186,7 +185,7 @@ class RtpHandlerTest : VertxTest() {
                 }, false)
                 listOf(PACKET_1, PACKET_2, PACKET_3).forEach { payload ->
                     val packet = Packet().apply {
-                        timestamp = Timestamp(NOW)
+                        timestamp = NOW
                         srcAddr = SRC_ADDR
                         srcPort = SRC_PORT
                         dstAddr = DST_ADDR
@@ -235,7 +234,8 @@ class RtpHandlerTest : VertxTest() {
 
                 vertx.setTimer(200L) {
                     val packet = Packet().apply {
-                        timestamp = Timestamp(NOW)
+                        timestamp = NOW
+                        nanos = 42
                         srcAddr = SRC_ADDR
                         srcPort = SRC_PORT
                         dstAddr = DST_ADDR
@@ -253,7 +253,8 @@ class RtpHandlerTest : VertxTest() {
                         assertEquals(1, packets.size)
 
                         with(packets.first()) {
-                            assertEquals(NOW, timestamp.time)
+                            assertEquals(NOW, timestamp)
+                            assertEquals(42, nanos)
                             assertEquals(SRC_ADDR, srcAddr)
                             assertEquals(SRC_PORT, srcPort)
                             assertEquals(DST_ADDR, dstAddr)

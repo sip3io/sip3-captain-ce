@@ -26,7 +26,6 @@ import io.sip3.commons.vertx.annotations.Instance
 import io.vertx.core.AbstractVerticle
 import mu.KotlinLogging
 import java.nio.ByteBuffer
-import java.sql.Timestamp
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.system.exitProcess
@@ -100,7 +99,8 @@ class DpdkEngine : AbstractVerticle() {
     }
 
     fun onDpdkPackets(coreId: Int, sec: Long, usec: Int, packetsReceived: Long) {
-        val timestamp = Timestamp(sec * 1000 + usec / 1000).apply { nanos += usec % 1000 }
+        val timestamp = sec * 1000 + usec / 1000
+        val nanos = usec % 1000
 
         cores[coreId]?.let { core ->
             core.packetsCaptured.addAndGet(packetsReceived)
@@ -111,6 +111,7 @@ class DpdkEngine : AbstractVerticle() {
                 }
                 val packet = Packet().apply {
                     this.timestamp = timestamp
+                    this.nanos = nanos
                     this.payload = ByteBufPayload(Unpooled.wrappedBuffer(buffer))
                 }
                 core.ethernetHandler.handle(packet)

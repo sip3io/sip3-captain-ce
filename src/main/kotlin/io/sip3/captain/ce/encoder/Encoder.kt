@@ -165,8 +165,8 @@ class Encoder : AbstractVerticle() {
             writeByte(PACKET_VERSION)
             writeShort(packetLength)
 
-            writeTlv(TAG_TIMESTAMP_TIME, packet.timestamp.time)
-            writeTlv(TAG_TIMESTAMP_NANOS, packet.timestamp.nanos)
+            writeTlv(TAG_TIMESTAMP_TIME, packet.timestamp)
+            writeTlv(TAG_TIMESTAMP_NANOS, packet.nanos)
 
             writeTlv(TAG_SRC_ADDR, packet.srcAddr)
             writeTlv(TAG_DST_ADDR, packet.dstAddr)
