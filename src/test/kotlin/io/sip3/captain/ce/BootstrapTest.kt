@@ -84,7 +84,7 @@ class BootstrapTest : VertxTest() {
                             // Nanoseconds
                             assertEquals(2, buffer.readByte())
                             assertEquals(7, buffer.readShort())
-                            assertEquals(852000000, buffer.readInt())
+                            assertEquals(0, buffer.readInt())
                             // Source Address
                             assertEquals(3, buffer.readByte())
                             assertEquals(7, buffer.readShort())

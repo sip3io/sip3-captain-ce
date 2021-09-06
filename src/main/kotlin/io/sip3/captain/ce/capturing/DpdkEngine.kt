@@ -100,7 +100,7 @@ class DpdkEngine : AbstractVerticle() {
 
     fun onDpdkPackets(coreId: Int, sec: Long, usec: Int, packetsReceived: Long) {
         val timestamp = sec * 1000 + usec / 1000
-        val nanos = usec % 1000
+        val nanos = (usec % 1000) * 1000
 
         cores[coreId]?.let { core ->
             core.packetsCaptured.addAndGet(packetsReceived)
