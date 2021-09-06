@@ -27,7 +27,6 @@ import io.sip3.commons.vertx.test.VertxTest
 import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import java.sql.Timestamp
 
 class SmppHandlerTest : VertxTest() {
 
@@ -62,7 +61,7 @@ class SmppHandlerTest : VertxTest() {
             execute = {
                 val smppHandler = SmppHandler(vertx, JsonObject(), false)
                 val packet = Packet().apply {
-                    timestamp = Timestamp(System.currentTimeMillis())
+                    timestamp = System.currentTimeMillis()
                     srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
                     dstAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
                     srcPort = 2775
@@ -97,7 +96,7 @@ class SmppHandlerTest : VertxTest() {
             execute = {
                 val smppHandler = SmppHandler(vertx, JsonObject(), false)
                 val packet = Packet().apply {
-                    timestamp = Timestamp(System.currentTimeMillis())
+                    timestamp = System.currentTimeMillis()
                     srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
                     dstAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
                     srcPort = 5060

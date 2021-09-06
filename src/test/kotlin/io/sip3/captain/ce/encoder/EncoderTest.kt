@@ -31,7 +31,6 @@ import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayInputStream
-import java.sql.Timestamp
 import java.util.zip.InflaterInputStream
 
 class EncoderTest : VertxTest() {
@@ -60,7 +59,8 @@ class EncoderTest : VertxTest() {
 
         // Packet: ICMP
         val PACKET = Packet().apply {
-            timestamp = Timestamp(1611254287666)
+            timestamp = 1611254287666
+            nanos = 42
             srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
             dstAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x06.toByte())
             srcPort = 5060
@@ -301,15 +301,14 @@ class EncoderTest : VertxTest() {
         // Length
         assertEquals(160, buffer.readShort())
 
-        val timestamp = PACKET.timestamp
         // Milliseconds
         assertEquals(1, buffer.readByte())
         assertEquals(11, buffer.readShort())
-        assertEquals(timestamp.time, buffer.readLong())
+        assertEquals(PACKET.timestamp, buffer.readLong())
         // Nanoseconds
         assertEquals(2, buffer.readByte())
         assertEquals(7, buffer.readShort())
-        assertEquals(timestamp.nanos, buffer.readInt())
+        assertEquals(PACKET.nanos, buffer.readInt())
 
         // Source Address
         assertEquals(3, buffer.readByte())

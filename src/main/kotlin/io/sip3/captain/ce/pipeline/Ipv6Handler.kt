@@ -153,6 +153,7 @@ class Ipv6Handler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
                 if (type == 1 && code == 4) {
                     val p = Packet().apply {
                         timestamp = packet.timestamp
+                        nanos = packet.nanos
                         payload = packet.payload
 
                         rejected = packet

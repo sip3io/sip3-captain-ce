@@ -57,6 +57,7 @@ class SmppHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
                 if (SmppUtil.isPduCommand(command)) {
                     val p = Packet().apply {
                         timestamp = packet.timestamp
+                        nanos = packet.nanos
                         srcAddr = packet.srcAddr
                         dstAddr = packet.dstAddr
                         srcPort = packet.srcPort

@@ -34,7 +34,6 @@ import org.springframework.boot.devtools.filewatch.ChangedFiles
 import org.springframework.boot.devtools.filewatch.FileSystemWatcher
 import java.io.File
 import java.nio.ByteBuffer
-import java.sql.Timestamp
 import java.util.concurrent.Executors
 import kotlin.system.exitProcess
 
@@ -198,8 +197,11 @@ class PcapEngine : AbstractVerticle() {
         loop(0, (RawPacketListener { buffer ->
             packetsCaptured.increment()
 
+            val timestamp = timestamp
+
             val packet = Packet().apply {
-                this.timestamp = getTimestamp()
+                this.timestamp = timestamp.time
+                this.nanos = timestamp.nanos % 1000000
                 this.payload = ByteBufPayload(Unpooled.wrappedBuffer(buffer))
             }
             handle(packet)
@@ -232,15 +234,15 @@ abstract class PacketHandle {
     private val logger = KotlinLogging.logger {}
 
     private lateinit var seconds: LongArray
-    private lateinit var millis: IntArray
+    private lateinit var microseconds: IntArray
     private lateinit var buffers: Array<ByteBuffer>
     private lateinit var lengths: IntArray
 
     external fun loop(dev: String, bulkSize: Int, snaplen: Int, bufferSize: Int, timeoutMillis: Int, bpfFilter: String)
 
-    fun init(seconds: LongArray, millis: IntArray, buffers: Array<ByteBuffer>, lengths: IntArray) {
+    fun init(seconds: LongArray, microseconds: IntArray, buffers: Array<ByteBuffer>, lengths: IntArray) {
         this.seconds = seconds
-        this.millis = millis
+        this.microseconds = microseconds
         this.buffers = buffers
         this.lengths = lengths
     }
@@ -251,7 +253,8 @@ abstract class PacketHandle {
             buffer.limit(lengths[i])
 
             val packet = Packet().apply {
-                this.timestamp = Timestamp(seconds[i] * 1000 + millis[i] / 1000).apply { nanos += millis[i] % 1000 }
+                this.timestamp = seconds[i] * 1000 + microseconds[i] / 1000
+                this.nanos = (microseconds[i] % 1000) * 1000
                 this.payload = ByteBufPayload(Unpooled.wrappedBuffer(buffer.slice()))
             }
 

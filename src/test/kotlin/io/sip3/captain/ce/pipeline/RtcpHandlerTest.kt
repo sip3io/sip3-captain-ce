@@ -34,7 +34,6 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import java.sql.Timestamp
 
 @ExtendWith(MockKExtension::class)
 class RtcpHandlerTest : VertxTest() {
@@ -82,7 +81,8 @@ class RtcpHandlerTest : VertxTest() {
 
                 vertx.setTimer(200L) {
                     val packet = Packet().apply {
-                        timestamp = Timestamp(NOW)
+                        timestamp = NOW
+                        nanos = 42
                         srcAddr = SRC_ADDR
                         srcPort = SRC_PORT
                         dstAddr = DST_ADDR
@@ -100,7 +100,8 @@ class RtcpHandlerTest : VertxTest() {
                         assertEquals(1, packets.size)
 
                         with(packets.first()) {
-                            assertEquals(NOW, timestamp.time)
+                            assertEquals(NOW, timestamp)
+                            assertEquals(42, nanos)
                             assertEquals(SRC_ADDR, srcAddr)
                             assertEquals(SRC_PORT, srcPort)
                             assertEquals(DST_ADDR, dstAddr)
@@ -131,7 +132,8 @@ class RtcpHandlerTest : VertxTest() {
 
                 vertx.setTimer(200L) {
                     val packet = Packet().apply {
-                        timestamp = Timestamp(NOW)
+                        timestamp = NOW
+                        nanos = 42
                         srcAddr = SRC_ADDR
                         srcPort = SRC_PORT
                         dstAddr = DST_ADDR
@@ -149,7 +151,8 @@ class RtcpHandlerTest : VertxTest() {
                         assertEquals(1, packets.size)
 
                         with(packets.first()) {
-                            assertEquals(NOW, timestamp.time)
+                            assertEquals(NOW, timestamp)
+                            assertEquals(42, nanos)
                             assertEquals(SRC_ADDR, srcAddr)
                             assertEquals(SRC_PORT, srcPort)
                             assertEquals(DST_ADDR, dstAddr)

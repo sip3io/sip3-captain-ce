@@ -33,7 +33,6 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.net.InetAddress
-import java.sql.Timestamp
 
 @ExtendWith(MockKExtension::class)
 class Ipv4HandlerTest : VertxTest() {
@@ -189,7 +188,7 @@ class Ipv4HandlerTest : VertxTest() {
         // Execute
         val ipv4Handler = Ipv4Handler(Vertx.vertx(), JsonObject(), false)
         var packet = Packet().apply {
-            this.timestamp = Timestamp(System.currentTimeMillis())
+            this.timestamp = System.currentTimeMillis()
             this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_4))
         }
         ipv4Handler.handle(packet)
