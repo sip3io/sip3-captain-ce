@@ -51,6 +51,8 @@ class Ipv6Handler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
         )
     }
 
+    private val header = IpHeader(16)
+
     private val tcpPackets = mutableListOf<Packet>()
 
     private val udpHandler: UdpHandler by lazy {
@@ -61,7 +63,14 @@ class Ipv6Handler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
         var payloadLength: Int
         var nextHeader: Int
 
-        return IpHeader().apply {
+        // Explicitly reset header parameters which might be absent
+        header.apply {
+            identification = 0
+            moreFragments = false
+            fragmentOffset = 0
+        }
+
+        return header.apply {
             headerLength = 40
             // Version & Traffic Class & Flow Label
             buffer.skipBytes(4)
@@ -72,10 +81,8 @@ class Ipv6Handler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
             // Hop Limit
             buffer.skipBytes(1)
             // Source IP
-            srcAddr = ByteArray(16)
             buffer.readBytes(srcAddr)
             // Destination IP
-            dstAddr = ByteArray(16)
             buffer.readBytes(dstAddr)
 
             // Extension Headers

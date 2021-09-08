@@ -66,7 +66,7 @@ abstract class IpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled
 
         if (header.moreFragments || header.fragmentOffset > 0) {
             packet.payload = ByteArrayPayload(slice.getBytes())
-            ipPackets.add(Pair(header, packet))
+            ipPackets.add(Pair(header.copy(), packet))
 
             if (ipPackets.size >= bulkSize) {
                 vertx.eventBus().localSend(RoutesCE.fragment, ipPackets.toList())
@@ -74,8 +74,8 @@ abstract class IpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled
             }
         } else {
             packet.apply {
-                srcAddr = header.srcAddr
-                dstAddr = header.dstAddr
+                srcAddr = header.srcAddr.copyOf()
+                dstAddr = header.dstAddr.copyOf()
                 protocolNumber = header.protocolNumber
                 payload = ByteBufPayload(slice)
             }
