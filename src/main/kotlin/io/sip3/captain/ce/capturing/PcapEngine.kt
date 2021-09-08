@@ -26,6 +26,7 @@ import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.vertx.annotations.ConditionalOnProperty
 import io.sip3.commons.vertx.annotations.Instance
+import io.sip3.commons.vertx.util.closeAndExitProcess
 import io.vertx.core.AbstractVerticle
 import mu.KotlinLogging
 import org.pcap4j.core.*
@@ -35,7 +36,6 @@ import org.springframework.boot.devtools.filewatch.FileSystemWatcher
 import java.io.File
 import java.nio.ByteBuffer
 import java.util.concurrent.Executors
-import kotlin.system.exitProcess
 
 /**
  * Libpcap, WinPcap and Npcap capture engine
@@ -167,7 +167,7 @@ class PcapEngine : AbstractVerticle() {
                     handle.loop(dev!!, bulkSize, snaplen, bufferSize, timeoutMillis, bpfFilter)
                 } catch (t: Throwable) {
                     logger.error("Got exception...", t)
-                    exitProcess(-1)
+                    vertx.closeAndExitProcess()
                 }
             }
         } else {
@@ -184,7 +184,7 @@ class PcapEngine : AbstractVerticle() {
                     handle.loop()
                 } catch (e: Exception) {
                     logger.error("Got exception...", e)
-                    exitProcess(-1)
+                    vertx.closeAndExitProcess()
                 }
             }
         }

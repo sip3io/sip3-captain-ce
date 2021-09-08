@@ -23,12 +23,12 @@ import io.sip3.captain.ce.pipeline.EthernetHandler
 import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.vertx.annotations.ConditionalOnProperty
 import io.sip3.commons.vertx.annotations.Instance
+import io.sip3.commons.vertx.util.closeAndExitProcess
 import io.vertx.core.AbstractVerticle
 import mu.KotlinLogging
 import java.nio.ByteBuffer
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicLong
-import kotlin.system.exitProcess
 
 /**
  * DPDK capture engine
@@ -44,7 +44,7 @@ class DpdkEngine : AbstractVerticle() {
             System.loadLibrary("sip3-dpdk")
         } catch (t: Throwable) {
             logger.error("System 'loadLibrary()' failed. Make sure that you are using SIP3 Captain `Enterprise Edition`.", t)
-            exitProcess(-1)
+            vertx.closeAndExitProcess()
         }
     }
 
@@ -73,7 +73,7 @@ class DpdkEngine : AbstractVerticle() {
                 bind(port, rxQueueSize, bulkSize)
             } catch (e: Exception) {
                 logger.error("Got exception...", e)
-                exitProcess(-1)
+                vertx.closeAndExitProcess()
             }
         }
 
