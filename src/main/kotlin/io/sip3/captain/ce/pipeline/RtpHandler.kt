@@ -83,7 +83,7 @@ class RtpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
 
         val recording = recordingManager.record(packet)
         if (recording != null) {
-            val p = packet.rejected ?: packet.copy()
+            val p = packet.rejected ?: packet.clone()
             p.apply {
                 protocolCode = PacketTypes.REC
                 payload = recording

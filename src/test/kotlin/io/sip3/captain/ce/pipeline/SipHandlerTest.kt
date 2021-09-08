@@ -22,7 +22,6 @@ import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
-import io.sip3.commons.util.remainingCapacity
 import io.sip3.commons.vertx.test.VertxTest
 import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -66,7 +65,7 @@ class SipHandlerTest : VertxTest() {
                         val packet = packets[0]
                         assertEquals(PacketTypes.SIP, packet.protocolCode)
                         val buffer = (packet.payload as Encodable).encode()
-                        assertEquals(18, buffer.remainingCapacity())
+                        assertEquals(18, buffer.readableBytes())
                     }
                     context.completeNow()
                 }

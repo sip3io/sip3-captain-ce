@@ -41,9 +41,9 @@ class SmppUtilTest {
 
     @Test
     fun `Check PDU length`() {
-        var buffer = Unpooled.buffer(1)
+        var buffer = Unpooled.buffer(1).writerIndex(1)
         assertFalse(SmppUtil.checkMinPduLength(buffer))
-        buffer = Unpooled.buffer(16)
+        buffer = Unpooled.buffer(16).writerIndex(16)
         assertTrue(SmppUtil.checkMinPduLength(buffer))
     }
 

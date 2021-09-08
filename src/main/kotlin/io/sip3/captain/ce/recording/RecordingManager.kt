@@ -132,12 +132,12 @@ object RecordingManager {
                     if (stream.mode == Recording.GDPR) {
                         buffer.getBytes(recordingMark, buffer.readerIndex() - recordingMark)
                     } else {
-                        buffer.getBytes(recordingMark, buffer.capacity() - recordingMark)
+                        buffer.getBytes(recordingMark, buffer.writerIndex() - recordingMark)
                     }
                 }
                 PacketTypes.RTCP -> {
                     val recordingMark = packet.rejected?.recordingMark ?: buffer.readerIndex()
-                    buffer.getBytes(recordingMark, buffer.capacity() - recordingMark)
+                    buffer.getBytes(recordingMark, buffer.writerIndex() - recordingMark)
                 }
                 else -> return null
             }

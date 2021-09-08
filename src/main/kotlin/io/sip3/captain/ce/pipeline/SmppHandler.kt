@@ -23,7 +23,6 @@ import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.payload.ByteArrayPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.getBytes
-import io.sip3.commons.util.remainingCapacity
 import io.sip3.commons.vertx.util.localSend
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
@@ -51,17 +50,12 @@ class SmppHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
             val offset = buffer.readerIndex()
 
             val length = buffer.getUnsignedInt(offset).toInt()
-            if (buffer.remainingCapacity() >= length) {
+            if (buffer.readableBytes() >= length) {
 
                 val command = buffer.getUnsignedInt(offset + 4)
                 if (SmppUtil.isPduCommand(command)) {
-                    val p = Packet().apply {
-                        timestamp = packet.timestamp
-                        nanos = packet.nanos
-                        srcAddr = packet.srcAddr
-                        dstAddr = packet.dstAddr
-                        srcPort = packet.srcPort
-                        dstPort = packet.dstPort
+                    val p = packet.clone()
+                    p.apply {
                         protocolCode = PacketTypes.SMPP
                         payload = run {
                             val bytes = buffer.getBytes(offset, length)
@@ -76,7 +70,7 @@ class SmppHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
                     }
 
                     buffer.readerIndex(offset + length)
-                    if (buffer.remainingCapacity() > 0) {
+                    if (buffer.readableBytes() > 0) {
                         onPacket(packet)
                     }
                 }

@@ -27,7 +27,7 @@ class IpHeader(addrSize: Int = 4) {
     var srcAddr: ByteArray = ByteArray(addrSize)
     var dstAddr: ByteArray = ByteArray(addrSize)
 
-    fun copy() : IpHeader {
+    fun copy(): IpHeader {
         val h = IpHeader()
         h.headerLength = headerLength
         h.totalLength = totalLength

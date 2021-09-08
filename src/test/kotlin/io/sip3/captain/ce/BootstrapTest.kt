@@ -62,7 +62,7 @@ class BootstrapTest : VertxTest() {
                     .handler { packet ->
                         val buffer = packet.data().byteBuf
                         context.verify {
-                            assertEquals(990, buffer.capacity())
+                            assertEquals(990, buffer.writerIndex())
                             // Prefix
                             var prefix = ByteArray(4)
                             buffer.readBytes(prefix)

@@ -21,7 +21,6 @@ import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.IpHeader
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.domain.payload.ByteArrayPayload
-import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.getBytes
 import io.sip3.commons.vertx.util.localSend
@@ -55,17 +54,16 @@ abstract class IpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled
 
         val header = readIpHeader(buffer)
 
-        // Ignore packets with the payload size smaller then `totalLength` (e.g. ICMP encapsulation)
-        val capacity = offset + header.totalLength
-        if (buffer.capacity() < capacity) {
+        // Ignore packets of size smaller than `totalLength` (e.g. ICMP encapsulation)
+        val packetLength = offset + header.totalLength
+        if (buffer.writerIndex() < packetLength) {
             return
         }
-
-        val slice = buffer.slice(0, capacity)
-        slice.readerIndex(offset + header.headerLength)
+        buffer.readerIndex(offset + header.headerLength)
+        buffer.writerIndex(packetLength)
 
         if (header.moreFragments || header.fragmentOffset > 0) {
-            packet.payload = ByteArrayPayload(slice.getBytes())
+            packet.payload = ByteArrayPayload(buffer.getBytes())
             ipPackets.add(Pair(header, packet))
 
             if (ipPackets.size >= bulkSize) {
@@ -77,7 +75,6 @@ abstract class IpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled
                 srcAddr = header.srcAddr.copyOf()
                 dstAddr = header.dstAddr.copyOf()
                 protocolNumber = header.protocolNumber
-                payload = ByteBufPayload(slice)
             }
 
             routePacket(packet)

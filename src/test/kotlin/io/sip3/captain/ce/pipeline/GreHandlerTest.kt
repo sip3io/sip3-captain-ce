@@ -22,7 +22,6 @@ import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
-import io.sip3.commons.util.remainingCapacity
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.AfterEach
@@ -59,7 +58,7 @@ class GreHandlerTest {
         // Assert
         verify { anyConstructed<ErspanHandler>().handle(any()) }
         val buffer = (packetSlot.captured.payload as Encodable).encode()
-        assertEquals(6, buffer.remainingCapacity())
+        assertEquals(6, buffer.readableBytes())
     }
 
     @AfterEach

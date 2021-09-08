@@ -93,7 +93,7 @@ class IpFragmentHandlerTest : VertxTest() {
                         assertEquals(expectedNanos, packet.nanos)
                         assertEquals(Ipv4Handler.TYPE_UDP, packet.protocolNumber)
                         val buffer = (packet.payload as Encodable).encode()
-                        assertEquals(16, buffer.capacity())
+                        assertEquals(16, buffer.writerIndex())
                         assertFalse(buffer.getBytes().contains(0xfe.toByte()))
                     }
                     context.completeNow()
@@ -140,7 +140,7 @@ class IpFragmentHandlerTest : VertxTest() {
                         assertEquals(expectedNanos, packet.nanos)
                         assertEquals(Ipv4Handler.TYPE_UDP, packet.protocolNumber)
                         val buffer = (packet.payload as Encodable).encode()
-                        assertEquals(16, buffer.capacity())
+                        assertEquals(16, buffer.writerIndex())
                         assertFalse(buffer.getBytes().contains(0xfe.toByte()))
                     }
                     context.completeNow()

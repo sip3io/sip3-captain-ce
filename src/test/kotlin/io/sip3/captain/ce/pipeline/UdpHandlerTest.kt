@@ -22,7 +22,6 @@ import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
-import io.sip3.commons.util.remainingCapacity
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.AfterEach
@@ -97,7 +96,7 @@ class UdpHandlerTest {
         val buffer = (packet.payload as Encodable).encode()
         assertEquals(13120, packet.srcPort)
         assertEquals(57240, packet.dstPort)
-        assertEquals(16, buffer.remainingCapacity())
+        assertEquals(16, buffer.readableBytes())
     }
 
     @Test
@@ -125,7 +124,7 @@ class UdpHandlerTest {
         val buffer = (packet.payload as Encodable).encode()
         assertEquals(13120, packet.srcPort)
         assertEquals(57240, packet.dstPort)
-        assertEquals(16, buffer.remainingCapacity())
+        assertEquals(16, buffer.readableBytes())
     }
 
     @Test
@@ -153,7 +152,7 @@ class UdpHandlerTest {
         val buffer = (packet.payload as Encodable).encode()
         assertEquals(13120, packet.srcPort)
         assertEquals(57240, packet.dstPort)
-        assertEquals(16, buffer.remainingCapacity())
+        assertEquals(16, buffer.readableBytes())
     }
 
     @Test
@@ -182,7 +181,7 @@ class UdpHandlerTest {
         val buffer = (packet.payload as Encodable).encode()
         assertEquals(13120, packet.srcPort)
         assertEquals(57240, packet.dstPort)
-        assertEquals(16, buffer.remainingCapacity())
+        assertEquals(16, buffer.readableBytes())
     }
 
     @Test
@@ -210,7 +209,7 @@ class UdpHandlerTest {
         val buffer = (packet.payload as Encodable).encode()
         assertEquals(13120, packet.srcPort)
         assertEquals(57240, packet.dstPort)
-        assertEquals(12, buffer.remainingCapacity())
+        assertEquals(12, buffer.readableBytes())
     }
 
     @Test
@@ -238,7 +237,7 @@ class UdpHandlerTest {
         val buffer = (packet.payload as Encodable).encode()
         assertEquals(65532, packet.srcPort)
         assertEquals(4789, packet.dstPort)
-        assertEquals(22, buffer.remainingCapacity())
+        assertEquals(22, buffer.readableBytes())
     }
 
     @AfterEach

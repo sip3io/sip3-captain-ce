@@ -33,7 +33,7 @@ object SipUtil {
     fun startsWithSipWord(buffer: ByteBuf, offset: Int = 0): Boolean {
         val i = offset + buffer.readerIndex()
         return SIP_WORDS.any { word ->
-            if (i + word.size > buffer.capacity()) {
+            if (i + word.size > buffer.writerIndex()) {
                 return@any false
             }
             word.forEachIndexed { j, b ->
