@@ -16,7 +16,7 @@
 
 package io.sip3.captain.ce.domain
 
-class IpHeader {
+class IpHeader(addrSize: Int = 4) {
 
     var headerLength = 0
     var totalLength = 0
@@ -24,6 +24,19 @@ class IpHeader {
     var moreFragments = false
     var fragmentOffset = 0
     var protocolNumber = 0
-    lateinit var srcAddr: ByteArray
-    lateinit var dstAddr: ByteArray
+    var srcAddr: ByteArray = ByteArray(addrSize)
+    var dstAddr: ByteArray = ByteArray(addrSize)
+
+    fun copy(): IpHeader {
+        val h = IpHeader()
+        h.headerLength = headerLength
+        h.totalLength = totalLength
+        h.identification = identification
+        h.moreFragments = moreFragments
+        h.fragmentOffset = fragmentOffset
+        h.protocolNumber = protocolNumber
+        h.srcAddr = srcAddr.copyOf()
+        h.dstAddr = dstAddr.copyOf()
+        return h
+    }
 }

@@ -23,7 +23,6 @@ import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
-import io.sip3.commons.util.remainingCapacity
 import io.sip3.commons.vertx.test.VertxTest
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
@@ -117,7 +116,7 @@ class Ipv4HandlerTest : VertxTest() {
         assertEquals(srcAddr, InetAddress.getByAddress(packet.srcAddr))
         val dstAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte()))
         assertEquals(dstAddr, InetAddress.getByAddress(packet.dstAddr))
-        assertEquals(8, buffer.remainingCapacity())
+        assertEquals(8, buffer.readableBytes())
     }
 
     @Test
@@ -144,7 +143,7 @@ class Ipv4HandlerTest : VertxTest() {
                         assertEquals(srcAddr, InetAddress.getByAddress(packet.srcAddr))
                         val dstAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte()))
                         assertEquals(dstAddr, InetAddress.getByAddress(packet.dstAddr))
-                        assertEquals(8, buffer.remainingCapacity())
+                        assertEquals(8, buffer.readableBytes())
                     }
                     context.completeNow()
                 }
@@ -174,7 +173,7 @@ class Ipv4HandlerTest : VertxTest() {
         assertEquals(srcAddr, InetAddress.getByAddress(packet.srcAddr))
         val dstAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte()))
         assertEquals(dstAddr, InetAddress.getByAddress(packet.dstAddr))
-        assertEquals(8, buffer.remainingCapacity())
+        assertEquals(8, buffer.readableBytes())
     }
 
     @Test
@@ -200,7 +199,7 @@ class Ipv4HandlerTest : VertxTest() {
         assertEquals(srcAddr, InetAddress.getByAddress(packet.srcAddr))
         val dstAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte()))
         assertEquals(dstAddr, InetAddress.getByAddress(packet.dstAddr))
-        assertEquals(8, buffer.remainingCapacity())
+        assertEquals(8, buffer.readableBytes())
         val rejectedPacket = packet.rejected
         assertNotNull(rejectedPacket)
         assertEquals(20, rejectedPacket!!.recordingMark)
@@ -228,7 +227,7 @@ class Ipv4HandlerTest : VertxTest() {
         assertEquals(srcAddr, InetAddress.getByAddress(packet.srcAddr))
         val dstAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte()))
         assertEquals(dstAddr, InetAddress.getByAddress(packet.dstAddr))
-        assertEquals(8, buffer.remainingCapacity())
+        assertEquals(8, buffer.readableBytes())
     }
 
     @Test
@@ -255,7 +254,7 @@ class Ipv4HandlerTest : VertxTest() {
                         assertEquals(srcAddr, InetAddress.getByAddress(packet.srcAddr))
                         val dstAddr = InetAddress.getByAddress(byteArrayOf(0x0a.toByte(), 0xc5.toByte(), 0x15.toByte(), 0x75.toByte()))
                         assertEquals(dstAddr, InetAddress.getByAddress(packet.dstAddr))
-                        assertEquals(8, buffer.remainingCapacity())
+                        assertEquals(8, buffer.readableBytes())
                     }
                     context.completeNow()
                 }

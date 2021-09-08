@@ -51,6 +51,10 @@ class Ipv6Handler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
         )
     }
 
+    // Important! We will reuse this object per each packet to reduce `IpHeader` memory footprint
+    // It might bring some complexity in further `IpHeader` processing. So, please pay attention
+    private val header = IpHeader(16)
+
     private val tcpPackets = mutableListOf<Packet>()
 
     private val udpHandler: UdpHandler by lazy {
@@ -61,7 +65,14 @@ class Ipv6Handler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
         var payloadLength: Int
         var nextHeader: Int
 
-        return IpHeader().apply {
+        // Explicitly reset header parameters which might be absent
+        header.apply {
+            identification = 0
+            moreFragments = false
+            fragmentOffset = 0
+        }
+
+        header.apply {
             headerLength = 40
             // Version & Traffic Class & Flow Label
             buffer.skipBytes(4)
@@ -72,10 +83,8 @@ class Ipv6Handler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
             // Hop Limit
             buffer.skipBytes(1)
             // Source IP
-            srcAddr = ByteArray(16)
             buffer.readBytes(srcAddr)
             // Destination IP
-            dstAddr = ByteArray(16)
             buffer.readBytes(dstAddr)
 
             // Extension Headers
@@ -113,6 +122,8 @@ class Ipv6Handler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
             totalLength = headerLength + payloadLength
             protocolNumber = nextHeader
         }
+
+        return if (header.moreFragments || header.fragmentOffset > 0) header.copy() else header
     }
 
     override fun routePacket(packet: Packet) {

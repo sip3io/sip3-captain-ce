@@ -26,7 +26,6 @@ import io.sip3.captain.ce.util.SmppUtil
 import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.IpUtil
-import io.sip3.commons.util.remainingCapacity
 import io.sip3.commons.vertx.annotations.Instance
 import io.vertx.core.AbstractVerticle
 import mu.KotlinLogging
@@ -97,7 +96,7 @@ class TcpHandler : AbstractVerticle() {
         buffer.readerIndex(offset + headerLength)
 
         // Skip TCP packets without payload
-        if (buffer.remainingCapacity() <= 0) {
+        if (buffer.readableBytes() <= 0) {
             return
         }
 
@@ -153,7 +152,7 @@ class TcpHandler : AbstractVerticle() {
             val segment = TcpSegment().apply {
                 this.sequenceNumber = sequenceNumber
                 this.packet = packet
-                this.payloadLength = buffer.remainingCapacity()
+                this.payloadLength = buffer.readableBytes()
             }
             segments[sequenceNumber] = segment
 

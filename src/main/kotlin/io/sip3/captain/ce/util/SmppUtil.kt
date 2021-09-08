@@ -17,7 +17,6 @@
 package io.sip3.captain.ce.util
 
 import io.netty.buffer.ByteBuf
-import io.sip3.commons.util.remainingCapacity
 
 object SmppUtil {
 
@@ -52,11 +51,11 @@ object SmppUtil {
         val length = buffer.getUnsignedInt(offset).toInt()
         val command = buffer.getUnsignedInt(offset + 4)
 
-        return buffer.remainingCapacity() == length && isPduCommand(command)
+        return buffer.readableBytes() == length && isPduCommand(command)
     }
 
     fun checkMinPduLength(buffer: ByteBuf): Boolean {
-        return buffer.remainingCapacity() >= 16
+        return buffer.readableBytes() >= 16
     }
 
     fun isPduCommand(commandId: Long): Boolean {

@@ -24,7 +24,6 @@ import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.IpUtil
-import io.sip3.commons.util.remainingCapacity
 import io.sip3.commons.vertx.test.VertxTest
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
@@ -83,7 +82,7 @@ class Ipv6HandlerTest : VertxTest() {
         val buffer = (packet.payload as Encodable).encode()
         Assertions.assertEquals("2a03:a960:1:2ab::", IpUtil.convertToString(packet.srcAddr))
         Assertions.assertEquals("2603:5:2281::f", IpUtil.convertToString(packet.dstAddr))
-        Assertions.assertEquals(8, buffer.remainingCapacity())
+        Assertions.assertEquals(8, buffer.readableBytes())
     }
 
     @Test
@@ -108,7 +107,7 @@ class Ipv6HandlerTest : VertxTest() {
                         val buffer = (packet.payload as Encodable).encode()
                         Assertions.assertEquals("2a03:a960:1:2ab::", IpUtil.convertToString(packet.srcAddr))
                         Assertions.assertEquals("2001:648:2c30::191:3", IpUtil.convertToString(packet.dstAddr))
-                        Assertions.assertEquals(8, buffer.remainingCapacity())
+                        Assertions.assertEquals(8, buffer.readableBytes())
                     }
                     context.completeNow()
                 }

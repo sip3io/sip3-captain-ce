@@ -43,6 +43,10 @@ class Ipv4Handler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
         const val TYPE_SCTP = 0x84
     }
 
+    // Important! We will reuse this object per each packet to reduce `IpHeader` memory footprint
+    // It might bring some complexity in further `IpHeader` processing. So, please pay attention
+    private val header = IpHeader()
+
     private val tcpPackets = mutableListOf<Packet>()
     private val sctpPackets = mutableListOf<Packet>()
 
@@ -54,7 +58,7 @@ class Ipv4Handler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
     }
 
     override fun readIpHeader(buffer: ByteBuf): IpHeader {
-        return IpHeader().apply {
+        header.apply {
             // Version & IHL
             headerLength = 4 * buffer.readUnsignedByte().toInt().and(0x0f)
             // DSCP & ECN
@@ -74,12 +78,12 @@ class Ipv4Handler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
             // Header Checksum
             buffer.skipBytes(2)
             // Source IP
-            srcAddr = ByteArray(4)
             buffer.readBytes(srcAddr)
             // Destination IP
-            dstAddr = ByteArray(4)
             buffer.readBytes(dstAddr)
         }
+
+        return if (header.moreFragments || header.fragmentOffset > 0) header.copy() else header
     }
 
     override fun routePacket(packet: Packet) {

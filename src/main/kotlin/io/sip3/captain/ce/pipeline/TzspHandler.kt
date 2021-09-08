@@ -19,7 +19,6 @@ package io.sip3.captain.ce.pipeline
 import io.netty.buffer.ByteBuf
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.domain.payload.Encodable
-import io.sip3.commons.util.remainingCapacity
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 
@@ -57,7 +56,7 @@ class TzspHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
     }
 
     private fun skipTaggedFields(buffer: ByteBuf): Boolean {
-        if (buffer.remainingCapacity() < 2) {
+        if (buffer.readableBytes() < 2) {
             return false
         }
 

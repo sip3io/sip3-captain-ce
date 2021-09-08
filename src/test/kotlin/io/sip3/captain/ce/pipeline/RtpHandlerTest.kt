@@ -104,7 +104,7 @@ class RtpHandlerTest : VertxTest() {
                         assertTrue(packet.payload is RtpHeaderPayload)
 
                         val payload = packet.payload as RtpHeaderPayload
-                        assertEquals(22, payload.encode().capacity())
+                        assertEquals(22, payload.encode().writerIndex())
                         assertEquals(8, payload.payloadType)
                         assertEquals(477, payload.sequenceNumber)
                         assertEquals(729167680, payload.timestamp)
@@ -154,7 +154,7 @@ class RtpHandlerTest : VertxTest() {
                         assertTrue(packet.payload is RtpHeaderPayload)
 
                         val payload = packet.payload as RtpHeaderPayload
-                        assertEquals(22, payload.encode().capacity())
+                        assertEquals(22, payload.encode().writerIndex())
                         assertEquals(8, payload.payloadType)
                         assertEquals(54630, payload.sequenceNumber)
                         assertEquals(182302880, payload.timestamp)
@@ -206,7 +206,7 @@ class RtpHandlerTest : VertxTest() {
                         assertTrue(packet.payload is RtpHeaderPayload)
 
                         val payload = packet.payload as RtpHeaderPayload
-                        assertEquals(22, payload.encode().capacity())
+                        assertEquals(22, payload.encode().writerIndex())
                         assertEquals(0, payload.payloadType)
                         assertEquals(477, payload.sequenceNumber)
                         assertEquals(729167680, payload.timestamp)

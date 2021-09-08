@@ -88,7 +88,7 @@ class EncoderTest : VertxTest() {
                         val buffer = buffers[0].byteBuf
 
                         // Capacity
-                        assertEquals(486, buffer.capacity())
+                        assertEquals(486, buffer.writerIndex())
 
                         val prefix = ByteArray(4)
                         buffer.readBytes(prefix)
@@ -133,7 +133,7 @@ class EncoderTest : VertxTest() {
                         var buffer = buffers[0].byteBuf
 
                         // Capacity
-                        assertEquals(326, buffer.capacity())
+                        assertEquals(326, buffer.writerIndex())
 
                         var prefix = ByteArray(4)
                         buffer.readBytes(prefix)
@@ -150,7 +150,7 @@ class EncoderTest : VertxTest() {
                         // Packet 2
                         buffer = buffers[1].byteBuf
                         // Capacity
-                        assertEquals(166, buffer.capacity())
+                        assertEquals(166, buffer.writerIndex())
 
                         prefix = ByteArray(4)
                         buffer.readBytes(prefix)
@@ -193,7 +193,7 @@ class EncoderTest : VertxTest() {
                         var buffer = buffers[0].byteBuf
 
                         // Capacity
-                        assertEquals(166, buffer.capacity())
+                        assertEquals(166, buffer.writerIndex())
 
                         var prefix = ByteArray(4)
                         buffer.readBytes(prefix)
@@ -210,7 +210,7 @@ class EncoderTest : VertxTest() {
                         buffer = buffers[1].byteBuf
 
                         // Capacity
-                        assertEquals(166, buffer.capacity())
+                        assertEquals(166, buffer.writerIndex())
 
                         prefix = ByteArray(4)
                         buffer.readBytes(prefix)
@@ -253,7 +253,7 @@ class EncoderTest : VertxTest() {
                         var buffer = buffers[0].byteBuf
 
                         // Capacity
-                        assertEquals(79, buffer.capacity())
+                        assertEquals(79, buffer.writerIndex())
 
                         var prefix = ByteArray(4)
                         buffer.readBytes(prefix)
@@ -272,7 +272,7 @@ class EncoderTest : VertxTest() {
                         buffer = buffers[0].byteBuf
 
                         // Capacity
-                        assertEquals(79, buffer.capacity())
+                        assertEquals(79, buffer.writerIndex())
 
                         prefix = ByteArray(4)
                         buffer.readBytes(prefix)

@@ -84,13 +84,12 @@ class UdpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
         // Checksum
         buffer.skipBytes(2)
 
-        val offset = buffer.readerIndex()
-
-        // Filter packets with the size smaller than minimal RTP/RTCP or SIP
-        if (buffer.capacity() - offset < 8) {
+        // Filter packets of size smaller than minimal RTP/RTCP or SIP
+        if (buffer.readableBytes() < 8) {
             return
         }
 
+        val offset = buffer.readerIndex()
         when {
             // RTP or RTCP packet
             buffer.getUnsignedByte(offset).toInt().shr(6) == 2 -> {

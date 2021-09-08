@@ -32,7 +32,7 @@ class Packet {
     var rejected: Packet? = null
     var recordingMark = -1
 
-    fun copy(): Packet {
+    fun clone(): Packet {
         val p = Packet()
         p.timestamp = timestamp
         p.nanos = nanos

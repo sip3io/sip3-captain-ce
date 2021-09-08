@@ -22,7 +22,6 @@ import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
-import io.sip3.commons.util.remainingCapacity
 import io.sip3.commons.vertx.test.VertxTest
 import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -78,7 +77,7 @@ class SmppHandlerTest : VertxTest() {
                         val packet = packets[0]
                         assertEquals(PacketTypes.SMPP, packet.protocolCode)
                         val buffer = (packet.payload as Encodable).encode()
-                        assertEquals(16, buffer.remainingCapacity())
+                        assertEquals(16, buffer.readableBytes())
                     }
                     context.completeNow()
                 }
@@ -114,7 +113,7 @@ class SmppHandlerTest : VertxTest() {
                         val packet = packets[0]
                         assertEquals(PacketTypes.SMPP, packet.protocolCode)
                         val buffer = (packet.payload as Encodable).encode()
-                        assertEquals(16, buffer.remainingCapacity())
+                        assertEquals(16, buffer.readableBytes())
                     }
                     if (counter == 3) {
                         context.completeNow()
