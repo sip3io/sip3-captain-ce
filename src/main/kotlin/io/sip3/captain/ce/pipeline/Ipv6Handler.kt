@@ -51,6 +51,8 @@ class Ipv6Handler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
         )
     }
 
+    // Important! We will reuse this object per each packet to reduce `IpHeader` memory footprint
+    // It might bring some complexity in further `IpHeader` processing. So, please pay attention
     private val header = IpHeader(16)
 
     private val tcpPackets = mutableListOf<Packet>()
