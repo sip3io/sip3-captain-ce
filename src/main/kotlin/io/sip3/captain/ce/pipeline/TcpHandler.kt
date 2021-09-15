@@ -44,6 +44,7 @@ class TcpHandler : AbstractVerticle() {
     private var idleConnectionTimeout: Long = 300000
 
     private var sipEnabled = true
+    private var smppEnabled = false
 
     private val connections = mutableMapOf<String, TcpConnection>()
 
@@ -56,6 +57,9 @@ class TcpHandler : AbstractVerticle() {
 
         config().getJsonObject("sip")?.getBoolean("enabled")?.let {
             sipEnabled = it
+        }
+        config().getJsonObject("smpp")?.getBoolean("enabled")?.let {
+            smppEnabled = it
         }
 
         vertx.setPeriodic(expirationDelay) {
@@ -103,7 +107,9 @@ class TcpHandler : AbstractVerticle() {
         // Calculate TCP connection identifier
         val srcAddr = IpUtil.convertToString(packet.srcAddr)
         val srcPort = packet.srcPort.toLong()
-        val connectionId = "$srcAddr:$srcPort"
+        val dstAddr = IpUtil.convertToString(packet.dstAddr)
+        val dstPort = packet.dstPort.toLong()
+        val connectionId = "$srcAddr:$srcPort:$dstAddr:$dstPort"
 
         // Find existing connection or add a new one, but only after it's type defined
         var connection = connections[connectionId]
@@ -111,7 +117,7 @@ class TcpHandler : AbstractVerticle() {
             connection = when {
                 sipEnabled && SipUtil.startsWithSipWord(buffer) ->
                     TcpConnection(SipHandler(vertx, config(), false)) { b: ByteBuf -> SipUtil.startsWithSipWord(b) }
-                SmppUtil.isPdu(buffer) ->
+                smppEnabled && SmppUtil.isPdu(buffer) ->
                     TcpConnection(SmppHandler(vertx, config(), false)) { b: ByteBuf -> SmppUtil.isPdu(b) }
                 else -> return
             }

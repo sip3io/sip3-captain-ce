@@ -25,6 +25,7 @@ import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.vertx.test.VertxTest
 import io.sip3.commons.vertx.util.localSend
+import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -94,6 +95,7 @@ class TcpHandlerTest : VertxTest() {
             execute = {
                 val packet = Packet().apply {
                     srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
+                    dstAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
                     payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_1))
                 }
                 vertx.eventBus().localSend(RoutesCE.tcp, listOf(packet))
@@ -128,10 +130,12 @@ class TcpHandlerTest : VertxTest() {
             execute = {
                 val packet1 = Packet().apply {
                     srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
+                    dstAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
                     payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
                 }
                 val packet2 = Packet().apply {
                     srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
+                    dstAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
                     payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_3))
                 }
                 vertx.eventBus().localSend(RoutesCE.tcp, listOf(packet1, packet2))
@@ -161,11 +165,16 @@ class TcpHandlerTest : VertxTest() {
         } just Runs
         runTest(
             deploy = {
-                vertx.deployTestVerticle(TcpHandler::class)
+                vertx.deployTestVerticle(TcpHandler::class, config = JsonObject().apply {
+                    put("smpp", JsonObject().apply {
+                        put("enabled", true)
+                    })
+                })
             },
             execute = {
                 val packet = Packet().apply {
                     srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
+                    dstAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
                     payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_4))
                 }
                 vertx.eventBus().localSend(RoutesCE.tcp, listOf(packet))
