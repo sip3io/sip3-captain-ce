@@ -101,8 +101,12 @@ class ManagementSocket : AbstractVerticle() {
                 vertx.eventBus().localPublish(RoutesCE.media + "_control", mediaControl)
             }
             TYPE_SHUTDOWN -> {
-                logger.warn { "Shutting down the process via management socket..." }
-                vertx.closeAndExitProcess()
+                message.getJsonObject("payload")?.getString("name")?.let { name ->
+                    if (name == config().getJsonObject("host")?.getString("name") || name == deploymentID()) {
+                        logger.warn { "Shutting down the process via management socket: $message" }
+                        vertx.closeAndExitProcess()
+                    }
+                }
             }
             else -> logger.error("Unknown message type. Message: ${message.encodePrettily()}")
         }
