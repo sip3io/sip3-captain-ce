@@ -72,7 +72,7 @@ class Ipv6Handler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
             fragmentOffset = 0
         }
 
-        header.apply {
+        return header.apply {
             headerLength = 40
             // Version & Traffic Class & Flow Label
             buffer.skipBytes(4)
@@ -122,8 +122,6 @@ class Ipv6Handler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
             totalLength = headerLength + payloadLength
             protocolNumber = nextHeader
         }
-
-        return if (header.moreFragments || header.fragmentOffset > 0) header.copy() else header
     }
 
     override fun routePacket(packet: Packet) {

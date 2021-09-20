@@ -58,7 +58,7 @@ class Ipv4Handler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
     }
 
     override fun readIpHeader(buffer: ByteBuf): IpHeader {
-        header.apply {
+        return header.apply {
             // Version & IHL
             headerLength = 4 * buffer.readUnsignedByte().toInt().and(0x0f)
             // DSCP & ECN
@@ -82,8 +82,6 @@ class Ipv4Handler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
             // Destination IP
             buffer.readBytes(dstAddr)
         }
-
-        return if (header.moreFragments || header.fragmentOffset > 0) header.copy() else header
     }
 
     override fun routePacket(packet: Packet) {

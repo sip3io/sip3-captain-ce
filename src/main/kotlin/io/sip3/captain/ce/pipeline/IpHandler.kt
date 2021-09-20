@@ -64,7 +64,7 @@ abstract class IpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled
 
         if (header.moreFragments || header.fragmentOffset > 0) {
             packet.payload = ByteArrayPayload(buffer.getBytes())
-            ipPackets.add(Pair(header, packet))
+            ipPackets.add(Pair(header.copy(), packet))
 
             if (ipPackets.size >= bulkSize) {
                 vertx.eventBus().localSend(RoutesCE.fragment, ipPackets.toList())
