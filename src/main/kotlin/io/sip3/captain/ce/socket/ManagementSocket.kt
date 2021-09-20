@@ -20,6 +20,7 @@ import io.sip3.captain.ce.RoutesCE
 import io.sip3.commons.domain.media.MediaControl
 import io.sip3.commons.vertx.annotations.ConditionalOnProperty
 import io.sip3.commons.vertx.annotations.Instance
+import io.sip3.commons.vertx.util.closeAndExitProcess
 import io.sip3.commons.vertx.util.localPublish
 import io.sip3.commons.vertx.util.setPeriodic
 import io.vertx.core.AbstractVerticle
@@ -40,6 +41,7 @@ class ManagementSocket : AbstractVerticle() {
 
     companion object {
 
+        const val TYPE_SHUTDOWN = "shutdown"
         const val TYPE_REGISTER = "register"
         const val TYPE_MEDIA_CONTROL = "media_control"
     }
@@ -97,6 +99,14 @@ class ManagementSocket : AbstractVerticle() {
             TYPE_MEDIA_CONTROL -> {
                 val mediaControl = message.getJsonObject("payload").mapTo(MediaControl::class.java)
                 vertx.eventBus().localPublish(RoutesCE.media + "_control", mediaControl)
+            }
+            TYPE_SHUTDOWN -> {
+                message.getJsonObject("payload")?.getString("name")?.let { name ->
+                    if (name == config().getJsonObject("host")?.getString("name") || name == deploymentID()) {
+                        logger.warn { "Shutting down the process via management socket: $message" }
+                        vertx.closeAndExitProcess()
+                    }
+                }
             }
             else -> logger.error("Unknown message type. Message: ${message.encodePrettily()}")
         }
