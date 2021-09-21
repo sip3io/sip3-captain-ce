@@ -24,10 +24,11 @@ import io.sip3.commons.domain.media.Recording
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.domain.payload.RecordingPayload
 import io.sip3.commons.util.MediaUtil
-import io.sip3.commons.util.MutableMapUtil
 import io.sip3.commons.util.getBytes
+import io.sip3.commons.vertx.collections.PeriodicallyExpiringHashMap
 import io.vertx.core.Vertx
 import mu.KotlinLogging
+import kotlin.math.min
 
 /**
  * Records RTP/RTCP and related ICMP packets
@@ -36,14 +37,13 @@ object RecordingManager {
 
     private val logger = KotlinLogging.logger {}
 
-    private var trimToSizeDelay: Long = 3600000
-    private var expirationDelay: Long = 4000
+    private var expirationDelay: Long = 1000
     private var aggregationTimeout: Long = 30000
-    private var durationTimeout: Long = 3600000
+    private var durationTimeout: Long = 60000
 
     private var vertx: Vertx? = null
 
-    private var streams = mutableMapOf<String, Stream>()
+    private lateinit var streams: PeriodicallyExpiringHashMap<String, Stream>
 
     @Synchronized
     fun getInstance(vertx: Vertx): RecordingManager {
@@ -56,9 +56,6 @@ object RecordingManager {
 
     private fun init() {
         vertx!!.orCreateContext.config().getJsonObject("recording")?.let { config ->
-            config.getLong("trim-to-size-delay")?.let {
-                trimToSizeDelay = it
-            }
             config.getLong("expiration-delay")?.let {
                 expirationDelay = it
             }
@@ -70,18 +67,11 @@ object RecordingManager {
             }
         }
 
-        vertx!!.setPeriodic(trimToSizeDelay) {
-            streams = MutableMapUtil.mutableMapOf(streams)
-        }
-        vertx!!.setPeriodic(expirationDelay) {
-            val now = System.currentTimeMillis()
-
-            streams.filterValues { stream ->
-                stream.updatedAt + aggregationTimeout < now || stream.createdAt + durationTimeout < now
-            }.forEach { (key, _) ->
-                streams.remove(key)
-            }
-        }
+        streams = PeriodicallyExpiringHashMap.Builder<String, Stream>()
+            .delay(expirationDelay)
+            .period((aggregationTimeout / expirationDelay).toInt())
+            .expireAt { _, v -> min(v.updatedAt + aggregationTimeout, v.createdAt + durationTimeout) }
+            .build(vertx!!)
 
         vertx!!.eventBus().localConsumer<MediaControl>(RoutesCE.media + "_control") { event ->
             try {
@@ -101,20 +91,20 @@ object RecordingManager {
             }
 
             val src = mediaControl.sdpSession.src
-            streams[src.rtpId] = stream
-            streams[src.rtcpId] = stream
+            streams.put(src.rtpId, stream)
+            streams.put(src.rtcpId, stream)
 
             val dst = mediaControl.sdpSession.dst
-            streams[dst.rtpId] = stream
-            streams[dst.rtcpId] = stream
+            streams.put(dst.rtpId, stream)
+            streams.put(dst.rtcpId, stream)
         }
     }
 
     fun record(packet: Packet): RecordingPayload? {
         if (streams.isEmpty()) return null
 
-        val stream = streams[MediaUtil.sdpSessionId(packet.srcAddr, packet.srcPort)]
-            ?: streams[MediaUtil.sdpSessionId(packet.dstAddr, packet.dstPort)] ?: return null
+        val stream = streams.get(MediaUtil.sdpSessionId(packet.srcAddr, packet.srcPort))
+            ?: streams.get(MediaUtil.sdpSessionId(packet.dstAddr, packet.dstPort)) ?: return null
 
         stream.apply {
             updatedAt = System.currentTimeMillis()
