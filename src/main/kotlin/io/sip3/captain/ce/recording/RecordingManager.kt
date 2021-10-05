@@ -27,6 +27,7 @@ import io.sip3.commons.util.MediaUtil
 import io.sip3.commons.util.getBytes
 import io.sip3.commons.vertx.collections.PeriodicallyExpiringHashMap
 import io.vertx.core.Vertx
+import io.vertx.core.json.JsonObject
 import mu.KotlinLogging
 import kotlin.math.min
 
@@ -72,6 +73,14 @@ object RecordingManager {
             .period((aggregationTimeout / expirationDelay).toInt())
             .expireAt { _, v -> min(v.updatedAt + aggregationTimeout, v.createdAt + durationTimeout) }
             .build(vertx!!)
+
+        vertx!!.eventBus().localConsumer<JsonObject>(RoutesCE.media + "_stop_recording") {
+            try {
+                stopRecording()
+            } catch (e: Exception) {
+                logger.error(e) { "RecordingManager 'stopRecording()' failed." }
+            }
+        }
 
         vertx!!.eventBus().localConsumer<MediaControl>(RoutesCE.media + "_control") { event ->
             try {
@@ -132,6 +141,10 @@ object RecordingManager {
                 else -> return null
             }
         }
+    }
+
+    fun stopRecording() {
+        streams.clear()
     }
 }
 
