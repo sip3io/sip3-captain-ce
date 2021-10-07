@@ -110,7 +110,7 @@ class ManagementSocket : AbstractVerticle() {
                 vertx.eventBus().localPublish(RoutesCE.media + "_control", mediaControl)
             }
             TYPE_MEDIA_RECORDING_RESET -> {
-                logger.warn { "Media recording reset via management socket: $message" }
+                logger.info { "Media recording reset via management socket: $message" }
                 vertx.eventBus().localPublish(RoutesCE.media + "_recording_reset", message.getJsonObject("payload"))
             }
 

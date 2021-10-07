@@ -123,7 +123,7 @@ class ManagementSocketTest : VertxTest() {
     }
 
     @Test
-    fun `Receive 'stop_recording' from remote host`() {
+    fun `Receive 'media_recording_reset' from remote host`() {
         val remoteAddr = InetAddress.getLoopbackAddress().hostAddress
         val remotePort = findRandomPort()
 
@@ -140,7 +140,7 @@ class ManagementSocketTest : VertxTest() {
             assert = {
                 val remoteSocket = vertx.createDatagramSocket().listen(remotePort, remoteAddr) {}
 
-                // 1. Retrieve and send back `TYPE_STOP_RECORDING`
+                // 1. Retrieve and send back `TYPE_MEDIA_RECORDING_RESET`
                 remoteSocket.handler { packet ->
                     val sender = packet.sender()
                     val message = JsonObject().apply {
