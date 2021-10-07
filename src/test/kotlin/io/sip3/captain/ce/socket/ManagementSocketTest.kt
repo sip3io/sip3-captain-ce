@@ -22,8 +22,7 @@ import io.sip3.commons.domain.media.Recording
 import io.sip3.commons.vertx.test.VertxTest
 import io.vertx.core.json.Json
 import io.vertx.core.json.JsonObject
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.net.InetAddress
 
@@ -116,6 +115,46 @@ class ManagementSocketTest : VertxTest() {
                     context.verify {
                         val payload = JsonObject(Json.encode(event.body()))
                         assertEquals(MEDIA_CONTROL.getJsonObject("payload"), payload)
+                    }
+                    context.completeNow()
+                }
+            }
+        )
+    }
+
+    @Test
+    fun `Receive 'media_recording_reset' from remote host`() {
+        val remoteAddr = InetAddress.getLoopbackAddress().hostAddress
+        val remotePort = findRandomPort()
+
+        runTest(
+            deploy = {
+                vertx.deployTestVerticle(ManagementSocket::class, JsonObject().apply {
+                    put("management", JsonObject().apply {
+                        put("uri", "udp://$remoteAddr:$remotePort")
+                        put("register-delay", 100L)
+                    })
+                    put("host", HOST)
+                })
+            },
+            assert = {
+                val remoteSocket = vertx.createDatagramSocket().listen(remotePort, remoteAddr) {}
+
+                // 1. Retrieve and send back `TYPE_MEDIA_RECORDING_RESET`
+                remoteSocket.handler { packet ->
+                    val sender = packet.sender()
+                    val message = JsonObject().apply {
+                        put("type", ManagementSocket.TYPE_MEDIA_RECORDING_RESET)
+                        put("payload", JsonObject())
+                    }
+                    remoteSocket.send(message.toBuffer(), sender.port(), sender.host()) {}
+                }
+
+                // 2. Assert command sent by ManagementSocket
+                vertx.eventBus().consumer<JsonObject>(RoutesCE.media + "_recording_reset") { event ->
+                    context.verify {
+                        val message = event.body()
+                        assertTrue(message.isEmpty)
                     }
                     context.completeNow()
                 }

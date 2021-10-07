@@ -27,6 +27,7 @@ import io.sip3.commons.util.MediaUtil
 import io.sip3.commons.util.getBytes
 import io.sip3.commons.vertx.collections.PeriodicallyExpiringHashMap
 import io.vertx.core.Vertx
+import io.vertx.core.json.JsonObject
 import mu.KotlinLogging
 import kotlin.math.min
 
@@ -81,6 +82,14 @@ object RecordingManager {
                 logger.error(e) { "RecordingManager 'handleMediaControl()' failed." }
             }
         }
+
+        vertx!!.eventBus().localConsumer<JsonObject>(RoutesCE.media + "_recording_reset") {
+            try {
+                reset()
+            } catch (e: Exception) {
+                logger.error(e) { "RecordingManager 'reset()' failed." }
+            }
+        }
     }
 
     private fun handleMediaControl(mediaControl: MediaControl) {
@@ -132,6 +141,10 @@ object RecordingManager {
                 else -> return null
             }
         }
+    }
+
+    fun reset() {
+        streams.clear()
     }
 }
 

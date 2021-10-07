@@ -44,6 +44,7 @@ class ManagementSocket : AbstractVerticle() {
         const val TYPE_SHUTDOWN = "shutdown"
         const val TYPE_REGISTER = "register"
         const val TYPE_MEDIA_CONTROL = "media_control"
+        const val TYPE_MEDIA_RECORDING_RESET = "media_recording_reset"
     }
 
     lateinit var uri: URI
@@ -96,10 +97,6 @@ class ManagementSocket : AbstractVerticle() {
         val type = message.getString("type")
 
         when (type) {
-            TYPE_MEDIA_CONTROL -> {
-                val mediaControl = message.getJsonObject("payload").mapTo(MediaControl::class.java)
-                vertx.eventBus().localPublish(RoutesCE.media + "_control", mediaControl)
-            }
             TYPE_SHUTDOWN -> {
                 message.getJsonObject("payload")?.getString("name")?.let { name ->
                     if (name == config().getJsonObject("host")?.getString("name") || name == deploymentID()) {
@@ -108,6 +105,15 @@ class ManagementSocket : AbstractVerticle() {
                     }
                 }
             }
+            TYPE_MEDIA_CONTROL -> {
+                val mediaControl = message.getJsonObject("payload").mapTo(MediaControl::class.java)
+                vertx.eventBus().localPublish(RoutesCE.media + "_control", mediaControl)
+            }
+            TYPE_MEDIA_RECORDING_RESET -> {
+                logger.info { "Media recording reset via management socket: $message" }
+                vertx.eventBus().localPublish(RoutesCE.media + "_recording_reset", message.getJsonObject("payload"))
+            }
+
             else -> logger.error("Unknown message type. Message: ${message.encodePrettily()}")
         }
     }
