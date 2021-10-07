@@ -74,20 +74,20 @@ object RecordingManager {
             .expireAt { _, v -> min(v.updatedAt + aggregationTimeout, v.createdAt + durationTimeout) }
             .build(vertx!!)
 
-        vertx!!.eventBus().localConsumer<JsonObject>(RoutesCE.media + "_stop_recording") {
-            try {
-                stopRecording()
-            } catch (e: Exception) {
-                logger.error(e) { "RecordingManager 'stopRecording()' failed." }
-            }
-        }
-
         vertx!!.eventBus().localConsumer<MediaControl>(RoutesCE.media + "_control") { event ->
             try {
                 val mediaControl = event.body()
                 handleMediaControl(mediaControl)
             } catch (e: Exception) {
                 logger.error(e) { "RecordingManager 'handleMediaControl()' failed." }
+            }
+        }
+
+        vertx!!.eventBus().localConsumer<JsonObject>(RoutesCE.media + "_recording_reset") {
+            try {
+                reset()
+            } catch (e: Exception) {
+                logger.error(e) { "RecordingManager 'reset()' failed." }
             }
         }
     }
@@ -143,7 +143,7 @@ object RecordingManager {
         }
     }
 
-    fun stopRecording() {
+    fun reset() {
         streams.clear()
     }
 }

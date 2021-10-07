@@ -17,7 +17,6 @@
 package io.sip3.captain.ce.socket
 
 import io.sip3.captain.ce.RoutesCE
-import io.sip3.captain.ce.recording.RecordingManager
 import io.sip3.commons.domain.media.MediaControl
 import io.sip3.commons.vertx.annotations.ConditionalOnProperty
 import io.sip3.commons.vertx.annotations.Instance
@@ -45,7 +44,7 @@ class ManagementSocket : AbstractVerticle() {
         const val TYPE_SHUTDOWN = "shutdown"
         const val TYPE_REGISTER = "register"
         const val TYPE_MEDIA_CONTROL = "media_control"
-        const val TYPE_STOP_RECORDING = "stop_recording"
+        const val TYPE_MEDIA_RECORDING_RESET = "media_recording_reset"
     }
 
     lateinit var uri: URI
@@ -110,9 +109,9 @@ class ManagementSocket : AbstractVerticle() {
                 val mediaControl = message.getJsonObject("payload").mapTo(MediaControl::class.java)
                 vertx.eventBus().localPublish(RoutesCE.media + "_control", mediaControl)
             }
-            TYPE_STOP_RECORDING -> {
-                logger.warn { "Stop recording via management socket: $message" }
-                vertx.eventBus().localPublish(RoutesCE.media + "_stop_recording", message.getJsonObject("payload"))
+            TYPE_MEDIA_RECORDING_RESET -> {
+                logger.warn { "Media recording reset via management socket: $message" }
+                vertx.eventBus().localPublish(RoutesCE.media + "_recording_reset", message.getJsonObject("payload"))
             }
 
             else -> logger.error("Unknown message type. Message: ${message.encodePrettily()}")

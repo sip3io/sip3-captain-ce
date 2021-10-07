@@ -144,14 +144,14 @@ class ManagementSocketTest : VertxTest() {
                 remoteSocket.handler { packet ->
                     val sender = packet.sender()
                     val message = JsonObject().apply {
-                        put("type", ManagementSocket.TYPE_STOP_RECORDING)
+                        put("type", ManagementSocket.TYPE_MEDIA_RECORDING_RESET)
                         put("payload", JsonObject())
                     }
                     remoteSocket.send(message.toBuffer(), sender.port(), sender.host()) {}
                 }
 
                 // 2. Assert command sent by ManagementSocket
-                vertx.eventBus().consumer<JsonObject>(RoutesCE.media + "_stop_recording") { event ->
+                vertx.eventBus().consumer<JsonObject>(RoutesCE.media + "_recording_reset") { event ->
                     context.verify {
                         val message = event.body()
                         assertTrue(message.isEmpty)
