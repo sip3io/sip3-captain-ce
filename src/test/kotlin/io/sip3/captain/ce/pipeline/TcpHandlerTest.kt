@@ -25,6 +25,7 @@ import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.vertx.test.VertxTest
 import io.sip3.commons.vertx.util.localSend
+import io.sip3.commons.vertx.util.setPeriodic
 import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -101,7 +102,9 @@ class TcpHandlerTest : VertxTest() {
                 vertx.eventBus().localSend(RoutesCE.tcp, listOf(packet))
             },
             assert = {
-                vertx.executeBlocking<Any>({
+                vertx.setPeriodic(300L, 500L) {
+                    if (!packetSlot.isCaptured) return@setPeriodic
+
                     context.verify {
                         verify(timeout = 20000) { anyConstructed<SipHandler>().handle(any()) }
                         val packet = packetSlot.captured
@@ -111,7 +114,7 @@ class TcpHandlerTest : VertxTest() {
                         assertEquals(21, buffer.readableBytes())
                     }
                     context.completeNow()
-                }, {})
+                }
             }
         )
     }
@@ -141,7 +144,9 @@ class TcpHandlerTest : VertxTest() {
                 vertx.eventBus().localSend(RoutesCE.tcp, listOf(packet1, packet2))
             },
             assert = {
-                vertx.executeBlocking<Any>({
+                vertx.setPeriodic(300L, 500L) {
+                    if (!packetSlot.isCaptured) return@setPeriodic
+
                     context.verify {
                         verify(timeout = 20000) { anyConstructed<SipHandler>().handle(any()) }
                         val packet = packetSlot.captured
@@ -151,7 +156,7 @@ class TcpHandlerTest : VertxTest() {
                         assertEquals(21, buffer.readableBytes())
                     }
                     context.completeNow()
-                }, {})
+                }
             }
         )
     }
@@ -180,7 +185,9 @@ class TcpHandlerTest : VertxTest() {
                 vertx.eventBus().localSend(RoutesCE.tcp, listOf(packet))
             },
             assert = {
-                vertx.executeBlocking<Any>({
+                vertx.setPeriodic(300L, 500L) {
+                    if (!packetSlot.isCaptured) return@setPeriodic
+
                     context.verify {
                         verify(timeout = 20000) { anyConstructed<SmppHandler>().handle(any()) }
                         val packet = packetSlot.captured
@@ -190,7 +197,7 @@ class TcpHandlerTest : VertxTest() {
                         assertEquals(16, buffer.readableBytes())
                     }
                     context.completeNow()
-                }, {})
+                }
             }
         )
     }

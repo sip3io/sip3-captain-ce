@@ -24,6 +24,7 @@ import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.getBytes
 import io.sip3.commons.vertx.test.VertxTest
+import io.sip3.commons.vertx.util.setPeriodic
 import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -85,7 +86,9 @@ class IpFragmentHandlerTest : VertxTest() {
                 ipv4Handler.handle(packet2)
             },
             assert = {
-                vertx.executeBlocking<Any>({
+                vertx.setPeriodic(300L, 500L) {
+                    if (!packetSlot.isCaptured) return@setPeriodic
+
                     context.verify {
                         verify(timeout = 10000) { anyConstructed<Ipv4Handler>().routePacket(any()) }
                         val packet = packetSlot.captured
@@ -97,7 +100,7 @@ class IpFragmentHandlerTest : VertxTest() {
                         assertFalse(buffer.getBytes().contains(0xfe.toByte()))
                     }
                     context.completeNow()
-                }, {})
+                }
             }
         )
     }
@@ -132,7 +135,9 @@ class IpFragmentHandlerTest : VertxTest() {
                 ipv4Handler.handle(packet1)
             },
             assert = {
-                vertx.executeBlocking<Any>({
+                vertx.setPeriodic(300L, 500L) {
+                    if (!packetSlot.isCaptured) return@setPeriodic
+
                     context.verify {
                         verify(timeout = 10000) { anyConstructed<Ipv4Handler>().routePacket(any()) }
                         val packet = packetSlot.captured
@@ -144,7 +149,7 @@ class IpFragmentHandlerTest : VertxTest() {
                         assertFalse(buffer.getBytes().contains(0xfe.toByte()))
                     }
                     context.completeNow()
-                }, {})
+                }
             }
         )
     }

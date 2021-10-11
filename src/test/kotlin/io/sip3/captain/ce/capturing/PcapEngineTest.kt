@@ -22,6 +22,7 @@ import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.pipeline.EthernetHandler
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.vertx.test.VertxTest
+import io.sip3.commons.vertx.util.setPeriodic
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.AfterEach
@@ -76,7 +77,9 @@ class PcapEngineTest : VertxTest() {
                     }
                 },
                 assert = {
-                    vertx.executeBlocking<Any>({
+                    vertx.setPeriodic(300L, 500L) {
+                        if (!packetSlot.isCaptured) return@setPeriodic
+
                         context.verify {
                             verify(timeout = 10000) { anyConstructed<EthernetHandler>().handle(any()) }
                             val buffer = (packetSlot.captured.payload as Encodable).encode()
@@ -84,7 +87,7 @@ class PcapEngineTest : VertxTest() {
                             assertTrue(received.endsWith(MESSAGE))
                         }
                         context.completeNow()
-                    }, {})
+                    }
                 },
                 cleanup = {
                     tempDir.deleteRecursively()
@@ -113,12 +116,14 @@ class PcapEngineTest : VertxTest() {
                     })
                 },
                 execute = {
-                    vertx.setPeriodic(100) {
+                    vertx.setPeriodic(200) {
                         vertx.createDatagramSocket().send(MESSAGE, port, loopback.hostAddress) {}
                     }
                 },
                 assert = {
-                    vertx.executeBlocking<Any>({
+                    vertx.setPeriodic(300L, 500L) {
+                        if (!packetSlot.isCaptured) return@setPeriodic
+
                         context.verify {
                             verify(timeout = 10000) { anyConstructed<EthernetHandler>().handle(any()) }
                             val buffer = (packetSlot.captured.payload as Encodable).encode()
@@ -126,7 +131,7 @@ class PcapEngineTest : VertxTest() {
                             assertTrue(received.endsWith(MESSAGE))
                         }
                         context.completeNow()
-                    }, {})
+                    }
                 }
             )
         }
