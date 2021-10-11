@@ -67,12 +67,14 @@ sender:
 #! Host
 #host:
 #  name: sbc.sip3.io
-#  sip:
+#  addr:
 #    - 10.10.10.10
 #    - 10.10.10.20:5060
-#  media:
-#    - 10.10.20.10
-#    - 10.10.30.0/24
+#  feature:
+#    - "role:proxy"
+#  mapping:
+#    - source: "217.117.177.177"
+#    - target: "10.10.10.10"
 
 #! Metrics
 #metrics:
