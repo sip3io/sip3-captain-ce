@@ -33,7 +33,14 @@ class EthernetHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: B
         const val TYPE_IPV6 = 0x86dd
         const val TYPE_802_1_Q = 0x8100
         const val TYPE_802_1_AD = 0x88a8
-        const val TYPE_LINUX_COOKED_CAPTURE = 0x0000
+    }
+
+    private var linuxCookedMode = false;
+
+    init {
+        config.getJsonObject("pcap")?.getBoolean("sll")?.let {
+            linuxCookedMode = it
+        }
     }
 
     private val ipv4Handler: Ipv4Handler by lazy {
@@ -48,6 +55,12 @@ class EthernetHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: B
 
         // Source MAC and Destination MAC
         buffer.skipBytes(12)
+
+        // Linux Cooked-Mode
+        if (linuxCookedMode) {
+            buffer.skipBytes(2)
+        }
+
         // Ethernet Type
         val etherType = readEthernetType(buffer)
 
@@ -67,7 +80,6 @@ class EthernetHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: B
                 buffer.skipBytes(2)
                 readEthernetType(buffer)
             }
-            TYPE_LINUX_COOKED_CAPTURE -> readEthernetType(buffer)
             else -> ethernetType
         }
     }

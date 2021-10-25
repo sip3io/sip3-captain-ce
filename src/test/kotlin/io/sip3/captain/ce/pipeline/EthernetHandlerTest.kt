@@ -135,7 +135,11 @@ class EthernetHandlerTest {
                 anyConstructed<Ipv6Handler>().handle(capture(packetSlot))
             } just Runs
             // Execute
-            val ethernetHandler = EthernetHandler(Vertx.vertx(), JsonObject(), false)
+            val ethernetHandler = EthernetHandler(Vertx.vertx(), JsonObject().apply {
+                put("pcap", JsonObject().apply {
+                    put("sll", true)
+                })
+            }, false)
             val packet = Packet().apply {
                 this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_4))
             }
