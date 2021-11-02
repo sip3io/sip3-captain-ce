@@ -25,9 +25,9 @@ import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.IpUtil
 import io.sip3.commons.vertx.annotations.Instance
+import io.sip3.commons.vertx.collections.PeriodicallyExpiringHashMap
 import io.vertx.core.AbstractVerticle
 import mu.KotlinLogging
-import org.apache.commons.collections4.map.PassiveExpiringMap
 import java.util.*
 
 /**
@@ -38,19 +38,29 @@ class IpFragmentHandler : AbstractVerticle() {
 
     private val logger = KotlinLogging.logger {}
 
-    private lateinit var defragmentators: PassiveExpiringMap<String, Defragmentator>
-    private var ttl: Long = 60000
+    private var expirationDelay: Long = 5000
+    private var aggregationTimeout: Long = 30000
+
+    private lateinit var defragmentators: PeriodicallyExpiringHashMap<String, Defragmentator>
 
     private lateinit var ipv4Handler: Ipv4Handler
     private lateinit var ipv6Handler: Ipv6Handler
 
     override fun start() {
-        config().getJsonObject("ip")?.getLong("fragment-ttl")?.let {
-            ttl = it
+        config().getJsonObject("ip")?.getJsonObject("fragment")?.let { config ->
+            config.getLong("expiration-delay")?.let {
+                expirationDelay = it
+            }
+            config.getLong("aggregation-timeout")?.let {
+                aggregationTimeout = it
+            }
         }
 
-        defragmentators = PassiveExpiringMap(ttl)
-        vertx.setPeriodic(ttl) { defragmentators.size }
+        defragmentators = PeriodicallyExpiringHashMap.Builder<String, Defragmentator>()
+            .delay(expirationDelay)
+            .period((aggregationTimeout / expirationDelay).toInt())
+            .expireAt { _, v -> v.timestamp + aggregationTimeout }
+            .build(vertx)
 
         ipv4Handler = Ipv4Handler(vertx, config(), false)
         ipv6Handler = Ipv6Handler(vertx, config(), false)
@@ -70,7 +80,7 @@ class IpFragmentHandler : AbstractVerticle() {
     fun onPacket(header: IpHeader, packet: Packet) {
         val key = "${IpUtil.convertToString(header.srcAddr)}:${IpUtil.convertToString(header.srcAddr)}:${header.identification}"
 
-        val defragmentator = defragmentators.computeIfAbsent(key) {
+        val defragmentator = defragmentators.getOrPut(key) {
             Defragmentator().apply {
                 this.timestamp = packet.timestamp
                 this.nanos = packet.nanos
