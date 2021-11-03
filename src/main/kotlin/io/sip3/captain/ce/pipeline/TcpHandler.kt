@@ -72,8 +72,8 @@ class TcpHandler : AbstractVerticle() {
         connections = PeriodicallyExpiringHashMap.Builder<String, TcpConnection>()
             .delay(expirationDelay)
             .period((aggregationTimeout / expirationDelay).toInt())
-            .expireAt { _, v -> v.lastUpdated + idleConnectionTimeout }
-            .onRemain { _, v -> v.processTcpSegments() }
+            .expireAt { _, connection -> connection.lastUpdated + idleConnectionTimeout }
+            .onRemain { _, connection -> connection.processTcpSegments() }
             .build(vertx)
 
         vertx.eventBus().localConsumer<List<Packet>>(RoutesCE.tcp) { event ->

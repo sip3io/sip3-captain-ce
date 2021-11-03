@@ -71,7 +71,7 @@ object RecordingManager {
         streams = PeriodicallyExpiringHashMap.Builder<String, Stream>()
             .delay(expirationDelay)
             .period((aggregationTimeout / expirationDelay).toInt())
-            .expireAt { _, v -> min(v.updatedAt + aggregationTimeout, v.createdAt + durationTimeout) }
+            .expireAt { _, recording -> min(recording.updatedAt + aggregationTimeout, recording.createdAt + durationTimeout) }
             .build(vertx!!)
 
         vertx!!.eventBus().localConsumer<MediaControl>(RoutesCE.media + "_control") { event ->

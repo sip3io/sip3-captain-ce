@@ -59,7 +59,7 @@ class IpFragmentHandler : AbstractVerticle() {
         defragmentators = PeriodicallyExpiringHashMap.Builder<String, Defragmentator>()
             .delay(expirationDelay)
             .period((aggregationTimeout / expirationDelay).toInt())
-            .expireAt { _, v -> v.timestamp + aggregationTimeout }
+            .expireAt { _, defragmentator -> defragmentator.timestamp + aggregationTimeout }
             .build(vertx)
 
         ipv4Handler = Ipv4Handler(vertx, config(), false)
