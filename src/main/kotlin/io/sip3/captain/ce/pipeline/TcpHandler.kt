@@ -27,6 +27,7 @@ import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.IpUtil
 import io.sip3.commons.vertx.annotations.Instance
+import io.sip3.commons.vertx.collections.PeriodicallyExpiringHashMap
 import io.vertx.core.AbstractVerticle
 import mu.KotlinLogging
 import java.util.*
@@ -40,19 +41,25 @@ class TcpHandler : AbstractVerticle() {
     private val logger = KotlinLogging.logger {}
 
     private var expirationDelay: Long = 100
-    private var aggregationTimeout: Long = 100
+    private var aggregationTimeout: Long = 200
     private var idleConnectionTimeout: Long = 300000
 
     private var sipEnabled = true
     private var smppEnabled = false
 
-    private val connections = mutableMapOf<String, TcpConnection>()
+    private lateinit var connections: PeriodicallyExpiringHashMap<String, TcpConnection>
 
     override fun start() {
         config().getJsonObject("tcp")?.let { config ->
-            config.getLong("expiration-delay")?.let { expirationDelay = it }
-            config.getLong("aggregation-timeout")?.let { aggregationTimeout = it }
-            config.getLong("idle-connection-timeout")?.let { idleConnectionTimeout = it }
+            config.getLong("expiration-delay")?.let {
+                expirationDelay = it
+            }
+            config.getLong("aggregation-timeout")?.let {
+                aggregationTimeout = it
+            }
+            config.getLong("idle-connection-timeout")?.let {
+                idleConnectionTimeout = it
+            }
         }
 
         config().getJsonObject("sip")?.getBoolean("enabled")?.let {
@@ -62,13 +69,12 @@ class TcpHandler : AbstractVerticle() {
             smppEnabled = it
         }
 
-        vertx.setPeriodic(expirationDelay) {
-            try {
-                processTcpConnections()
-            } catch (e: Exception) {
-                logger.error("TcpHandler 'processTcpConnections()' failed.", e)
-            }
-        }
+        connections = PeriodicallyExpiringHashMap.Builder<String, TcpConnection>()
+            .delay(expirationDelay)
+            .period((aggregationTimeout / expirationDelay).toInt())
+            .expireAt { _, connection -> connection.lastUpdated + idleConnectionTimeout }
+            .onRemain { _, connection -> connection.processTcpSegments() }
+            .build(vertx)
 
         vertx.eventBus().localConsumer<List<Packet>>(RoutesCE.tcp) { event ->
             val packets = event.body()
@@ -112,7 +118,7 @@ class TcpHandler : AbstractVerticle() {
         val connectionId = "$srcAddr:$srcPort:$dstAddr:$dstPort"
 
         // Find existing connection or add a new one, but only after it's type defined
-        var connection = connections[connectionId]
+        var connection = connections.get(connectionId)
         if (connection == null) {
             connection = when {
                 sipEnabled && SipUtil.startsWithSipWord(buffer) ->
@@ -121,7 +127,7 @@ class TcpHandler : AbstractVerticle() {
                     TcpConnection(SmppHandler(vertx, config(), false)) { b: ByteBuf -> SmppUtil.isPdu(b) }
                 else -> return
             }
-            connections[connectionId] = connection
+            connections.put(connectionId, connection)
         }
 
         // Re-assign packet payload to `ByteBufPayload`
@@ -130,17 +136,6 @@ class TcpHandler : AbstractVerticle() {
         // Handle TCP packet and update connection timestamp
         connection.lastUpdated = System.currentTimeMillis()
         connection.onTcpSegment(sequenceNumber, packet)
-    }
-
-    private fun processTcpConnections() {
-        val now = System.currentTimeMillis()
-
-        connections.toMap().forEach { (connectionId, connection) ->
-            when {
-                connection.lastUpdated + idleConnectionTimeout < now -> connections.remove(connectionId)
-                else -> connection.processTcpSegments()
-            }
-        }
     }
 
     // Important! To make `TcpConnection` code easier we decided to ignore a very rare scenario:
