@@ -25,7 +25,6 @@ import io.vertx.core.datagram.DatagramSocket
 import io.vertx.core.net.NetClientOptions
 import io.vertx.core.net.NetSocket
 import mu.KotlinLogging
-import java.net.InetSocketAddress
 import java.net.URI
 
 /**
@@ -37,8 +36,6 @@ class Sender : AbstractVerticle() {
     private val logger = KotlinLogging.logger {}
 
     lateinit var uri: URI
-    lateinit var socketAddress: InetSocketAddress
-
     var reconnectionTimeout: Long? = null
     var isSSl = false
     var keyStore: String? = null
@@ -52,8 +49,6 @@ class Sender : AbstractVerticle() {
     override fun start() {
         config().getJsonObject("sender").let { config ->
             uri = URI(config.getString("uri") ?: throw IllegalArgumentException("uri"))
-            socketAddress = InetSocketAddress(uri.host, uri.port)
-
             reconnectionTimeout = config.getLong("reconnection-timeout")
             config.getJsonObject("ssl")?.let { sslConfig ->
                 isSSl = true
