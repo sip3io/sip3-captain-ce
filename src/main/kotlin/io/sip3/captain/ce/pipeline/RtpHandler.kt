@@ -94,6 +94,8 @@ class RtpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
                 vertx.eventBus().localSend(RoutesCE.encoder, recordings.toList())
                 recordings.clear()
             }
+
+            header.recorded = true
         }
 
         if (collectorEnabled) {
