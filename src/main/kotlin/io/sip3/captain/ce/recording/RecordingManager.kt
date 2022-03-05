@@ -61,7 +61,7 @@ object RecordingManager {
                 expirationDelay = it
             }
             config.getLong("aggregation-timeout")?.let {
-                expirationDelay = it
+                aggregationTimeout = it
             }
             config.getLong("duration-timeout")?.let {
                 durationTimeout = it
