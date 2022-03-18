@@ -47,23 +47,23 @@ object RecordingManager {
     private lateinit var streams: PeriodicallyExpiringHashMap<String, Stream>
 
     @Synchronized
-    fun getInstance(vertx: Vertx): RecordingManager {
+    fun getInstance(vertx: Vertx, config: JsonObject): RecordingManager {
         if (this.vertx == null) {
             this.vertx = vertx
-            init()
+            init(config)
         }
         return this
     }
 
-    private fun init() {
-        vertx!!.orCreateContext.config().getJsonObject("recording")?.let { config ->
-            config.getLong("expiration-delay")?.let {
+    private fun init(config: JsonObject) {
+        config.getJsonObject("recording")?.let { recordingConfig ->
+            recordingConfig.getLong("expiration-delay")?.let {
                 expirationDelay = it
             }
-            config.getLong("aggregation-timeout")?.let {
+            recordingConfig.getLong("aggregation-timeout")?.let {
                 aggregationTimeout = it
             }
-            config.getLong("duration-timeout")?.let {
+            recordingConfig.getLong("duration-timeout")?.let {
                 durationTimeout = it
             }
         }
