@@ -42,7 +42,7 @@ class RtpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
     private var payloadTypes = mutableSetOf<Byte>()
     private var collectorEnabled = false
 
-    private val recordingManager = RecordingManager.getInstance(vertx)
+    private val recordingManager = RecordingManager.getInstance(vertx, config)
 
     init {
         config.getJsonObject("vertx")?.getInteger("instances")?.let {

@@ -35,7 +35,7 @@ class RtcpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
     private val packets = mutableListOf<Packet>()
     private var bulkSize = 1
 
-    private val recordingManager = RecordingManager.getInstance(vertx)
+    private val recordingManager = RecordingManager.getInstance(vertx, config)
 
     init {
         config.getJsonObject("rtcp")?.let { rtcpConfig ->
