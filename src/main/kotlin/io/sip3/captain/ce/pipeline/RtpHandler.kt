@@ -22,7 +22,7 @@ import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.recording.RecordingManager
 import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.payload.Encodable
-import io.sip3.commons.domain.payload.RtpHeaderPayload
+import io.sip3.commons.domain.payload.RtpPacketPayload
 import io.sip3.commons.util.toIntRange
 import io.sip3.commons.vertx.util.localSend
 import io.vertx.core.Vertx
@@ -34,6 +34,11 @@ import kotlin.experimental.and
  */
 class RtpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolean) : Handler(vertx, config, bulkOperationsEnabled) {
 
+    companion object {
+
+        val DYNAMIC_PT = (96..127).map { it.toByte() }.toSet()
+    }
+
     private val packets = mutableMapOf<Long, MutableList<Packet>>()
     private val recordings = mutableListOf<Packet>()
     private var bulkSize = 1
@@ -41,6 +46,7 @@ class RtpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
     private var instances: Int = 1
     private var payloadTypes = mutableSetOf<Byte>()
     private var collectorEnabled = false
+    private var rtpEventsEnabled = false
 
     private val recordingManager = RecordingManager.getInstance(vertx, config)
 
@@ -67,6 +73,10 @@ class RtpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
             rtpConfig.getJsonObject("collector")?.getBoolean("enabled")?.let {
                 collectorEnabled = it
             }
+
+            rtpConfig.getJsonObject("events")?.getBoolean("enabled")?.let {
+                rtpEventsEnabled = it
+            }
         }
     }
 
@@ -78,8 +88,12 @@ class RtpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
             recordingMark = buffer.readerIndex()
         }
 
-        // Read RTP header
-        val header = readRtpHeader(buffer) ?: return
+        // Read RTP Header
+        val rtpPacketPayload = readRtpHeader(buffer) ?: return
+
+        if (rtpEventsEnabled && DYNAMIC_PT.contains(rtpPacketPayload.payloadType) && isRtpEvent(buffer)) {
+            rtpPacketPayload.event = buffer.readInt()
+        }
 
         val recording = recordingManager.record(packet)
         if (recording != null) {
@@ -95,15 +109,15 @@ class RtpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
                 recordings.clear()
             }
 
-            header.recorded = true
+            rtpPacketPayload.recorded = true
         }
 
         if (collectorEnabled) {
-            val index = header.ssrc % instances
+            val index = rtpPacketPayload.ssrc % instances
 
             val packetsByIndex = packets.getOrPut(index) { mutableListOf() }
             packet.apply {
-                payload = header
+                payload = rtpPacketPayload
             }
             packetsByIndex.add(packet)
 
@@ -114,8 +128,8 @@ class RtpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
         }
     }
 
-    private fun readRtpHeader(buffer: ByteBuf): RtpHeaderPayload? {
-        return RtpHeaderPayload().apply {
+    private fun readRtpHeader(buffer: ByteBuf): RtpPacketPayload? {
+        return RtpPacketPayload().apply {
             // Version & P & X & CC
             val flags = buffer.readByte()
             val x = (flags.and(16) == 16.toByte())
@@ -149,5 +163,10 @@ class RtpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
                 buffer.skipBytes(4 * length)
             }
         }
+    }
+
+    private fun isRtpEvent(buffer: ByteBuf): Boolean {
+        return (buffer.readableBytes() == 4)
+                && (buffer.getInt(buffer.readerIndex()) shr 22) and 1 == 0
     }
 }
