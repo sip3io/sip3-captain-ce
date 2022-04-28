@@ -227,7 +227,7 @@ class RtpHandlerTest : VertxTest() {
     }
 
     @Test
-    fun `Parse RTP Event`() {
+    fun `Save RTP Event payload`() {
         mockkObject(RecordingManager)
         every {
             RecordingManager.record(any())

@@ -88,8 +88,12 @@ class RtpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
             recordingMark = buffer.readerIndex()
         }
 
-        // Read RTP header
-        val rtpPacketPayload = readRtpPacketPayload(buffer) ?: return
+        // Read RTP Header
+        val rtpPacketPayload = readRtpHeader(buffer) ?: return
+
+        if (rtpEventsEnabled && DYNAMIC_PT.contains(rtpPacketPayload.payloadType) && isRtpEvent(buffer)) {
+            rtpPacketPayload.event = buffer.readInt()
+        }
 
         val recording = recordingManager.record(packet)
         if (recording != null) {
@@ -124,7 +128,7 @@ class RtpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
         }
     }
 
-    private fun readRtpPacketPayload(buffer: ByteBuf): RtpPacketPayload? {
+    private fun readRtpHeader(buffer: ByteBuf): RtpPacketPayload? {
         return RtpPacketPayload().apply {
             // Version & P & X & CC
             val flags = buffer.readByte()
@@ -157,10 +161,6 @@ class RtpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
                 val length = buffer.readUnsignedShort()
                 // Extension Header
                 buffer.skipBytes(4 * length)
-            }
-
-            if (rtpEventsEnabled && DYNAMIC_PT.contains(payloadType) && isRtpEvent(buffer)) {
-                event = buffer.readInt()
             }
         }
     }
