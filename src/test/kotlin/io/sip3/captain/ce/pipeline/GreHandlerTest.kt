@@ -39,6 +39,12 @@ class GreHandlerTest {
             0x10.toByte(), 0x00.toByte(), 0x88.toByte(), 0xbe.toByte(), 0x01.toByte(), 0xf6.toByte(), 0xa4.toByte(),
             0x40.toByte(), 0x45.toByte(), 0xa0.toByte(), 0x00.toByte(), 0x1c.toByte(), 0xe8.toByte(), 0xdd.toByte()
         )
+
+        // GRE (without optional Sequence Number) Payload: TEB
+        val PACKET_2 = byteArrayOf(
+            0x10.toByte(), 0x00.toByte(), 0x65.toByte(), 0x58.toByte(), 0x01.toByte(), 0xf6.toByte(), 0xa4.toByte(),
+            0x40.toByte(), 0x45.toByte(), 0xa0.toByte(), 0x00.toByte(), 0x1c.toByte(), 0xe8.toByte(), 0xdd.toByte()
+        )
     }
 
     @Test
@@ -57,6 +63,26 @@ class GreHandlerTest {
         greHandler.handle(packet)
         // Assert
         verify { anyConstructed<ErspanHandler>().handle(any()) }
+        val buffer = (packetSlot.captured.payload as Encodable).encode()
+        assertEquals(6, buffer.readableBytes())
+    }
+
+    @Test
+    fun `Parse GRE (with optional Sequence Number) - TEB`() {
+        // Init
+        mockkConstructor(EthernetHandler::class)
+        val packetSlot = slot<Packet>()
+        every {
+            anyConstructed<EthernetHandler>().handle(capture(packetSlot))
+        } just Runs
+        // Execute
+        val greHandler = GreHandler(Vertx.vertx(), JsonObject(), false)
+        val packet = Packet().apply {
+            this.payload = ByteBufPayload(Unpooled.wrappedBuffer(PACKET_2))
+        }
+        greHandler.handle(packet)
+        // Assert
+        verify { anyConstructed<EthernetHandler>().handle(any()) }
         val buffer = (packetSlot.captured.payload as Encodable).encode()
         assertEquals(6, buffer.readableBytes())
     }

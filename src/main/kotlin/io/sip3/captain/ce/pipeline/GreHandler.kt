@@ -30,6 +30,7 @@ class GreHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
 
         const val TYPE_ERSPAN = 0x88be
         const val TYPE_IPV4 = 0x0800
+        const val TYPE_TEB = 0x6558
     }
 
     private val erspanHandler: ErspanHandler by lazy {
@@ -37,6 +38,9 @@ class GreHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
     }
     private val ipv4Handler: Ipv4Handler by lazy {
         Ipv4Handler(vertx, config, bulkOperationsEnabled)
+    }
+    private val ethernetHandler: EthernetHandler by lazy {
+        EthernetHandler(vertx, config, bulkOperationsEnabled)
     }
 
     override fun onPacket(packet: Packet) {
@@ -68,6 +72,7 @@ class GreHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
         when (protocolType) {
             TYPE_ERSPAN -> erspanHandler.handle(packet)
             TYPE_IPV4 -> ipv4Handler.handle(packet)
+            TYPE_TEB -> ethernetHandler.handle(packet)
         }
     }
 }
