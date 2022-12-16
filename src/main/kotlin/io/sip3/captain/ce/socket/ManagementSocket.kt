@@ -25,6 +25,7 @@ import io.sip3.commons.vertx.util.localPublish
 import io.sip3.commons.vertx.util.setPeriodic
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.datagram.DatagramSocket
+import io.vertx.core.datagram.DatagramSocketOptions
 import io.vertx.core.json.JsonObject
 import mu.KotlinLogging
 import java.net.URI
@@ -65,7 +66,10 @@ class ManagementSocket : AbstractVerticle() {
     }
 
     private fun startUdpSocket() {
-        udp = vertx.createDatagramSocket().handler { packet ->
+        val options = DatagramSocketOptions().apply {
+            isIpV6 = uri.host.matches(Regex("\\[.*]"))
+        }
+        udp = vertx.createDatagramSocket(options).handler { packet ->
             val buffer = packet.data()
             try {
                 val message = buffer.toJsonObject()

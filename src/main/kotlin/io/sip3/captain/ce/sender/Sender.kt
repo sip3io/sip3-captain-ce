@@ -22,6 +22,7 @@ import io.sip3.commons.vertx.annotations.Instance
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.datagram.DatagramSocket
+import io.vertx.core.datagram.DatagramSocketOptions
 import io.vertx.core.net.NetClientOptions
 import io.vertx.core.net.NetSocket
 import mu.KotlinLogging
@@ -74,7 +75,10 @@ class Sender : AbstractVerticle() {
     }
 
     fun openUdpConnection() {
-        udp = vertx.createDatagramSocket()
+        val options = DatagramSocketOptions().apply {
+            isIpV6 = uri.host.matches(Regex("\\[.*]"))
+        }
+        udp = vertx.createDatagramSocket(options)
         logger.info("UDP connection opened: $uri")
     }
 
