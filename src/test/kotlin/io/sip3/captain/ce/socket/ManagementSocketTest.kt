@@ -22,6 +22,7 @@ import io.sip3.commons.domain.media.Recording
 import io.sip3.commons.vertx.test.VertxTest
 import io.vertx.core.json.Json
 import io.vertx.core.json.JsonObject
+import io.vertx.kotlin.core.datagram.datagramSocketOptionsOf
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.net.InetAddress
@@ -91,6 +92,54 @@ class ManagementSocketTest : VertxTest() {
             },
             assert = {
                 val remoteSocket = vertx.createDatagramSocket().listen(remotePort, remoteAddr) {}
+
+                // 1. Retrieve and assert `REGISTER` message
+                // 2. Send back `MEDIA_CONTROL`
+                remoteSocket.handler { packet ->
+                    val json = packet.data().toJsonObject()
+                    context.verify {
+                        assertEquals(ManagementSocket.TYPE_REGISTER, json.getString("type"))
+
+                        val payload = json.getJsonObject("payload")
+
+                        assertNotNull(payload.getLong("timestamp"))
+                        assertNotNull(payload.getString("name"))
+                        assertEquals(HOST, payload.getJsonObject("config")?.getJsonObject("host"))
+                    }
+
+                    val sender = packet.sender()
+                    remoteSocket.send(MEDIA_CONTROL.toBuffer(), sender.port(), sender.host()) {}
+                }
+
+                // 1. Retrieve and assert `MEDIA_CONTROL`
+                vertx.eventBus().consumer<MediaControl>(RoutesCE.media + "_control") { event ->
+                    context.verify {
+                        val payload = JsonObject(Json.encode(event.body()))
+                        assertEquals(MEDIA_CONTROL.getJsonObject("payload"), payload)
+                    }
+                    context.completeNow()
+                }
+            }
+        )
+    }
+    @Test
+    fun `Send 'REGISTER' to remote host ipv6`() {
+        val remoteAddr = "[fe80::1]"
+        val remotePort = findRandomPort()
+
+        runTest(
+            deploy = {
+                vertx.deployTestVerticle(ManagementSocket::class, JsonObject().apply {
+                    put("management", JsonObject().apply {
+                        put("uri", "udp://$remoteAddr:$remotePort")
+                        put("register-delay", 100L)
+                    })
+                    put("host", HOST)
+                })
+            },
+            assert = {
+                val options = datagramSocketOptionsOf(ipV6 = true)
+                val remoteSocket = vertx.createDatagramSocket(options).listen(remotePort, remoteAddr) {}
 
                 // 1. Retrieve and assert `REGISTER` message
                 // 2. Send back `MEDIA_CONTROL`
