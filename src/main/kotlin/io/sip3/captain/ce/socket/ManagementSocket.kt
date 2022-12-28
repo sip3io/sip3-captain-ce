@@ -22,7 +22,6 @@ import io.sip3.commons.vertx.annotations.ConditionalOnProperty
 import io.sip3.commons.vertx.annotations.Instance
 import io.sip3.commons.vertx.util.closeAndExitProcess
 import io.sip3.commons.vertx.util.localPublish
-import io.sip3.commons.vertx.util.setPeriodic
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.datagram.DatagramSocket
 import io.vertx.core.datagram.DatagramSocketOptions
