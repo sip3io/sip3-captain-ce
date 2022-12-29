@@ -13,7 +13,6 @@ name: sip3-captain
 
 #! Pcap (libpcap, WinPcap, Npcap)
 #pcap:
-#  dir: /tmp/sip3-captain
 #  dev: eth0
 #  dlt: EN10MB
 #  sll: false

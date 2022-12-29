@@ -22,7 +22,6 @@ import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.pipeline.EthernetHandler
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.vertx.test.VertxTest
-import io.sip3.commons.vertx.util.setPeriodic
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.AfterEach
@@ -31,15 +30,12 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.pcap4j.core.Pcaps
-import java.io.File
 import java.net.InetAddress
-import java.nio.file.Files.createTempDirectory
 
 @ExtendWith(MockKExtension::class)
 class PcapEngineTest : VertxTest() {
 
     companion object {
-        val PCAP_FILE = File("src/test/resources/pcap/PcapEngineTest.pcap")
 
         const val MESSAGE = "Hello, World!"
     }
@@ -50,50 +46,6 @@ class PcapEngineTest : VertxTest() {
     @BeforeEach
     fun init() {
         port = findRandomPort()
-    }
-
-    @Test
-    fun `Capture some packets in offline mode`() {
-        val tempDir = createTempDirectory("sip3-captain").toFile()
-        val file = tempDir.resolve(PCAP_FILE.name)
-        PCAP_FILE.copyTo(file)
-        val packetSlot = slot<Packet>()
-        mockkConstructor(EthernetHandler::class) {
-            every {
-                anyConstructed<EthernetHandler>().handle(capture(packetSlot))
-            } just Runs
-
-            runTest(
-                deploy = {
-                    vertx.deployTestVerticle(PcapEngine::class, JsonObject().apply {
-                        put("pcap", JsonObject().apply {
-                            put("dir", tempDir.absolutePath)
-                        })
-                    })
-                },
-                execute = {
-                    vertx.setPeriodic(1000) {
-                        file.setLastModified(System.currentTimeMillis())
-                    }
-                },
-                assert = {
-                    vertx.setPeriodic(300L, 500L) {
-                        if (!packetSlot.isCaptured) return@setPeriodic
-
-                        context.verify {
-                            verify(timeout = 10000) { anyConstructed<EthernetHandler>().handle(any()) }
-                            val buffer = (packetSlot.captured.payload as Encodable).encode()
-                            val received = Buffer.buffer(buffer).toString()
-                            assertTrue(received.endsWith(MESSAGE))
-                        }
-                        context.completeNow()
-                    }
-                },
-                cleanup = {
-                    tempDir.deleteRecursively()
-                }
-            )
-        }
     }
 
     @Test

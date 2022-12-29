@@ -30,10 +30,6 @@ import io.sip3.commons.vertx.util.closeAndExitProcess
 import io.vertx.core.AbstractVerticle
 import mu.KotlinLogging
 import org.pcap4j.core.*
-import org.springframework.boot.devtools.filewatch.ChangedFile
-import org.springframework.boot.devtools.filewatch.ChangedFiles
-import org.springframework.boot.devtools.filewatch.FileSystemWatcher
-import java.io.File
 import java.nio.ByteBuffer
 import java.util.concurrent.Executors
 
@@ -54,7 +50,6 @@ class PcapEngine : AbstractVerticle() {
         )
     }
 
-    var dir: String? = null
     var dev: String? = null
     var dlt = "EN10MB"
     var bulkSize = 256
@@ -82,9 +77,6 @@ class PcapEngine : AbstractVerticle() {
 
     override fun start() {
         config().getJsonObject("pcap").let { config ->
-            config.getString("dir")?.let {
-                dir = it
-            }
             config.getString("dev")?.let {
                 dev = it
             }
@@ -113,42 +105,10 @@ class PcapEngine : AbstractVerticle() {
         ipv4Handler = Ipv4Handler(vertx, config(), true)
         ipv6Handler = Ipv6Handler(vertx, config(), true)
 
-        dir?.let {
-            logger.info("Listening folder: $it")
-            offline()
-        }
         dev?.let {
             logger.info("Listening network interface: $it")
             online()
         }
-    }
-
-    private fun offline() {
-        // Standard java `WatchService` is not capable to see changes in mounted volumes,
-        // that's why we use `FileSystemWatcher` from spring-boot-devtools.
-        val watcher = FileSystemWatcher()
-        watcher.addSourceDirectory(File(dir!!))
-        watcher.addListener { changedFiles ->
-            changedFiles.flatMap(ChangedFiles::getFiles)
-                .map(ChangedFile::getFile)
-                .forEach { file ->
-                    if (file.exists()) {
-                        logger.info("Started file reading: $file")
-                        val handle = Pcaps.openOffline(file.absolutePath)
-                        vertx.executeBlocking<Any>({
-                            try {
-                                handle.loop()
-                            } catch (e: Exception) {
-                                logger.error("Got exception...", e)
-                            }
-                        }, {
-                            handle.breakLoop()
-                            logger.info("Finished file reading: $file")
-                        })
-                    }
-                }
-        }
-        watcher.start()
     }
 
     private fun online() {
