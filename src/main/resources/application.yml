@@ -8,53 +8,53 @@ name: sip3-captain
 #! DPDK
 #dpdk:
 #  port: 0
-#  rx-queue-size: 1
-#  bulk-size: 256
+#  rx_queue_size: 1
+#  bulk_size: 256
 
 #! Pcap (libpcap, WinPcap, Npcap)
 #pcap:
 #  dev: eth0
 #  dlt: EN10MB
 #  sll: false
-#  bpf-filter: ip and udp
-#  bulk-size: 256
+#  bpf_filter: ip and udp
+#  bulk_size: 256
 #  snaplen: 65535
-#  buffer-size: 2097152
-#  timeout-millis: 1
+#  buffer_size: 2097152
+#  timeout_millis: 1
 
 #! TCP
 #tcp:
-#  expiration-delay: 100
-#  aggregation-timeout: 100
-#  idle-connection-timeout: 300000
+#  expiration_delay: 100
+#  aggregation_timeout: 100
+#  idle_connection_timeout: 300000
 
 #! RTCP
 #rtcp:
 #  enabled: false
-#  bulk-size: 1
+#  bulk_size: 1
 
 #! RTP
 #rtp:
 #  enabled: false
-#  bulk-size: 1
+#  bulk_size: 1
 #  payload-types: [0..10, 100]
 #  collector:
 #    enabled: true
 
 #! Recording
 #recording:
-#  expiration-delay: 1000
-#  aggregation-timeout: 30000
-#  duration-timeout: 60000
+#  expiration_delay: 1000
+#  aggregation_timeout: 30000
+#  duration_timeout: 60000
 
 #! Encoder
 #encoder:
-#  mtu-size: 1450
+#  mtu_size: 1450
 
 #! Sender
 sender:
   uri: udp://127.0.0.1:15060
-#  reconnection-timeout: 1000
+#  reconnection_timeout: 1000
 #  ssl:
 #    key-store: ...
 #    key-store-password: ...
@@ -62,7 +62,7 @@ sender:
 #! ManagementSocket
 #management:
 #  uri: udp://127.0.0.1:15090
-#  register-delay: 60000
+#  register_delay: 60000
 
 #! Host
 #host:

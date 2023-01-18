@@ -62,8 +62,8 @@ class PcapEngineTest : VertxTest() {
                         put("pcap", JsonObject().apply {
                             val dev = Pcaps.getDevByAddress(loopback).name
                             put("dev", dev)
-                            put("bpf-filter", "udp and port $port")
-                            put("timeout-millis", 10)
+                            put("bpf_filter", "udp and port $port")
+                            put("timeout_millis", 10)
                         })
                     })
                 },

@@ -38,7 +38,7 @@ class SmppHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
     init {
         if (bulkOperationsEnabled) {
             config.getJsonObject("smpp")?.let { smppConfig ->
-                smppConfig.getInteger("bulk-size")?.let { bulkSize = it }
+                smppConfig.getInteger("bulk_size")?.let { bulkSize = it }
             }
         }
     }

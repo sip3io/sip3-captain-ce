@@ -38,7 +38,7 @@ abstract class IpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled
 
     init {
         if (bulkOperationsEnabled) {
-            config.getJsonObject("ip")?.getInteger("bulk-size")?.let {
+            config.getJsonObject("ip")?.getInteger("bulk_size")?.let {
                 bulkSize = it
             }
         }

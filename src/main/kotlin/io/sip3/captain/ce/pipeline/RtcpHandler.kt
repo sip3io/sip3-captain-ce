@@ -40,7 +40,7 @@ class RtcpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
     init {
         config.getJsonObject("rtcp")?.let { rtcpConfig ->
             if (bulkOperationsEnabled) {
-                rtcpConfig.getInteger("bulk-size")?.let { bulkSize = it }
+                rtcpConfig.getInteger("bulk_size")?.let { bulkSize = it }
             }
         }
     }

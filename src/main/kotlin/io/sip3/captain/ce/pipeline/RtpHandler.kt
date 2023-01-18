@@ -56,12 +56,12 @@ class RtpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
         }
         config.getJsonObject("rtp")?.let { rtpConfig ->
             if (bulkOperationsEnabled) {
-                rtpConfig.getInteger("bulk-size")?.let {
+                rtpConfig.getInteger("bulk_size")?.let {
                     bulkSize = it
                 }
             }
 
-            rtpConfig.getJsonArray("payload-types")?.forEach { payloadType ->
+            rtpConfig.getJsonArray("payload_types")?.forEach { payloadType ->
                 when (payloadType) {
                     is Int -> payloadTypes.add(payloadType.toByte())
                     is String -> {

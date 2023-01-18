@@ -55,7 +55,7 @@ class ManagementSocket : AbstractVerticle() {
     override fun start() {
         config().getJsonObject("management").let { config ->
             uri = URI(config.getString("uri") ?: throw IllegalArgumentException("uri"))
-            config.getLong("register-delay")?.let { registerDelay = it }
+            config.getLong("register_delay")?.let { registerDelay = it }
         }
 
         when (uri.scheme) {

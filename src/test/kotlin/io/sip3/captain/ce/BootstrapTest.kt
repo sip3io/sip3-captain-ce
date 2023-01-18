@@ -191,8 +191,8 @@ class BootstrapTest : VertxTest() {
                 vertx.deployTestVerticle(Bootstrap::class, JsonObject().apply {
                     put("pcap", JsonObject().apply {
                         put("dev", dev.name)
-                        put("bpf-filter", "udp and port $remotePort")
-                        put("timeout-millis", 10)
+                        put("bpf_filter", "udp and port $remotePort")
+                        put("timeout_millis", 10)
                     })
                     put("sender", JsonObject().apply {
                         put("uri", "udp://$address:$port")

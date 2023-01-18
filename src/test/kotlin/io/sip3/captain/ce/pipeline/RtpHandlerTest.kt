@@ -184,7 +184,7 @@ class RtpHandlerTest : VertxTest() {
             execute = {
                 val rtpHandler = RtpHandler(vertx, JsonObject().apply {
                     put("rtp", JsonObject().apply {
-                        put("payload-types", listOf("0..7", 100))
+                        put("payload_types", listOf("0..7", 100))
                         put("collector", JsonObject().apply {
                             put("enabled", true)
                         })

@@ -84,19 +84,19 @@ class PcapEngine : AbstractVerticle() {
                 require(DATA_LINK_TYPES.contains(it)) { "Unsupported datalink type: $it" }
                 dlt = it
             }
-            config.getString("bpf-filter")?.let {
+            config.getString("bpf_filter")?.let {
                 bpfFilter = it
             }
-            config.getInteger("bulk-size")?.let {
+            config.getInteger("bulk_size")?.let {
                 bulkSize = it
             }
             config.getInteger("snaplen")?.let {
                 snaplen = it
             }
-            config.getInteger("buffer-size")?.let {
+            config.getInteger("buffer_size")?.let {
                 bufferSize = it
             }
-            config.getInteger("timeout-millis")?.let {
+            config.getInteger("timeout_millis")?.let {
                 timeoutMillis = it
             }
         }

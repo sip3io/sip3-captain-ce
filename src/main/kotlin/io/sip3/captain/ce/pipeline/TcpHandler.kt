@@ -51,13 +51,13 @@ class TcpHandler : AbstractVerticle() {
 
     override fun start() {
         config().getJsonObject("tcp")?.let { config ->
-            config.getLong("expiration-delay")?.let {
+            config.getLong("expiration_delay")?.let {
                 expirationDelay = it
             }
-            config.getLong("aggregation-timeout")?.let {
+            config.getLong("aggregation_timeout")?.let {
                 aggregationTimeout = it
             }
-            config.getLong("idle-connection-timeout")?.let {
+            config.getLong("idle_connection_timeout")?.let {
                 idleConnectionTimeout = it
             }
         }

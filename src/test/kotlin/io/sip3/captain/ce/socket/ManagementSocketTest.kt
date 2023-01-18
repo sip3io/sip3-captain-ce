@@ -85,7 +85,7 @@ class ManagementSocketTest : VertxTest() {
                 vertx.deployTestVerticle(ManagementSocket::class, JsonObject().apply {
                     put("management", JsonObject().apply {
                         put("uri", "udp://$remoteAddr:$remotePort")
-                        put("register-delay", 100L)
+                        put("register_delay", 100L)
                     })
                     put("host", HOST)
                 })
@@ -132,7 +132,7 @@ class ManagementSocketTest : VertxTest() {
                 vertx.deployTestVerticle(ManagementSocket::class, JsonObject().apply {
                     put("management", JsonObject().apply {
                         put("uri", "udp://$remoteAddr:$remotePort")
-                        put("register-delay", 100L)
+                        put("register_delay", 100L)
                     })
                     put("host", HOST)
                 })
@@ -181,7 +181,7 @@ class ManagementSocketTest : VertxTest() {
                 vertx.deployTestVerticle(ManagementSocket::class, JsonObject().apply {
                     put("management", JsonObject().apply {
                         put("uri", "udp://$remoteAddr:$remotePort")
-                        put("register-delay", 100L)
+                        put("register_delay", 100L)
                     })
                     put("host", HOST)
                 })
