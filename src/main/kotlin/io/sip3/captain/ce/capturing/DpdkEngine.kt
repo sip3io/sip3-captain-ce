@@ -63,8 +63,8 @@ class DpdkEngine : AbstractVerticle() {
     override fun start() {
         config().getJsonObject("dpdk").let { config ->
             config.getInteger("port")?.let { port = it }
-            config.getInteger("rx-queue-size")?.let { rxQueueSize = it }
-            config.getInteger("bulk-size")?.let { bulkSize = it }
+            config.getInteger("rx_queue_size")?.let { rxQueueSize = it }
+            config.getInteger("bulk_size")?.let { bulkSize = it }
         }
 
         // Vert.x asks to execute long blocking operations in separate application thread.

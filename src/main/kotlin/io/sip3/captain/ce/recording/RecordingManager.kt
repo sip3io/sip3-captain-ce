@@ -57,13 +57,13 @@ object RecordingManager {
 
     private fun init(config: JsonObject) {
         config.getJsonObject("recording")?.let { recordingConfig ->
-            recordingConfig.getLong("expiration-delay")?.let {
+            recordingConfig.getLong("expiration_delay")?.let {
                 expirationDelay = it
             }
-            recordingConfig.getLong("aggregation-timeout")?.let {
+            recordingConfig.getLong("aggregation_timeout")?.let {
                 aggregationTimeout = it
             }
-            recordingConfig.getLong("duration-timeout")?.let {
+            recordingConfig.getLong("duration_timeout")?.let {
                 durationTimeout = it
             }
         }

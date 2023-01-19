@@ -72,10 +72,10 @@ class Encoder : AbstractVerticle() {
 
     override fun start() {
         config().getJsonObject("encoder")?.let { config ->
-            config.getInteger("mtu-size")?.let {
+            config.getInteger("mtu_size")?.let {
                 mtuSize = it
             }
-            config.getInteger("bulk-size")?.let {
+            config.getInteger("bulk_size")?.let {
                 bulkSize = it
             }
         }

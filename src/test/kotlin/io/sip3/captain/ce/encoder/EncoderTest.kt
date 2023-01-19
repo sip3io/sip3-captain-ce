@@ -115,8 +115,8 @@ class EncoderTest : VertxTest() {
             deploy = {
                 vertx.deployTestVerticle(Encoder::class, config = JsonObject().apply {
                     put("encoder", JsonObject().apply {
-                        put("mtu-size", 350)
-                        put("bulk-size", 2)
+                        put("mtu_size", 350)
+                        put("bulk_size", 2)
                     })
                 })
             },
@@ -175,8 +175,8 @@ class EncoderTest : VertxTest() {
             deploy = {
                 vertx.deployTestVerticle(Encoder::class, config = JsonObject().apply {
                     put("encoder", JsonObject().apply {
-                        put("mtu-size", 160)
-                        put("bulk-size", 2)
+                        put("mtu_size", 160)
+                        put("bulk_size", 2)
                     })
                 })
             },
@@ -235,8 +235,8 @@ class EncoderTest : VertxTest() {
             deploy = {
                 vertx.deployTestVerticle(Encoder::class, config = JsonObject().apply {
                     put("encoder", JsonObject().apply {
-                        put("mtu-size", 100)
-                        put("bulk-size", 2)
+                        put("mtu_size", 100)
+                        put("bulk_size", 2)
                     })
                 })
             },

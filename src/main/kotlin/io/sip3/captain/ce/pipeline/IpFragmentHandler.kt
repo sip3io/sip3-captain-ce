@@ -48,10 +48,10 @@ class IpFragmentHandler : AbstractVerticle() {
 
     override fun start() {
         config().getJsonObject("ip")?.getJsonObject("fragment")?.let { config ->
-            config.getLong("expiration-delay")?.let {
+            config.getLong("expiration_delay")?.let {
                 expirationDelay = it
             }
-            config.getLong("aggregation-timeout")?.let {
+            config.getLong("aggregation_timeout")?.let {
                 aggregationTimeout = it
             }
         }

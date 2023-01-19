@@ -37,7 +37,7 @@ class SipHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
     init {
         if (bulkOperationsEnabled) {
             config.getJsonObject("sip")?.let { sipConfig ->
-                sipConfig.getInteger("bulk-size")?.let { bulkSize = it }
+                sipConfig.getInteger("bulk_size")?.let { bulkSize = it }
             }
         }
     }

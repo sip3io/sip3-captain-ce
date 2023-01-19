@@ -50,11 +50,11 @@ class Sender : AbstractVerticle() {
     override fun start() {
         config().getJsonObject("sender").let { config ->
             uri = URI(config.getString("uri") ?: throw IllegalArgumentException("uri"))
-            reconnectionTimeout = config.getLong("reconnection-timeout")
+            reconnectionTimeout = config.getLong("reconnection_timeout")
             config.getJsonObject("ssl")?.let { sslConfig ->
                 isSSl = true
-                keyStore = sslConfig.getString("key-store")
-                keyStorePassword = sslConfig.getString("key-store-password")
+                keyStore = sslConfig.getString("key_store")
+                keyStorePassword = sslConfig.getString("key_store_password")
             }
         }
 
