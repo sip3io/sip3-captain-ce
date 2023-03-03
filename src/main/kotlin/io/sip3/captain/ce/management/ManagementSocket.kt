@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.sip3.captain.ce.socket
+package io.sip3.captain.ce.management
 
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.commons.domain.media.MediaControl
@@ -83,41 +83,37 @@ class ManagementSocket : AbstractVerticle() {
                 put("type", TYPE_REGISTER)
                 put("payload", JsonObject().apply {
                     put("timestamp", System.currentTimeMillis())
-                    put("name", deploymentID())
+                    put("deployment_id", deploymentID())
                     put("config", config())
                 })
             }
 
-            udp?.send(registerMessage.toBuffer(), uri.port, uri.host) { asr ->
-                if (asr.failed()) {
-                    logger.error(asr.cause()) { "DatagramSocket 'send()' failed." }
-                }
-            }
+            udp?.send(registerMessage.toBuffer(), uri.port, uri.host)
+                ?.onFailure { logger.error(it) { "DatagramSocket 'send()' failed." } }
         }
     }
 
     private fun handle(message: JsonObject) {
         val type = message.getString("type")
+        val payload = message.getJsonObject("payload")
 
         when (type) {
             TYPE_SHUTDOWN -> {
-                message.getJsonObject("payload")?.getString("name")?.let { name ->
-                    if (name == config().getJsonObject("host")?.getString("name") || name == deploymentID()) {
-                        logger.warn { "Shutting down the process via management socket: $message" }
-                        vertx.closeAndExitProcess()
-                    }
+                if (payload.getString("deployment_id") == deploymentID()) {
+                    logger.warn { "Shutting down the process via management socket: $message" }
+                    vertx.closeAndExitProcess()
                 }
             }
             TYPE_MEDIA_CONTROL -> {
-                val mediaControl = message.getJsonObject("payload").mapTo(MediaControl::class.java)
+                val mediaControl = payload.mapTo(MediaControl::class.java)
                 vertx.eventBus().localPublish(RoutesCE.media + "_control", mediaControl)
             }
             TYPE_MEDIA_RECORDING_RESET -> {
                 logger.info { "Media recording reset via management socket: $message" }
-                vertx.eventBus().localPublish(RoutesCE.media + "_recording_reset", message.getJsonObject("payload"))
+                vertx.eventBus().localPublish(RoutesCE.media + "_recording_reset", payload)
             }
 
-            else -> logger.error("Unknown message type. Message: ${message.encodePrettily()}")
+            else -> logger.error("Unknown message type '$type'. Message: ${message.encodePrettily()}")
         }
     }
 }
