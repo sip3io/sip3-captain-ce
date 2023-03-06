@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.sip3.captain.ce.socket
+package io.sip3.captain.ce.management
 
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.commons.domain.media.MediaControl
@@ -103,7 +103,7 @@ class ManagementSocketTest : VertxTest() {
                         val payload = json.getJsonObject("payload")
 
                         assertNotNull(payload.getLong("timestamp"))
-                        assertNotNull(payload.getString("name"))
+                        assertNotNull(payload.getString("deployment_id"))
                         assertEquals(HOST, payload.getJsonObject("config")?.getJsonObject("host"))
                     }
 
@@ -151,7 +151,7 @@ class ManagementSocketTest : VertxTest() {
                         val payload = json.getJsonObject("payload")
 
                         assertNotNull(payload.getLong("timestamp"))
-                        assertNotNull(payload.getString("name"))
+                        assertNotNull(payload.getString("deployment_id"))
                         assertEquals(HOST, payload.getJsonObject("config")?.getJsonObject("host"))
                     }
 
