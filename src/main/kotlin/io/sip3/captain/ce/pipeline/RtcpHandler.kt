@@ -34,6 +34,7 @@ class RtcpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
 
     private val packets = mutableListOf<Packet>()
     private var bulkSize = 1
+    private var rtcpMinPort = 1024
 
     private val recordingManager = RecordingManager.getInstance(vertx, config)
 
@@ -42,10 +43,17 @@ class RtcpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
             if (bulkOperationsEnabled) {
                 rtcpConfig.getInteger("bulk_size")?.let { bulkSize = it }
             }
+
+            rtcpConfig.getInteger("min_port")?.let {
+                rtcpMinPort = it
+            }
         }
     }
 
     override fun onPacket(packet: Packet) {
+        // Filter packet by minimal RTCP port
+        if (packet.srcPort < rtcpMinPort || packet.dstPort < rtcpMinPort) return
+
         val buffer = (packet.payload as Encodable).encode()
 
         packet.apply {

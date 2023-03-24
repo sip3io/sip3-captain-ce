@@ -42,6 +42,7 @@ class RtpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
     private val packets = mutableMapOf<Long, MutableList<Packet>>()
     private val recordings = mutableListOf<Packet>()
     private var bulkSize = 1
+    private var rtpMinPort = 1024
 
     private var instances: Int = 1
     private var payloadTypes = mutableSetOf<Byte>()
@@ -59,6 +60,10 @@ class RtpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
                 rtpConfig.getInteger("bulk_size")?.let {
                     bulkSize = it
                 }
+            }
+
+            rtpConfig.getInteger("min_port")?.let {
+                rtpMinPort = it
             }
 
             rtpConfig.getJsonArray("payload_types")?.forEach { payloadType ->
@@ -81,6 +86,9 @@ class RtpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
     }
 
     override fun onPacket(packet: Packet) {
+        // Filter packet by minimal RTP port
+        if (packet.srcPort < rtpMinPort || packet.dstPort < rtpMinPort) return
+
         // Retrieve RTP packet buffer and mark it for further usage in `RecordingHandler`
         val buffer = (packet.payload as Encodable).encode()
         packet.apply {
