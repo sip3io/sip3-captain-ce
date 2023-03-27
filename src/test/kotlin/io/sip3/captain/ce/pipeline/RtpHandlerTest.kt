@@ -29,6 +29,7 @@ import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.RecordingPayload
 import io.sip3.commons.domain.payload.RtpPacketPayload
 import io.sip3.commons.vertx.test.VertxTest
+import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -236,7 +237,7 @@ class RtpHandlerTest : VertxTest() {
             execute = {
                 val rtpHandler = RtpHandler(vertx, JsonObject().apply {
                     put("rtp", JsonObject().apply {
-                        put("min_port", 54)
+                        put("port_ranges", JsonArray.of("54..$DST_PORT"))
                         put("collector", JsonObject().apply {
                             put("enabled", true)
                         })
@@ -246,7 +247,7 @@ class RtpHandlerTest : VertxTest() {
                     val packet = Packet().apply {
                         timestamp = NOW
                         srcAddr = SRC_ADDR
-                        srcPort = if (i < 2) 53 else 54
+                        srcPort = if (i < 2) 53 else SRC_PORT
                         dstAddr = DST_ADDR
                         dstPort = DST_PORT
                         this.payload = ByteBufPayload(Unpooled.wrappedBuffer(payload))

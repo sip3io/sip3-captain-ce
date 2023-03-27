@@ -29,6 +29,7 @@ import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.domain.payload.RecordingPayload
 import io.sip3.commons.vertx.test.VertxTest
+import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
@@ -178,14 +179,14 @@ class RtcpHandlerTest : VertxTest() {
             execute = {
                 val rtcpHandler = RtcpHandler(vertx, JsonObject().apply {
                     put("rtcp", JsonObject().apply {
-                        put("min_port", 54)
+                        put("port_ranges", JsonArray.of("54..$DST_PORT"))
                     })
                 }, false)
                 listOf(PACKET_1, PACKET_1, PACKET_1).forEachIndexed { i, payload ->
                     val packet = Packet().apply {
                         timestamp = NOW
                         srcAddr = SRC_ADDR
-                        srcPort = if (i < 2) 53 else 54
+                        srcPort = if (i < 2) 53 else SRC_PORT
                         dstAddr = DST_ADDR
                         dstPort = DST_PORT
                         this.payload = ByteBufPayload(Unpooled.wrappedBuffer(payload))
@@ -203,7 +204,7 @@ class RtcpHandlerTest : VertxTest() {
                             assertEquals(NOW, timestamp)
                             assertEquals(0, nanos)
                             assertEquals(SRC_ADDR, srcAddr)
-                            assertEquals(54, srcPort)
+                            assertEquals(SRC_PORT, srcPort)
                             assertEquals(DST_ADDR, dstAddr)
                             assertEquals(DST_PORT, dstPort)
                             assertEquals(PacketTypes.RTCP, protocolCode)
