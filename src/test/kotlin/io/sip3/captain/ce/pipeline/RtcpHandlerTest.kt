@@ -29,6 +29,7 @@ import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.domain.payload.RecordingPayload
 import io.sip3.commons.vertx.test.VertxTest
+import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
@@ -168,6 +169,54 @@ class RtcpHandlerTest : VertxTest() {
         )
     }
 
+    @Test
+    fun `Filter RTCP by minimal port`() {
+        mockkObject(RecordingManager)
+        every {
+            RecordingManager.record(any())
+        } returns null
+        runTest(
+            execute = {
+                val rtcpHandler = RtcpHandler(vertx, JsonObject().apply {
+                    put("rtcp", JsonObject().apply {
+                        put("port_ranges", JsonArray.of("54..$DST_PORT"))
+                    })
+                }, false)
+                listOf(PACKET_1, PACKET_1, PACKET_1).forEachIndexed { i, payload ->
+                    val packet = Packet().apply {
+                        timestamp = NOW
+                        srcAddr = SRC_ADDR
+                        srcPort = if (i < 2) 53 else SRC_PORT
+                        dstAddr = DST_ADDR
+                        dstPort = DST_PORT
+                        this.payload = ByteBufPayload(Unpooled.wrappedBuffer(payload))
+                    }
+                    rtcpHandler.handle(packet)
+                }
+            },
+            assert = {
+                vertx.eventBus().consumer<List<Packet>>(RoutesCE.encoder) { event ->
+                    context.verify {
+                        val packets = event.body()
+                        assertEquals(1, packets.size)
+
+                        with(packets.first()) {
+                            assertEquals(NOW, timestamp)
+                            assertEquals(0, nanos)
+                            assertEquals(SRC_ADDR, srcAddr)
+                            assertEquals(SRC_PORT, srcPort)
+                            assertEquals(DST_ADDR, dstAddr)
+                            assertEquals(DST_PORT, dstPort)
+                            assertEquals(PacketTypes.RTCP, protocolCode)
+                            assertArrayEquals(PACKET_1, (payload as Encodable).encode().array())
+                        }
+                    }
+
+                    context.completeNow()
+                }
+            }
+        )
+    }
     @AfterEach
     fun `Unmock all`() {
         unmockkAll()

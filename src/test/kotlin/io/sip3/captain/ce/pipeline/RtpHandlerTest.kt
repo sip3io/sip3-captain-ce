@@ -29,6 +29,7 @@ import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.RecordingPayload
 import io.sip3.commons.domain.payload.RtpPacketPayload
 import io.sip3.commons.vertx.test.VertxTest
+import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -199,6 +200,59 @@ class RtpHandlerTest : VertxTest() {
                         dstPort = DST_PORT
                         this.payload = ByteBufPayload(Unpooled.wrappedBuffer(payload))
                     }
+                    rtpHandler.handle(packet)
+                }
+            },
+            assert = {
+                vertx.eventBus().consumer<List<Packet>>(RoutesCE.rtp + "_0") { event ->
+                    val packets = event.body()
+                    context.verify {
+                        assertEquals(1, packets.size)
+
+                        val packet = packets[0]
+                        assertEquals(PacketTypes.RTP, packet.protocolCode)
+                        assertTrue(packet.payload is RtpPacketPayload)
+
+                        val payload = packet.payload as RtpPacketPayload
+                        assertEquals(27, payload.encode().writerIndex())
+                        assertEquals(0, payload.payloadType)
+                        assertEquals(477, payload.sequenceNumber)
+                        assertEquals(729167680, payload.timestamp)
+                        assertEquals(2500245875, payload.ssrc)
+                        assertEquals(false, payload.marker)
+                    }
+                    context.completeNow()
+                }
+            }
+        )
+    }
+
+    @Test
+    fun `Filter RTP by minimal port`() {
+        mockkObject(RecordingManager)
+        every {
+            RecordingManager.record(any())
+        } returns null
+        runTest(
+            execute = {
+                val rtpHandler = RtpHandler(vertx, JsonObject().apply {
+                    put("rtp", JsonObject().apply {
+                        put("port_ranges", JsonArray.of("54..$DST_PORT"))
+                        put("collector", JsonObject().apply {
+                            put("enabled", true)
+                        })
+                    })
+                }, false)
+                listOf(PACKET_1, PACKET_2, PACKET_3).mapIndexed { i, payload ->
+                    val packet = Packet().apply {
+                        timestamp = NOW
+                        srcAddr = SRC_ADDR
+                        srcPort = if (i < 2) 53 else SRC_PORT
+                        dstAddr = DST_ADDR
+                        dstPort = DST_PORT
+                        this.payload = ByteBufPayload(Unpooled.wrappedBuffer(payload))
+                    }
+
                     rtpHandler.handle(packet)
                 }
             },

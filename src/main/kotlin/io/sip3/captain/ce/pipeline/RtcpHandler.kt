@@ -23,6 +23,7 @@ import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.payload.ByteArrayPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.getBytes
+import io.sip3.commons.util.toIntRange
 import io.sip3.commons.vertx.util.localSend
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
@@ -34,6 +35,7 @@ class RtcpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
 
     private val packets = mutableListOf<Packet>()
     private var bulkSize = 1
+    private val portRanges = mutableListOf<IntRange>()
 
     private val recordingManager = RecordingManager.getInstance(vertx, config)
 
@@ -42,10 +44,20 @@ class RtcpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
             if (bulkOperationsEnabled) {
                 rtcpConfig.getInteger("bulk_size")?.let { bulkSize = it }
             }
+
+            rtcpConfig.getJsonArray("port_ranges")?.forEach { portRange ->
+                portRange as String
+                portRanges.add(portRange.toIntRange())
+            }
         }
     }
 
     override fun onPacket(packet: Packet) {
+        // Filter packet by RTCP port ranges
+        if (portRanges.isNotEmpty()
+            && (portRanges.none { packet.srcPort in it } || portRanges.none { packet.dstPort in it })
+        ) return
+
         val buffer = (packet.payload as Encodable).encode()
 
         packet.apply {
