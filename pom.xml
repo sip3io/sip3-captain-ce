@@ -12,7 +12,7 @@
     <parent>
         <groupId>io.sip3</groupId>
         <artifactId>sip3-parent</artifactId>
-        <version>2023.1.1-SNAPSHOT</version>
+        <version>2023.1.2-SNAPSHOT</version>
     </parent>
 
     <dependencies>
