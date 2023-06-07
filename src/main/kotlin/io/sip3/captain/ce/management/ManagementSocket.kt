@@ -103,6 +103,13 @@ class ManagementSocket : AbstractVerticle() {
                     logger.warn { "Shutting down the process via management socket: $message" }
                     vertx.closeAndExitProcess()
                 }
+
+                payload.getString("name")?.let { name ->
+                    if (name == config().getJsonObject("host")?.getString("name") || name == deploymentID()) {
+                        logger.warn { "Shutting down the process via management socket: $message" }
+                        vertx.closeAndExitProcess()
+                    }
+                }
             }
             TYPE_MEDIA_CONTROL -> {
                 val mediaControl = payload.mapTo(MediaControl::class.java)
