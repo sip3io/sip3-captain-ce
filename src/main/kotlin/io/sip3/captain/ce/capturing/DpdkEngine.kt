@@ -27,6 +27,7 @@ import io.sip3.commons.vertx.util.closeAndExitProcess
 import io.vertx.core.AbstractVerticle
 import mu.KotlinLogging
 import java.nio.ByteBuffer
+import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicLong
 
@@ -79,13 +80,13 @@ class DpdkEngine : AbstractVerticle() {
 
         vertx.setPeriodic(1000) {
             // Run period task in Vert.x `worker pool` to do not block `event loop`
-            vertx.executeBlocking<Any>({
+            vertx.executeBlocking<Any>(Callable {
                 var packetsCapturedSum: Long = 0
                 cores.forEach { (_, core) ->
                     packetsCapturedSum += core.packetsCaptured.getAndSet(0)
                 }
                 packetsCaptured.increment(packetsCapturedSum.toDouble())
-            }, {})
+            })
         }
     }
 
