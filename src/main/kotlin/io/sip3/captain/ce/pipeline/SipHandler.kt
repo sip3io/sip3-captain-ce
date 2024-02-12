@@ -18,7 +18,7 @@ package io.sip3.captain.ce.pipeline
 
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Packet
-import io.sip3.commons.PacketTypes
+import io.sip3.commons.ProtocolCodes
 import io.sip3.commons.domain.payload.ByteArrayPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.getBytes
@@ -46,7 +46,7 @@ class SipHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
         val buffer = (packet.payload as Encodable).encode()
 
         packet.apply {
-            protocolCode = PacketTypes.SIP
+            protocolCode = ProtocolCodes.SIP
             payload = run {
                 val bytes = buffer.getBytes()
                 return@run ByteArrayPayload(bytes)

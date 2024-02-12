@@ -20,7 +20,7 @@ import io.netty.buffer.ByteBuf
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.IpHeader
 import io.sip3.captain.ce.domain.Packet
-import io.sip3.commons.PacketTypes
+import io.sip3.commons.ProtocolCodes
 import io.sip3.commons.domain.payload.ByteArrayPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.getBytes
@@ -107,7 +107,7 @@ class Ipv4Handler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
             TYPE_ICMP -> {
                 val buffer = (packet.payload as Encodable).encode()
                 packet.apply {
-                    protocolCode = PacketTypes.ICMP
+                    protocolCode = ProtocolCodes.ICMP
                     recordingMark = buffer.readerIndex()
                 }
 
