@@ -99,16 +99,16 @@ class ManagementSocket : AbstractVerticle() {
 
         when (type) {
             TYPE_SHUTDOWN -> {
-                val statusCode = payload.getInteger("status_code") ?: -1
+                val exitCode = payload.getInteger("exit_code") ?: -1
                 if (payload.getString("deployment_id") == deploymentID()) {
                     logger.warn { "Shutting down the process via management socket: $message" }
-                    vertx.closeAndExitProcess(statusCode)
+                    vertx.closeAndExitProcess(exitCode)
                 }
 
                 payload.getString("name")?.let { name ->
                     if (name == config().getJsonObject("host")?.getString("name") || name == deploymentID()) {
                         logger.warn { "Shutting down the process via management socket: $message" }
-                        vertx.closeAndExitProcess(statusCode)
+                        vertx.closeAndExitProcess(exitCode)
                     }
                 }
             }
