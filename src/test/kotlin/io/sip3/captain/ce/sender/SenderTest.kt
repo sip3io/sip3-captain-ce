@@ -92,7 +92,7 @@ class SenderTest : VertxTest() {
                         socket.handler { buffer ->
                             val message = buffer.toString()
                             context.verify {
-                                assertEquals(MESSAGE, message)
+                                assertEquals("$MESSAGE\r\n\r\n3PIS\r\n\r\n", message)
                             }
                             context.completeNow()
                         }

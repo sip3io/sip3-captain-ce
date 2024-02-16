@@ -41,6 +41,7 @@ class Sender : AbstractVerticle() {
     var isSSl = false
     var keyStore: String? = null
     var keyStorePassword: String? = null
+    private var delimiter = Buffer.buffer("\r\n\r\n3PIS\r\n\r\n")
 
     var udp: DatagramSocket? = null
     var tcp: NetSocket? = null
@@ -56,6 +57,7 @@ class Sender : AbstractVerticle() {
                 keyStore = sslConfig.getString("key_store")
                 keyStorePassword = sslConfig.getString("key_store_password")
             }
+            config.getString("delimiter")?.let { delimiter = Buffer.buffer(it) }
         }
 
         when (uri.scheme) {
@@ -115,7 +117,7 @@ class Sender : AbstractVerticle() {
             buffers.forEach { socket.send(it, uri.port, uri.host) }
         }
         tcp?.let { socket ->
-            buffers.forEach { socket.write(it) }
+            buffers.forEach { socket.write(it.appendBuffer(delimiter)) }
         }
     }
 }
