@@ -53,7 +53,7 @@ class Sender : AbstractVerticle() {
         config().getJsonObject("sender").let { config ->
             uri = URI(config.getString("uri") ?: throw IllegalArgumentException("uri"))
             reconnectionTimeout = config.getLong("reconnection_timeout")
-            reusePort = config.getBoolean("reuse_port")
+            config.getBoolean("reuse_port")?.let { reusePort = it }
 
             config.getJsonObject("ssl")?.let { sslConfig ->
                 isSSl = true
