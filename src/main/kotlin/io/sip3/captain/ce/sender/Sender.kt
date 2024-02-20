@@ -38,9 +38,11 @@ class Sender : AbstractVerticle() {
 
     lateinit var uri: URI
     var reconnectionTimeout: Long? = null
+    var reusePort = true
     var isSSl = false
     var keyStore: String? = null
     var keyStorePassword: String? = null
+    private var delimiter = Buffer.buffer("\r\n\r\n3PIS\r\n\r\n")
 
     var udp: DatagramSocket? = null
     var tcp: NetSocket? = null
@@ -51,11 +53,14 @@ class Sender : AbstractVerticle() {
         config().getJsonObject("sender").let { config ->
             uri = URI(config.getString("uri") ?: throw IllegalArgumentException("uri"))
             reconnectionTimeout = config.getLong("reconnection_timeout")
+            reusePort = config.getBoolean("reuse_port")
+
             config.getJsonObject("ssl")?.let { sslConfig ->
                 isSSl = true
                 keyStore = sslConfig.getString("key_store")
                 keyStorePassword = sslConfig.getString("key_store_password")
             }
+            config.getString("delimiter")?.let { delimiter = Buffer.buffer(it) }
         }
 
         when (uri.scheme) {
@@ -77,19 +82,21 @@ class Sender : AbstractVerticle() {
     fun openUdpConnection() {
         val options = DatagramSocketOptions().apply {
             isIpV6 = uri.host.matches(Regex("\\[.*]"))
+            isReusePort = reusePort
         }
         udp = vertx.createDatagramSocket(options)
         logger.info("UDP connection opened: $uri")
     }
 
     fun openTcpConnection() {
-        val options = NetClientOptions()
-        if (isSSl) {
-            options.apply {
+        val options = NetClientOptions().apply {
+            isReusePort = reusePort
+            if (isSSl) {
                 isSsl = true
                 isTrustAll = true
             }
         }
+
         vertx.createNetClient(options).connect(uri.port, uri.host) { asr ->
             if (asr.succeeded()) {
                 logger.info("TCP connection opened: $uri")
@@ -115,7 +122,7 @@ class Sender : AbstractVerticle() {
             buffers.forEach { socket.send(it, uri.port, uri.host) }
         }
         tcp?.let { socket ->
-            buffers.forEach { socket.write(it) }
+            buffers.forEach { socket.write(it.appendBuffer(delimiter)) }
         }
     }
 }
