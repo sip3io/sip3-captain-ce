@@ -55,6 +55,7 @@ name: sip3-captain
 sender:
   uri: udp://127.0.0.1:15060
 #  reconnection_timeout: 1000
+#  reuse_port: true
 #  ssl:
 #    key-store: ...
 #    key-store-password: ...
