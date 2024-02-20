@@ -24,7 +24,7 @@ import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.recording.RecordingManager
-import io.sip3.commons.PacketTypes
+import io.sip3.commons.ProtocolCodes
 import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.RecordingPayload
 import io.sip3.commons.domain.payload.RtpPacketPayload
@@ -108,7 +108,7 @@ class RtpHandlerTest : VertxTest() {
                         assertEquals(1, packets.size)
 
                         val packet = packets[0]
-                        assertEquals(PacketTypes.RTP, packet.protocolCode)
+                        assertEquals(ProtocolCodes.RTP, packet.protocolCode)
                         assertTrue(packet.payload is RtpPacketPayload)
 
                         val payload = packet.payload as RtpPacketPayload
@@ -158,7 +158,7 @@ class RtpHandlerTest : VertxTest() {
                         assertEquals(1, packets.size)
 
                         val packet = packets[0]
-                        assertEquals(PacketTypes.RTP, packet.protocolCode)
+                        assertEquals(ProtocolCodes.RTP, packet.protocolCode)
                         assertTrue(packet.payload is RtpPacketPayload)
 
                         val payload = packet.payload as RtpPacketPayload
@@ -210,7 +210,7 @@ class RtpHandlerTest : VertxTest() {
                         assertEquals(1, packets.size)
 
                         val packet = packets[0]
-                        assertEquals(PacketTypes.RTP, packet.protocolCode)
+                        assertEquals(ProtocolCodes.RTP, packet.protocolCode)
                         assertTrue(packet.payload is RtpPacketPayload)
 
                         val payload = packet.payload as RtpPacketPayload
@@ -263,7 +263,7 @@ class RtpHandlerTest : VertxTest() {
                         assertEquals(1, packets.size)
 
                         val packet = packets[0]
-                        assertEquals(PacketTypes.RTP, packet.protocolCode)
+                        assertEquals(ProtocolCodes.RTP, packet.protocolCode)
                         assertTrue(packet.payload is RtpPacketPayload)
 
                         val payload = packet.payload as RtpPacketPayload
@@ -317,7 +317,7 @@ class RtpHandlerTest : VertxTest() {
                         assertEquals(1, packets.size)
 
                         val packet = packets[0]
-                        assertEquals(PacketTypes.RTP, packet.protocolCode)
+                        assertEquals(ProtocolCodes.RTP, packet.protocolCode)
                         assertTrue(packet.payload is RtpPacketPayload)
 
                         val payload = packet.payload as RtpPacketPayload
@@ -375,7 +375,7 @@ class RtpHandlerTest : VertxTest() {
                             assertEquals(SRC_PORT, srcPort)
                             assertEquals(DST_ADDR, dstAddr)
                             assertEquals(DST_PORT, dstPort)
-                            assertEquals(PacketTypes.REC, protocolCode)
+                            assertEquals(ProtocolCodes.REC, protocolCode)
                             assertTrue(payload is RecordingPayload)
                         }
                     }

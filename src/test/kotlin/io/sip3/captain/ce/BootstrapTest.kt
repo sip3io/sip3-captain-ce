@@ -17,7 +17,7 @@
 package io.sip3.captain.ce
 
 import io.sip3.captain.ce.encoder.Encoder
-import io.sip3.commons.PacketTypes
+import io.sip3.commons.ProtocolCodes
 import io.sip3.commons.vertx.test.VertxTest
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
@@ -255,7 +255,7 @@ class BootstrapTest : VertxTest() {
                             // Protocol Code
                             assertEquals(7, buffer.readByte())
                             assertEquals(4, buffer.readShort())
-                            assertEquals(PacketTypes.SIP, buffer.readByte())
+                            assertEquals(ProtocolCodes.SIP, buffer.readByte())
                             // Payload
                             assertEquals(8, buffer.readByte())
                             assertEquals(934, buffer.readShort())

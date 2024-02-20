@@ -19,7 +19,7 @@ package io.sip3.captain.ce.pipeline
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.recording.RecordingManager
-import io.sip3.commons.PacketTypes
+import io.sip3.commons.ProtocolCodes
 import io.sip3.commons.domain.payload.ByteArrayPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.util.getBytes
@@ -61,7 +61,7 @@ class RtcpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
         val buffer = (packet.payload as Encodable).encode()
 
         packet.apply {
-            protocolCode = PacketTypes.RTCP
+            protocolCode = ProtocolCodes.RTCP
             payload = run {
                 val bytes = buffer.getBytes()
                 return@run ByteArrayPayload(bytes)
@@ -73,7 +73,7 @@ class RtcpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boole
         if (recording != null) {
             val p = packet.rejected ?: packet
             p.apply {
-                protocolCode = PacketTypes.REC
+                protocolCode = ProtocolCodes.REC
                 payload = recording
             }
             packets.add(p)

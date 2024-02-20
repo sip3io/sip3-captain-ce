@@ -20,7 +20,7 @@ import io.netty.buffer.ByteBuf
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.recording.RecordingManager
-import io.sip3.commons.PacketTypes
+import io.sip3.commons.ProtocolCodes
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.domain.payload.RtpPacketPayload
 import io.sip3.commons.util.toIntRange
@@ -95,7 +95,7 @@ class RtpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
         // Retrieve RTP packet buffer and mark it for further usage in `RecordingHandler`
         val buffer = (packet.payload as Encodable).encode()
         packet.apply {
-            protocolCode = PacketTypes.RTP
+            protocolCode = ProtocolCodes.RTP
             recordingMark = buffer.readerIndex()
         }
 
@@ -110,7 +110,7 @@ class RtpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
         if (recording != null) {
             val p = packet.rejected ?: packet.clone()
             p.apply {
-                protocolCode = PacketTypes.REC
+                protocolCode = ProtocolCodes.REC
                 payload = recording
             }
             recordings.add(p)

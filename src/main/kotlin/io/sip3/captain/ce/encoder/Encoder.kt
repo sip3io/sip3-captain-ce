@@ -21,7 +21,9 @@ import io.netty.buffer.CompositeByteBuf
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Packet
+import io.sip3.commons.PacketTypes
 import io.sip3.commons.domain.payload.Encodable
+import io.sip3.commons.domain.payload.RawPayload
 import io.sip3.commons.util.getBytes
 import io.sip3.commons.util.writeTlv
 import io.sip3.commons.vertx.annotations.Instance
@@ -52,7 +54,6 @@ class Encoder : AbstractVerticle() {
         )
 
         const val PROTO_VERSION = 0x02
-        const val PACKET_TYPE = 0x01
         const val PACKET_VERSION = 0x01
 
         const val TAG_TIMESTAMP_TIME = 1
@@ -135,6 +136,13 @@ class Encoder : AbstractVerticle() {
     }
 
     private fun encodePacket(packet: Packet): ByteBuf {
+        return when(packet.payload) {
+            is RawPayload -> encodeRawPacket(packet)
+            else -> encodeSip3Packet(packet)
+        }
+    }
+
+    private fun encodeSip3Packet(packet: Packet): ByteBuf {
         val srcAddrLength = packet.srcAddr.size
         val dstAddrLength = packet.dstAddr.size
 
@@ -161,7 +169,7 @@ class Encoder : AbstractVerticle() {
         val packetLength = 45 + srcAddrLength + dstAddrLength + payloadLength
 
         return Unpooled.buffer(packetLength).apply {
-            writeByte(PACKET_TYPE)
+            writeByte(PacketTypes.SIP3.toInt())
             writeByte(PACKET_VERSION)
             writeShort(packetLength)
 
@@ -174,6 +182,35 @@ class Encoder : AbstractVerticle() {
             writeTlv(TAG_DST_PORT, packet.dstPort.toShort())
 
             writeTlv(TAG_PROTOCOL_CODE, packet.protocolCode)
+            writeTlv(TAG_PAYLOAD, payload)
+        }
+    }
+
+    private fun encodeRawPacket(packet: Packet): ByteBuf {
+        val payload = (packet.payload as Encodable).encode().getBytes()
+        val payloadLength = payload.size
+
+        // Packet length will be calculated accordingly to the following formula
+        //
+        // Fixed Part:
+        // 2  - Type & Version
+        // 2  - Length
+        //
+        // Tag-Length-Value Part:
+        // 11 - Milliseconds
+        // 7  - Nanoseconds
+        // 3+ - Payload
+        //
+        // In total it will be 21+
+        val packetLength = 21 + payloadLength
+
+        return Unpooled.buffer(packetLength).apply {
+            writeByte(PacketTypes.RAW.toInt())
+            writeByte(PACKET_VERSION)
+            writeShort(packetLength)
+
+            writeTlv(TAG_TIMESTAMP_TIME, packet.timestamp)
+            writeTlv(TAG_TIMESTAMP_NANOS, packet.nanos)
             writeTlv(TAG_PAYLOAD, payload)
         }
     }

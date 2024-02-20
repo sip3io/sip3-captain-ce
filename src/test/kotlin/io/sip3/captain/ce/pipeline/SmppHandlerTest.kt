@@ -19,7 +19,7 @@ package io.sip3.captain.ce.pipeline
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Packet
-import io.sip3.commons.PacketTypes
+import io.sip3.commons.ProtocolCodes
 import io.sip3.commons.domain.payload.ByteBufPayload
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.vertx.test.VertxTest
@@ -75,7 +75,7 @@ class SmppHandlerTest : VertxTest() {
                     context.verify {
                         assertEquals(1, packets.size)
                         val packet = packets[0]
-                        assertEquals(PacketTypes.SMPP, packet.protocolCode)
+                        assertEquals(ProtocolCodes.SMPP, packet.protocolCode)
                         val buffer = (packet.payload as Encodable).encode()
                         assertEquals(16, buffer.readableBytes())
                     }
@@ -111,7 +111,7 @@ class SmppHandlerTest : VertxTest() {
                     context.verify {
                         assertEquals(1, packets.size)
                         val packet = packets[0]
-                        assertEquals(PacketTypes.SMPP, packet.protocolCode)
+                        assertEquals(ProtocolCodes.SMPP, packet.protocolCode)
                         val buffer = (packet.payload as Encodable).encode()
                         assertEquals(16, buffer.readableBytes())
                     }

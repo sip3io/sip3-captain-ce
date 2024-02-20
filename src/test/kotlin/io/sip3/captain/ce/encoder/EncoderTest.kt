@@ -20,8 +20,9 @@ import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Packet
-import io.sip3.commons.PacketTypes
+import io.sip3.commons.ProtocolCodes
 import io.sip3.commons.domain.payload.ByteArrayPayload
+import io.sip3.commons.domain.payload.RawPayload
 import io.sip3.commons.util.getBytes
 import io.sip3.commons.vertx.test.VertxTest
 import io.sip3.commons.vertx.util.localSend
@@ -65,8 +66,20 @@ class EncoderTest : VertxTest() {
             dstAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x06.toByte())
             srcPort = 5060
             dstPort = 5061
-            protocolCode = PacketTypes.ICMP
+            protocolCode = ProtocolCodes.ICMP
             payload = ByteArrayPayload(PAYLOAD)
+        }
+
+        val PACKET_2 = Packet().apply {
+            timestamp = 1611254287777
+            nanos = 43
+            srcAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x05.toByte())
+            dstAddr = byteArrayOf(0x0a.toByte(), 0xfa.toByte(), 0xf4.toByte(), 0x06.toByte())
+            srcPort = 10598
+            dstPort = 10599
+            payload = RawPayload().apply {
+                this.payload = PAYLOAD
+            }
         }
     }
 
@@ -293,6 +306,69 @@ class EncoderTest : VertxTest() {
         )
     }
 
+    @Test
+    fun `Encode Raw Packet Type`() {
+        runTest(
+            deploy = {
+                vertx.deployTestVerticle(Encoder::class)
+            },
+            execute = {
+                vertx.eventBus().localSend(RoutesCE.encoder, listOf(PACKET_2))
+            },
+            assert = {
+                vertx.eventBus().consumer<List<Buffer>>(RoutesCE.sender) { event ->
+                    val buffers = event.body()
+                    context.verify {
+                        assertEquals(1, buffers.size)
+
+                        val buffer = buffers[0].byteBuf
+
+                        // Capacity
+                        assertEquals(141, buffer.writerIndex())
+                        val prefix = ByteArray(4)
+                        buffer.readBytes(prefix)
+                        // Prefix
+                        assertArrayEquals(Encoder.PREFIX, prefix)
+                        // Protocol Version
+                        assertEquals(2, buffer.readByte())
+                        // Compressed
+                        assertEquals(0, buffer.readByte())
+
+                        // Packet
+                        // Type
+                        assertEquals(2, buffer.readByte())
+                        // Version
+                        assertEquals(1, buffer.readByte())
+                        // Length
+                        assertEquals(131, buffer.readShort())
+
+                        // Milliseconds
+                        assertEquals(1, buffer.readByte())
+                        assertEquals(11, buffer.readShort())
+                        assertEquals(PACKET_2.timestamp, buffer.readLong())
+                        // Nanoseconds
+                        assertEquals(2, buffer.readByte())
+                        assertEquals(7, buffer.readShort())
+                        assertEquals(PACKET_2.nanos, buffer.readInt())
+
+                        // RawPayload
+                        assertEquals(8, buffer.readByte())
+                        assertEquals(6 + PAYLOAD.size, buffer.readUnsignedShort())
+
+                        // Payload in RawPayload
+                        assertEquals(1, buffer.readByte())
+                        assertEquals(3 + PAYLOAD.size, buffer.readUnsignedShort())
+
+                        val payload = ByteArray(PAYLOAD.size)
+                        buffer.readBytes(payload)
+                        assertArrayEquals(PAYLOAD, payload)
+                    }
+                    context.completeNow()
+                }
+            }
+        )
+    }
+
     private fun assertPacketContent(buffer: ByteBuf) {
         // Type
         assertEquals(1, buffer.readByte())
@@ -335,7 +411,7 @@ class EncoderTest : VertxTest() {
         // Protocol Code
         assertEquals(7, buffer.readByte())
         assertEquals(4, buffer.readShort())
-        assertEquals(PacketTypes.ICMP, buffer.readByte())
+        assertEquals(ProtocolCodes.ICMP, buffer.readByte())
 
         // Payload
         assertEquals(8, buffer.readByte())
