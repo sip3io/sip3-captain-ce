@@ -22,13 +22,16 @@ import io.sip3.commons.SipMethods
 object SipUtil {
 
     val SIP_WORDS = SipMethods.values()
-        .map(Any::toString)
+        .map { "$it " }
         .toMutableList()
         .apply {
             add("SIP/2.0 ")
         }
         .map { word -> word.toByteArray() }
         .toList()
+
+    const val CR: Byte = 0x0d
+    const val LF: Byte = 0x0a
 
     fun startsWithSipWord(buffer: ByteBuf, offset: Int = 0): Boolean {
         val i = offset + buffer.readerIndex()
@@ -43,5 +46,24 @@ object SipUtil {
             }
             return@any true
         }
+    }
+
+    fun findSipWord(buffer: ByteBuf, offset: Int = 0): Int {
+        if (startsWithSipWord(buffer, offset)) {
+            return offset
+        }
+
+        var i = offset + buffer.readerIndex()
+        while (i < buffer.writerIndex() - 4) {
+            if (buffer.getByte(i) == CR && buffer.getByte(i + 1) == LF
+                && buffer.getByte(i + 2) == CR && buffer.getByte(i + 3) == LF
+                && startsWithSipWord(buffer, i + 4 - buffer.readerIndex())) {
+                    return i + 4 - buffer.readerIndex()
+            }
+
+            i++
+        }
+
+        return -1
     }
 }
