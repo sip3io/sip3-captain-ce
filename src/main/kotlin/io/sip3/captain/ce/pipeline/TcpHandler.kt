@@ -40,6 +40,7 @@ class TcpHandler : AbstractVerticle() {
 
     private var sipEnabled = true
     private var smppEnabled = false
+    private var websocketEnabled = false
 
     private lateinit var connections: PeriodicallyExpiringHashMap<String, TcpConnection>
 
@@ -61,6 +62,9 @@ class TcpHandler : AbstractVerticle() {
         }
         config().getJsonObject("smpp")?.getBoolean("enabled")?.let {
             smppEnabled = it
+        }
+        config().getJsonObject("websocket")?.getBoolean("enabled")?.let {
+            websocketEnabled = it
         }
 
         connections = PeriodicallyExpiringHashMap.Builder<String, TcpConnection>()
@@ -117,6 +121,7 @@ class TcpHandler : AbstractVerticle() {
             connection = when {
                 sipEnabled && SipConnection.assert(buffer) -> SipConnection(vertx, config(), aggregationTimeout)
                 smppEnabled && SmppConnection.assert(buffer) -> SmppConnection(vertx, config(), aggregationTimeout)
+                websocketEnabled && WebSocketConnection.assert(buffer) -> WebSocketConnection(vertx, config(), aggregationTimeout)
                 else -> return
             }
             connections.put(connectionId, connection)
