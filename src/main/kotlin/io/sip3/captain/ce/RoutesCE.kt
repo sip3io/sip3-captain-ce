@@ -25,6 +25,7 @@ interface RoutesCE : Routes {
     val fragment get() = "fragment"
     val tcp get() = "tcp"
     val sctp get() = "sctp"
+    val websocket get() = "websocket"
     val rtp get() = "rtp"
     val media get() = "media"
     val sender get() = "sender"
