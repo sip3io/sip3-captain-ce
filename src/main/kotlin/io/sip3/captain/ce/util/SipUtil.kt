@@ -30,8 +30,9 @@ object SipUtil {
         .map { word -> word.toByteArray() }
         .toList()
 
-    const val CR: Byte = 0x0d
-    const val LF: Byte = 0x0a
+    const val CR = 0x0d.toByte()
+    const val LF = 0x0a.toByte()
+    const val DASH = 0x2d.toByte()
 
     fun startsWithSipWord(buffer: ByteBuf, offset: Int = 0): Boolean {
         val i = offset + buffer.readerIndex()
@@ -54,11 +55,13 @@ object SipUtil {
         }
 
         var i = offset + buffer.readerIndex()
-        while (i < buffer.writerIndex() - 4) {
-            if (buffer.getByte(i) == CR && buffer.getByte(i + 1) == LF
-                && buffer.getByte(i + 2) == CR && buffer.getByte(i + 3) == LF
-                && startsWithSipWord(buffer, i + 4 - buffer.readerIndex())) {
-                    return i + 4 - buffer.readerIndex()
+        while (i < buffer.writerIndex() - 2) {
+            if (
+                ((buffer.getByte(i) == CR && buffer.getByte(i + 1) == LF)
+                        || (buffer.getByte(i) == DASH && buffer.getByte(i + 1) == DASH))
+                && startsWithSipWord(buffer, i + 2 - buffer.readerIndex())
+            ) {
+                return i + 2 - buffer.readerIndex()
             }
 
             i++

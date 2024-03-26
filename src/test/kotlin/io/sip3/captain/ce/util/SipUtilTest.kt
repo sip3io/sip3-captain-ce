@@ -24,12 +24,13 @@ import java.nio.charset.Charset
 
 class SipUtilTest {
 
-    private val BUFFER_1 = Unpooled.wrappedBuffer("INVITE request\r\n".toByteArray(Charset.defaultCharset()))
+    private val BUFFER_1 = Unpooled.wrappedBuffer("INVITE request\r\nSIP/2.0 200 Ok response".toByteArray(Charset.defaultCharset()))
     private val BUFFER_2 = Unpooled.wrappedBuffer("ITE request\r\n\r\nSIP/2.0 200 Ok response".toByteArray(Charset.defaultCharset()))
     private val BUFFER_3 = Unpooled.wrappedBuffer("ITE request\r\n\r\n\r\n\r\nSIP/2.0 200 Ok response".toByteArray(Charset.defaultCharset()))
     private val BUFFER_4 = Unpooled.wrappedBuffer("INVITE request\r\n\r\n\r\n\r\nSIP/2.0 200 Ok response\r\n\r\n".toByteArray(Charset.defaultCharset()))
     private val BUFFER_5 = Unpooled.wrappedBuffer("offset_INVITE request\r\n\r\nSIP/2.0 200 Ok response\r\n\r\n".toByteArray(Charset.defaultCharset()))
         .readerIndex(7)
+    private val BUFFER_6 = Unpooled.wrappedBuffer("ITE request\r\n\r\n--boundary\r\ndata\r\n--boundary--INVITE request\r\n".toByteArray(Charset.defaultCharset()))
     @Test
     fun `Сheck SIP words`() {
         SIP_WORDS.forEach { word ->
@@ -41,6 +42,7 @@ class SipUtilTest {
     @Test
     fun `Check SIP Word search`() {
         assertEquals(0, SipUtil.findSipWord(BUFFER_1))
+        assertEquals(16, SipUtil.findSipWord(BUFFER_1, 1))
         assertEquals(15, SipUtil.findSipWord(BUFFER_2))
         assertEquals(19, SipUtil.findSipWord(BUFFER_3))
 
@@ -49,5 +51,7 @@ class SipUtilTest {
 
         assertEquals(0, SipUtil.findSipWord(BUFFER_5))
         assertEquals(18, SipUtil.findSipWord(BUFFER_5, 7))
+        assertEquals(45, SipUtil.findSipWord(BUFFER_6, 7))
+
     }
 }
