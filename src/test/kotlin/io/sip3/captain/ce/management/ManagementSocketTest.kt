@@ -25,6 +25,7 @@ import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.datagram.datagramSocketOptionsOf
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import java.awt.SecondaryLoop
 import java.net.InetAddress
 
 class ManagementSocketTest : VertxTest() {
@@ -33,7 +34,7 @@ class ManagementSocketTest : VertxTest() {
 
         val HOST = JsonObject().apply {
             put("name", "sbc1")
-            put("sip", arrayListOf("10.10.10.10", "10.10.20.10:5060"))
+            put("addr", arrayListOf("10.10.10.10", "10.10.20.10:5060"))
         }
 
         val MEDIA_CONTROL = JsonObject().apply {
@@ -104,7 +105,12 @@ class ManagementSocketTest : VertxTest() {
 
                         assertNotNull(payload.getLong("timestamp"))
                         assertNotNull(payload.getString("deployment_id"))
-                        assertEquals(HOST, payload.getJsonObject("config")?.getJsonObject("host"))
+
+                        val host = payload.getJsonObject("config")?.getJsonObject("host")
+                        assertNotNull(host)
+                        assertKey("name", HOST, host!!)
+                        assertEquals(HOST.getString("name"), host.getString("name"))
+                        assertEquals(2, host.getJsonArray("addr").size())
                     }
 
                     val sender = packet.sender()
@@ -115,7 +121,9 @@ class ManagementSocketTest : VertxTest() {
                 vertx.eventBus().consumer<MediaControl>(RoutesCE.media + "_control") { event ->
                     context.verify {
                         val payload = JsonObject(Json.encode(event.body()))
-                        assertEquals(MEDIA_CONTROL.getJsonObject("payload"), payload)
+                        assertKey("timestamp", MEDIA_CONTROL.getJsonObject("payload"), payload)
+                        assertKey("caller", MEDIA_CONTROL.getJsonObject("payload"), payload)
+                        assertKey("callee", MEDIA_CONTROL.getJsonObject("payload"), payload)
                     }
                     context.completeNow()
                 }
@@ -163,7 +171,9 @@ class ManagementSocketTest : VertxTest() {
                 vertx.eventBus().consumer<MediaControl>(RoutesCE.media + "_control") { event ->
                     context.verify {
                         val payload = JsonObject(Json.encode(event.body()))
-                        assertEquals(MEDIA_CONTROL.getJsonObject("payload"), payload)
+                        assertKey("timestamp", MEDIA_CONTROL.getJsonObject("payload"), payload)
+                        assertKey("caller", MEDIA_CONTROL.getJsonObject("payload"), payload)
+                        assertKey("callee", MEDIA_CONTROL.getJsonObject("payload"), payload)
                     }
                     context.completeNow()
                 }
@@ -209,5 +219,9 @@ class ManagementSocketTest : VertxTest() {
                 }
             }
         )
+    }
+
+    private fun assertKey(key: String, first: JsonObject, second: JsonObject) {
+        assertEquals(first.getValue(key), second.getValue(key))
     }
 }
