@@ -19,10 +19,13 @@ package io.sip3.captain.ce.sender
 import io.micrometer.core.instrument.Metrics
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.commons.vertx.annotations.Instance
+import io.sip3.commons.vertx.util.initSsl
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.datagram.DatagramSocket
 import io.vertx.core.datagram.DatagramSocketOptions
+import io.vertx.core.http.WebSocket
+import io.vertx.core.json.JsonObject
 import io.vertx.core.net.NetClientOptions
 import io.vertx.core.net.NetSocket
 import mu.KotlinLogging
@@ -32,40 +35,37 @@ import java.net.URI
  * Sends encoded packets to `SIP3 Salto`.
  */
 @Instance
-class Sender : AbstractVerticle() {
+open class Sender : AbstractVerticle() {
 
     private val logger = KotlinLogging.logger {}
 
     lateinit var uri: URI
     var reconnectionTimeout: Long? = null
     var reusePort = true
-    var isSSl = false
-    var keyStore: String? = null
-    var keyStorePassword: String? = null
+    var sslConfig: JsonObject? = null
     private var delimiter = Buffer.buffer("\r\n\r\n3PIS\r\n\r\n")
 
     var udp: DatagramSocket? = null
     var tcp: NetSocket? = null
+    var ws: WebSocket? = null
 
     private val packetsSent = Metrics.counter("packets_sent")
 
     override fun start() {
         config().getJsonObject("sender").let { config ->
             uri = URI(config.getString("uri") ?: throw IllegalArgumentException("uri"))
+            sslConfig = config.getJsonObject("ssl")
             reconnectionTimeout = config.getLong("reconnection_timeout")
             config.getBoolean("reuse_port")?.let { reusePort = it }
 
-            config.getJsonObject("ssl")?.let { sslConfig ->
-                isSSl = true
-                keyStore = sslConfig.getString("key_store")
-                keyStorePassword = sslConfig.getString("key_store_password")
-            }
             config.getString("delimiter")?.let { delimiter = Buffer.buffer(it) }
         }
 
         when (uri.scheme) {
             "udp" -> openUdpConnection()
             "tcp" -> openTcpConnection()
+            "ws", "wss" -> openWsConnection()
+
             else -> throw NotImplementedError("Unknown protocol: $uri")
         }
 
@@ -79,7 +79,7 @@ class Sender : AbstractVerticle() {
         }
     }
 
-    fun openUdpConnection() {
+    open fun openUdpConnection() {
         val options = DatagramSocketOptions().apply {
             isIpV6 = uri.host.matches(Regex("\\[.*]"))
             isReusePort = reusePort
@@ -88,12 +88,13 @@ class Sender : AbstractVerticle() {
         logger.info("UDP connection opened: $uri")
     }
 
-    fun openTcpConnection() {
+    open fun openTcpConnection() {
         val options = NetClientOptions().apply {
             isReusePort = reusePort
-            if (isSSl) {
-                isSsl = true
+
+            sslConfig?.let { config ->
                 isTrustAll = true
+                initSsl(config)
             }
         }
 
@@ -115,6 +116,11 @@ class Sender : AbstractVerticle() {
         }
     }
 
+    open fun openWsConnection() {
+        throw NotImplementedError("WebSocket transport is available in EE version")
+    }
+
+
     fun send(buffers: List<Buffer>) {
         packetsSent.increment(buffers.size.toDouble())
 
@@ -123,6 +129,9 @@ class Sender : AbstractVerticle() {
         }
         tcp?.let { socket ->
             buffers.forEach { socket.write(it.appendBuffer(delimiter)) }
+        }
+        ws?.let { socket ->
+            buffers.forEach { socket.write(it)}
         }
     }
 }
