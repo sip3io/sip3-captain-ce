@@ -31,9 +31,11 @@ import io.vertx.core.http.WebSocket
 import io.vertx.core.json.JsonObject
 import io.vertx.core.net.NetSocket
 import io.vertx.core.parsetools.RecordParser
+import io.vertx.kotlin.core.json.get
 import mu.KotlinLogging
 import java.net.URI
 import java.nio.charset.Charset
+import kotlin.math.log
 
 /**
  * Management socket
@@ -48,6 +50,7 @@ open class ManagementSocket : AbstractVerticle() {
 
         const val TYPE_SHUTDOWN = "shutdown"
         const val TYPE_REGISTER = "register"
+        const val TYPE_REGISTER_RESPONSE = "register_response"
         const val TYPE_MEDIA_CONTROL = "media_control"
         const val TYPE_MEDIA_RECORDING_RESET = "media_recording_reset"
     }
@@ -162,6 +165,10 @@ open class ManagementSocket : AbstractVerticle() {
         val payload = message.getJsonObject("payload")
 
         when (type) {
+            TYPE_REGISTER_RESPONSE -> {
+                logger.debug { "Register response received: $payload" }
+                logger.trace { "Time diff: ${System.currentTimeMillis() - payload.getLong("registered_at")}ms" }
+            }
             TYPE_SHUTDOWN -> {
                 val exitCode = payload.getInteger("exit_code") ?: -1
                 if (payload.getString("deployment_id") == deploymentID()) {
