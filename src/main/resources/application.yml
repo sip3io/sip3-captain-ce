@@ -1,5 +1,6 @@
 #! Name
 name: sip3-captain
+version: 2024.2.2
 
 #! Vert.x
 #vertx:
@@ -52,8 +53,8 @@ name: sip3-captain
 #  mtu_size: 1450
 
 #! Sender
-sender:
-  uri: udp://127.0.0.1:15060
+#sender:
+#  uri: udp://127.0.0.1:15060
 #  reconnection_timeout: 1000
 #  reuse_port: true
 #  ssl:
