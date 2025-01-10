@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2024 SIP3.IO, Corp.
+ * Copyright 2018-2025 SIP3.IO, Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,11 +31,9 @@ import io.vertx.core.http.WebSocket
 import io.vertx.core.json.JsonObject
 import io.vertx.core.net.NetSocket
 import io.vertx.core.parsetools.RecordParser
-import io.vertx.kotlin.core.json.get
 import mu.KotlinLogging
 import java.net.URI
 import java.nio.charset.Charset
-import kotlin.math.log
 
 /**
  * Management socket

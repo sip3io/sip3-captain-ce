@@ -1,6 +1,6 @@
 #! Name
 name: sip3-captain
-version: 2024.2.2
+version: 2025.1.1-SNAPSHOT
 
 #! Vert.x
 #vertx:

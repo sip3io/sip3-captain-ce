@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2024 SIP3.IO, Corp.
+ * Copyright 2018-2025 SIP3.IO, Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ class EthernetHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: B
         const val TYPE_802_1_AD = 0x88a8
     }
 
-    private var linuxCookedMode = false;
+    private var linuxCookedMode = false
 
     init {
         config.getJsonObject("pcap")?.getBoolean("sll")?.let {
