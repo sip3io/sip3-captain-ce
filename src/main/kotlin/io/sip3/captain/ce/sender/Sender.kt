@@ -19,13 +19,11 @@ package io.sip3.captain.ce.sender
 import io.micrometer.core.instrument.Metrics
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.commons.vertx.annotations.Instance
-import io.sip3.commons.vertx.util.initSsl
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.datagram.DatagramSocket
 import io.vertx.core.datagram.DatagramSocketOptions
 import io.vertx.core.http.WebSocket
-import io.vertx.core.json.JsonObject
 import io.vertx.core.net.NetClientOptions
 import io.vertx.core.net.NetSocket
 import mu.KotlinLogging
@@ -40,9 +38,8 @@ open class Sender : AbstractVerticle() {
     private val logger = KotlinLogging.logger {}
 
     lateinit var uri: URI
-    var reconnectionTimeout: Long? = null
+    var reconnectionTimeout = 1000L
     var reusePort = true
-    var sslConfig: JsonObject? = null
     private var delimiter = Buffer.buffer("\r\n\r\n3PIS\r\n\r\n")
 
     var udp: DatagramSocket? = null
@@ -54,8 +51,7 @@ open class Sender : AbstractVerticle() {
     override fun start() {
         config().getJsonObject("sender").let { config ->
             uri = URI(config.getString("uri") ?: throw IllegalArgumentException("uri"))
-            sslConfig = config.getJsonObject("ssl")
-            reconnectionTimeout = config.getLong("reconnection_timeout")
+            config.getLong("reconnection_timeout")?.let { reconnectionTimeout = it }
             config.getBoolean("reuse_port")?.let { reusePort = it }
 
             config.getString("delimiter")?.let { delimiter = Buffer.buffer(it) }
@@ -64,8 +60,7 @@ open class Sender : AbstractVerticle() {
         when (uri.scheme) {
             "udp" -> openUdpConnection()
             "tcp" -> openTcpConnection()
-            "ws", "wss" -> openWsConnection()
-
+            "ws" -> openWsConnection()
             else -> throw NotImplementedError("Unknown protocol: $uri")
         }
 
@@ -89,30 +84,26 @@ open class Sender : AbstractVerticle() {
     }
 
     open fun openTcpConnection() {
-        val options = NetClientOptions().apply {
-            isReusePort = reusePort
-
-            sslConfig?.let { config ->
-                isTrustAll = true
-                initSsl(config)
+        val options = tcpConnectionOptions()
+        vertx.createNetClient(options).connect(uri.port, uri.host)
+            .onFailure { t ->
+                logger.error("Sender 'openTcpConnection()' failed.", t)
+                tcp = null
+                vertx.setTimer(reconnectionTimeout) { openTcpConnection() }
             }
-        }
-
-        vertx.createNetClient(options).connect(uri.port, uri.host) { asr ->
-            if (asr.succeeded()) {
+            .onSuccess { socket ->
                 logger.info("TCP connection opened: $uri")
-                tcp = asr.result().closeHandler {
+                tcp = socket.closeHandler {
                     logger.info("TCP connection closed: $uri")
-                    reconnectionTimeout?.let { timeout ->
-                        vertx.setTimer(timeout) { openTcpConnection() }
-                    }
-                }
-            } else {
-                logger.error("Sender 'openTcpConnection()' failed.", asr.cause())
-                reconnectionTimeout?.let { timeout ->
-                    vertx.setTimer(timeout) { openTcpConnection() }
+                    tcp = null
+                    vertx.setTimer(reconnectionTimeout) { openTcpConnection() }
                 }
             }
+    }
+
+    open fun tcpConnectionOptions(): NetClientOptions {
+        return NetClientOptions().apply {
+            isReusePort = reusePort
         }
     }
 
