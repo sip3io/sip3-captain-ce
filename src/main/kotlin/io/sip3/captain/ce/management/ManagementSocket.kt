@@ -29,6 +29,7 @@ import io.vertx.core.datagram.DatagramSocket
 import io.vertx.core.datagram.DatagramSocketOptions
 import io.vertx.core.http.WebSocket
 import io.vertx.core.json.JsonObject
+import io.vertx.core.net.NetClientOptions
 import io.vertx.core.net.NetSocket
 import io.vertx.core.parsetools.RecordParser
 import mu.KotlinLogging
@@ -55,12 +56,14 @@ open class ManagementSocket : AbstractVerticle() {
 
     lateinit var uri: URI
     var registerDelay: Long = 60000
-    var reconnectionTimeout: Long? = null
+    var reconnectionTimeout = 1000L
     var delimiter = "\r\n\r\n3PIS\r\n\r\n"
 
-    private var udp: DatagramSocket? = null
-    private var tcp: NetSocket? = null
+    protected var udp: DatagramSocket? = null
+    protected var tcp: NetSocket? = null
     protected var ws: WebSocket? = null
+
+    protected var periodicStream: Long? = null
 
     override fun start() {
         config().getJsonObject("management").let { config ->
@@ -73,25 +76,12 @@ open class ManagementSocket : AbstractVerticle() {
         when (uri.scheme) {
             "udp" -> openUdpConnection()
             "tcp" -> openTcpConnection()
-            "ws", "wss" -> openWsConnection()
+            "ws" -> openWsConnection()
             else -> throw NotImplementedError("Unknown protocol: $uri")
         }
     }
 
-    open fun sendRegister(send: ((Buffer) -> Unit)) {
-            val registerMessage = JsonObject().apply {
-                put("type", TYPE_REGISTER)
-                put("payload", JsonObject().apply {
-                    put("timestamp", System.currentTimeMillis())
-                    put("deployment_id", deploymentID())
-                    put("config", config())
-                })
-            }
-
-            send(registerMessage.toBuffer())
-    }
-
-    private fun openUdpConnection() {
+    open fun openUdpConnection() {
         val options = DatagramSocketOptions().apply {
             isIpV6 = uri.host.matches(Regex("\\[.*]"))
         }
@@ -105,7 +95,7 @@ open class ManagementSocket : AbstractVerticle() {
             }
         }
 
-        vertx.setPeriodic(0, registerDelay) {
+        periodicStream = vertx.setPeriodic(0, registerDelay) {
             sendRegister { buffer ->
                 udp?.send(buffer, uri.port, uri.host)
                     ?.onFailure { logger.error(it) { "DatagramSocket 'send()' failed." } }
@@ -113,13 +103,18 @@ open class ManagementSocket : AbstractVerticle() {
         }
     }
 
-    private fun openTcpConnection() {
-        vertx.createNetClient().connect(uri.port, uri.host)
+    open fun openTcpConnection() {
+        val options = tcpConnectionOptions()
+        logger.info { "Options: ${options.toJson().encodePrettily()}" }
+        vertx.createNetClient(options).connect(uri.port, uri.host)
             .onFailure { t ->
                 logger.error(t) { "Failed to connect to $uri" }
-                reconnectionTimeout?.let { timeout ->
-                    vertx.setTimer(timeout) { openTcpConnection() }
+                tcp = null
+                periodicStream?.let {
+                    vertx.cancelTimer(it)
+                    periodicStream = null
                 }
+                vertx.setTimer(reconnectionTimeout) { openTcpConnection() }
             }
             .onSuccess { socket ->
                 val parser = RecordParser.newDelimited(delimiter) { buffer ->
@@ -140,22 +135,44 @@ open class ManagementSocket : AbstractVerticle() {
                     }
                 }.closeHandler {
                     logger.info("TCP connection closed: $uri")
-                    reconnectionTimeout?.let { timeout ->
-                        vertx.setTimer(timeout) { openTcpConnection() }
+                    tcp = null
+                    periodicStream?.let {
+                        vertx.cancelTimer(it)
+                        periodicStream = null
                     }
+                    vertx.setTimer(reconnectionTimeout) { openTcpConnection() }
                 }
+                logger.info("TCP connection opened: $uri")
 
-                vertx.setPeriodic(0, registerDelay) {
+                periodicStream = vertx.setPeriodic(0, registerDelay) {
                     sendRegister { buffer ->
                         tcp?.write(buffer.appendString(delimiter))
                             ?.onFailure { logger.error(it) { "NetSocket 'write()' failed." } }
+                            ?: logger.warn { "TCP connection is not opened." }
                     }
                 }
             }
     }
 
+    open fun tcpConnectionOptions(): NetClientOptions {
+        return NetClientOptions()
+    }
+
     open fun openWsConnection() {
         throw NotImplementedError("WebSocket transport is available in EE version")
+    }
+
+    open fun sendRegister(send: ((Buffer) -> Unit)) {
+        val registerMessage = JsonObject().apply {
+            put("type", TYPE_REGISTER)
+            put("payload", JsonObject().apply {
+                put("timestamp", System.currentTimeMillis())
+                put("deployment_id", deploymentID())
+                put("config", config())
+            })
+        }
+
+        send(registerMessage.toBuffer())
     }
 
     open fun handle(message: JsonObject) {
