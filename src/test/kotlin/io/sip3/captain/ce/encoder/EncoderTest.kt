@@ -340,7 +340,7 @@ class EncoderTest : VertxTest() {
                         // Version
                         assertEquals(1, buffer.readByte())
                         // Length
-                        assertEquals(131, buffer.readShort())
+                        assertEquals(135, buffer.readShort())
 
                         // Milliseconds
                         assertEquals(1, buffer.readByte())

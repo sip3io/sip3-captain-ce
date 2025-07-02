@@ -105,7 +105,6 @@ open class ManagementSocket : AbstractVerticle() {
 
     open fun openTcpConnection() {
         val options = tcpConnectionOptions()
-        logger.info { "Options: ${options.toJson().encodePrettily()}" }
         vertx.createNetClient(options).connect(uri.port, uri.host)
             .onFailure { t ->
                 logger.error(t) { "Failed to connect to $uri" }
@@ -207,9 +206,7 @@ open class ManagementSocket : AbstractVerticle() {
                 vertx.eventBus().localPublish(RoutesCE.media + "_recording_reset", payload)
             }
 
-            else -> logger.debug {
-                "Unknown message type '$type'. Message: ${message.encodePrettily()}"
-            }
+            else -> logger.debug { "Unknown message type '$type'. Message: ${message.encodePrettily()}" }
         }
     }
 }
