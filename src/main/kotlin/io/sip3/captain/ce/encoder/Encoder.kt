@@ -201,8 +201,8 @@ class Encoder : AbstractVerticle() {
         // 7  - Nanoseconds
         // 3+ - Payload
         //
-        // In total it will be 21+
-        val packetLength = 21 + payloadLength
+        // In total it will be 25+
+        val packetLength = 25 + payloadLength
 
         return Unpooled.buffer(packetLength).apply {
             writeByte(PacketTypes.RAW.toInt())
