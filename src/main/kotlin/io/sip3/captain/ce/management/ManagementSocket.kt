@@ -16,6 +16,7 @@
 
 package io.sip3.captain.ce.management
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.netty.buffer.ByteBufUtil
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.commons.domain.media.MediaControl
@@ -28,11 +29,11 @@ import io.vertx.core.buffer.Buffer
 import io.vertx.core.datagram.DatagramSocket
 import io.vertx.core.datagram.DatagramSocketOptions
 import io.vertx.core.http.WebSocket
+import io.vertx.core.internal.buffer.BufferInternal
 import io.vertx.core.json.JsonObject
 import io.vertx.core.net.NetClientOptions
 import io.vertx.core.net.NetSocket
 import io.vertx.core.parsetools.RecordParser
-import mu.KotlinLogging
 import java.net.URI
 import java.nio.charset.Charset
 
@@ -130,7 +131,7 @@ open class ManagementSocket : AbstractVerticle() {
                         parser.handle(buffer)
                     } catch (e: Exception) {
                         logger.error(e) { "RecordParser 'handle()' failed." }
-                        logger.debug { "Sender: $uri, buffer: ${ByteBufUtil.prettyHexDump(buffer.byteBuf)}" }
+                        logger.debug { "Sender: $uri, buffer: ${ByteBufUtil.prettyHexDump((buffer as BufferInternal).byteBuf)}" }
                     }
                 }.closeHandler {
                     logger.info("TCP connection closed: $uri")

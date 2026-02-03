@@ -16,6 +16,7 @@
 
 package io.sip3.captain.ce.capturing
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.micrometer.core.instrument.Metrics
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.domain.Packet
@@ -28,7 +29,6 @@ import io.sip3.commons.vertx.annotations.ConditionalOnProperty
 import io.sip3.commons.vertx.annotations.Instance
 import io.sip3.commons.vertx.util.closeAndExitProcess
 import io.vertx.core.AbstractVerticle
-import mu.KotlinLogging
 import org.pcap4j.core.BpfProgram
 import org.pcap4j.core.PcapHandle
 import org.pcap4j.core.PcapNetworkInterface

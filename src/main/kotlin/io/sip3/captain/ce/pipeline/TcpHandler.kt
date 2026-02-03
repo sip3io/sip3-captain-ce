@@ -16,6 +16,7 @@
 
 package io.sip3.captain.ce.pipeline
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.*
 import io.sip3.commons.domain.payload.ByteBufPayload
@@ -24,7 +25,6 @@ import io.sip3.commons.util.IpUtil
 import io.sip3.commons.vertx.annotations.Instance
 import io.sip3.commons.vertx.collections.PeriodicallyExpiringHashMap
 import io.vertx.core.AbstractVerticle
-import mu.KotlinLogging
 
 /**
  * Handles TCP packets

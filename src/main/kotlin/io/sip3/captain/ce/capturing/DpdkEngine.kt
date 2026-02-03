@@ -16,6 +16,7 @@
 
 package io.sip3.captain.ce.capturing
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.micrometer.core.instrument.Metrics
 import io.netty.buffer.Unpooled
 import io.sip3.captain.ce.domain.Packet
@@ -25,7 +26,6 @@ import io.sip3.commons.vertx.annotations.ConditionalOnProperty
 import io.sip3.commons.vertx.annotations.Instance
 import io.sip3.commons.vertx.util.closeAndExitProcess
 import io.vertx.core.AbstractVerticle
-import mu.KotlinLogging
 import java.nio.ByteBuffer
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors

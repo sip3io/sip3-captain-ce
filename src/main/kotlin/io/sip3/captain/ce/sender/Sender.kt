@@ -16,6 +16,7 @@
 
 package io.sip3.captain.ce.sender
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.micrometer.core.instrument.Metrics
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.commons.vertx.annotations.Instance
@@ -26,7 +27,6 @@ import io.vertx.core.datagram.DatagramSocketOptions
 import io.vertx.core.http.WebSocket
 import io.vertx.core.net.NetClientOptions
 import io.vertx.core.net.NetSocket
-import mu.KotlinLogging
 import java.net.URI
 
 /**
@@ -69,7 +69,7 @@ open class Sender : AbstractVerticle() {
                 val buffers = event.body()
                 send(buffers)
             } catch (e: Exception) {
-                logger.error("Sender 'send()' failed.", e)
+                logger.error(e) { "Sender 'send()' failed." }
             }
         }
     }
@@ -80,21 +80,21 @@ open class Sender : AbstractVerticle() {
             isReusePort = reusePort
         }
         udp = vertx.createDatagramSocket(options)
-        logger.info("UDP connection opened: $uri")
+        logger.info { "UDP connection opened: $uri" }
     }
 
     open fun openTcpConnection() {
         val options = tcpConnectionOptions()
         vertx.createNetClient(options).connect(uri.port, uri.host)
             .onFailure { t ->
-                logger.error("Sender 'openTcpConnection()' failed.", t)
+                logger.error(t) { "Sender 'openTcpConnection()' failed." }
                 tcp = null
                 vertx.setTimer(reconnectionTimeout) { openTcpConnection() }
             }
             .onSuccess { socket ->
-                logger.info("TCP connection opened: $uri")
+                logger.info { "TCP connection opened: $uri" }
                 tcp = socket.closeHandler {
-                    logger.info("TCP connection closed: $uri")
+                    logger.info { "TCP connection closed: $uri" }
                     tcp = null
                     vertx.setTimer(reconnectionTimeout) { openTcpConnection() }
                 }

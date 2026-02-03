@@ -16,6 +16,7 @@
 
 package io.sip3.captain.ce.encoder
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.CompositeByteBuf
 import io.netty.buffer.Unpooled
@@ -30,7 +31,7 @@ import io.sip3.commons.vertx.annotations.Instance
 import io.sip3.commons.vertx.util.localSend
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.buffer.Buffer
-import mu.KotlinLogging
+import io.vertx.core.internal.buffer.BufferInternal
 import java.io.ByteArrayOutputStream
 import java.util.zip.DeflaterOutputStream
 
@@ -86,7 +87,7 @@ class Encoder : AbstractVerticle() {
                 val packets = event.body()
                 handle(packets)
             } catch (e: Exception) {
-                logger.error("Encoder 'handle()' failed.", e)
+                logger.error(e) { "Encoder 'handle()' failed." }
             }
         }
     }
@@ -216,7 +217,7 @@ class Encoder : AbstractVerticle() {
     }
 
     private fun send(buffer: ByteBuf) {
-        buffers.add(Buffer.buffer(buffer))
+        buffers.add(BufferInternal.buffer(buffer))
 
         if (buffers.size >= bulkSize) {
             vertx.eventBus().localSend(RoutesCE.sender, buffers.toList())
