@@ -72,7 +72,7 @@ class PcapEngine : AbstractVerticle() {
         try {
             System.loadLibrary("sip3-libpcap")
             useJniLib = true
-            logger.info("Loaded `sip3-libpcap` JNI library.")
+            logger.info { "Loaded `sip3-libpcap` JNI library." }
         } catch (t: Throwable) {
             // Do nothing...
         }
@@ -109,7 +109,7 @@ class PcapEngine : AbstractVerticle() {
         ipv6Handler = Ipv6Handler(vertx, config(), true)
 
         dev?.let {
-            logger.info("Listening network interface: $it")
+            logger.info { "Listening network interface: $it" }
             online()
         }
     }
@@ -129,7 +129,7 @@ class PcapEngine : AbstractVerticle() {
                 try {
                     handle.loop(dev!!, bulkSize, snaplen, bufferSize, timeoutMillis, bpfFilter)
                 } catch (t: Throwable) {
-                    logger.error("Got exception...", t)
+                    logger.error(t) { "Got exception..." }
                     vertx.closeAndExitProcess()
                 }
             }
@@ -146,7 +146,7 @@ class PcapEngine : AbstractVerticle() {
                 try {
                     handle.loop()
                 } catch (e: Exception) {
-                    logger.error("Got exception...", e)
+                    logger.error(e) { "Got exception..." }
                     vertx.closeAndExitProcess()
                 }
             }
@@ -227,7 +227,7 @@ abstract class PacketHandle {
             try {
                 onPacket(packet)
             } catch (e: Exception) {
-                logger.error("PacketHandle 'onPacket()' failed.", e)
+                logger.error(e) { "PacketHandle 'onPacket()' failed." }
             }
         }
     }

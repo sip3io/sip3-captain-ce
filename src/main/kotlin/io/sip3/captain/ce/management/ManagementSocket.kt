@@ -92,7 +92,7 @@ open class ManagementSocket : AbstractVerticle() {
                 val message = buffer.toJsonObject()
                 handle(message)
             } catch (e: Exception) {
-                logger.error("ManagementSocket 'handle()' failed. Message: ${buffer.toString(Charset.defaultCharset())}", e)
+                logger.error(e) { "ManagementSocket 'handle()' failed. Message: ${buffer.toString(Charset.defaultCharset())}" }
             }
         }
 
@@ -122,7 +122,7 @@ open class ManagementSocket : AbstractVerticle() {
                         val message = buffer.toJsonObject()
                         handle(message)
                     } catch (e: Exception) {
-                        logger.error("ManagementSocket 'handle()' failed. Message: ${buffer.toString(Charset.defaultCharset())}", e)
+                        logger.error(e) { "ManagementSocket 'handle()' failed. Message: ${buffer.toString(Charset.defaultCharset())}" }
                     }
                 }
 
@@ -134,7 +134,7 @@ open class ManagementSocket : AbstractVerticle() {
                         logger.debug { "Sender: $uri, buffer: ${ByteBufUtil.prettyHexDump((buffer as BufferInternal).byteBuf)}" }
                     }
                 }.closeHandler {
-                    logger.info("TCP connection closed: $uri")
+                    logger.info { "TCP connection closed: $uri" }
                     tcp = null
                     periodicStream?.let {
                         vertx.cancelTimer(it)
@@ -142,7 +142,7 @@ open class ManagementSocket : AbstractVerticle() {
                     }
                     vertx.setTimer(reconnectionTimeout) { openTcpConnection() }
                 }
-                logger.info("TCP connection opened: $uri")
+                logger.info { "TCP connection opened: $uri" }
 
                 periodicStream = vertx.setPeriodic(0, registerDelay) {
                     sendRegister { buffer ->

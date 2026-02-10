@@ -71,7 +71,7 @@ class IpFragmentHandler : AbstractVerticle() {
                 try {
                     onPacket(header, packet)
                 } catch (e: Exception) {
-                    logger.error("IpFragmentHandler 'onPacket()' failed.", e)
+                    logger.error(e) { "IpFragmentHandler 'onPacket()' failed." }
                 }
             }
         }

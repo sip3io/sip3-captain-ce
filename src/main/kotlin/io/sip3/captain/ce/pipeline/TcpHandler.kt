@@ -80,7 +80,7 @@ class TcpHandler : AbstractVerticle() {
                 try {
                     onPacket(packet)
                 } catch (e: Exception) {
-                    logger.error("TcpHandler 'onPacket()' failed.", e)
+                    logger.error(e) { "TcpHandler 'onPacket()' failed." }
                 }
             }
         }

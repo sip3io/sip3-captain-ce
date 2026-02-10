@@ -44,7 +44,7 @@ class DpdkEngine : AbstractVerticle() {
         try {
             System.loadLibrary("sip3-dpdk")
         } catch (t: Throwable) {
-            logger.error("System 'loadLibrary()' failed. Make sure that you are using SIP3 Captain `Enterprise Edition`.", t)
+            logger.error(t) { "System 'loadLibrary()' failed. Make sure that you are using SIP3 Captain `Enterprise Edition`." }
             vertx.closeAndExitProcess()
         }
     }
@@ -73,7 +73,7 @@ class DpdkEngine : AbstractVerticle() {
             try {
                 bind(port, rxQueueSize, bulkSize)
             } catch (e: Exception) {
-                logger.error("Got exception...", e)
+                logger.error(e) { "Got exception..." }
                 vertx.closeAndExitProcess()
             }
         }

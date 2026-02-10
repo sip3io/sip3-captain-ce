@@ -33,7 +33,7 @@ abstract class Handler(val vertx: Vertx, val config: JsonObject, val bulkOperati
         try {
             onPacket(packet)
         } catch (e: Exception) {
-            logger.error("Handler 'onPacket()' failed.", e)
+            logger.error(e) { "Handler 'onPacket()' failed." }
             logger.debug {
                 val buffer = (packet.payload as Encodable).encode()
                 buffer.resetReaderIndex()
