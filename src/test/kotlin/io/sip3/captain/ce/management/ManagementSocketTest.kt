@@ -23,6 +23,7 @@ import io.sip3.commons.vertx.test.VertxTest
 import io.vertx.core.json.Json
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.datagram.datagramSocketOptionsOf
+import io.vertx.kotlin.coroutines.coAwait
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.net.InetAddress
@@ -91,7 +92,7 @@ class ManagementSocketTest : VertxTest() {
                 })
             },
             assert = {
-                val remoteSocket = vertx.createDatagramSocket().listen(remotePort, remoteAddr) {}
+                val remoteSocket = vertx.createDatagramSocket().listen(remotePort, remoteAddr).coAwait()
 
                 // 1. Retrieve and assert `REGISTER` message
                 // 2. Send back `MEDIA_CONTROL`
@@ -113,7 +114,7 @@ class ManagementSocketTest : VertxTest() {
                     }
 
                     val sender = packet.sender()
-                    remoteSocket.send(MEDIA_CONTROL.toBuffer(), sender.port(), sender.host()) {}
+                    remoteSocket.send(MEDIA_CONTROL.toBuffer(), sender.port(), sender.host())
                 }
 
                 // 1. Retrieve and assert `MEDIA_CONTROL`
@@ -146,7 +147,7 @@ class ManagementSocketTest : VertxTest() {
             },
             assert = {
                 val options = datagramSocketOptionsOf(ipV6 = true)
-                val remoteSocket = vertx.createDatagramSocket(options).listen(remotePort, remoteAddr) {}
+                val remoteSocket = vertx.createDatagramSocket(options).listen(remotePort, remoteAddr).coAwait()
 
                 // 1. Retrieve and assert `REGISTER` message
                 // 2. Send back `MEDIA_CONTROL`
@@ -163,7 +164,7 @@ class ManagementSocketTest : VertxTest() {
                     }
 
                     val sender = packet.sender()
-                    remoteSocket.send(MEDIA_CONTROL.toBuffer(), sender.port(), sender.host()) {}
+                    remoteSocket.send(MEDIA_CONTROL.toBuffer(), sender.port(), sender.host())
                 }
 
                 // 1. Retrieve and assert `MEDIA_CONTROL`
@@ -196,7 +197,7 @@ class ManagementSocketTest : VertxTest() {
                 })
             },
             assert = {
-                val remoteSocket = vertx.createDatagramSocket().listen(remotePort, remoteAddr) {}
+                val remoteSocket = vertx.createDatagramSocket().listen(remotePort, remoteAddr).coAwait()
 
                 // 1. Retrieve and send back `TYPE_MEDIA_RECORDING_RESET`
                 remoteSocket.handler { packet ->
@@ -205,7 +206,7 @@ class ManagementSocketTest : VertxTest() {
                         put("type", ManagementSocket.TYPE_MEDIA_RECORDING_RESET)
                         put("payload", JsonObject())
                     }
-                    remoteSocket.send(message.toBuffer(), sender.port(), sender.host()) {}
+                    remoteSocket.send(message.toBuffer(), sender.port(), sender.host())
                 }
 
                 // 2. Assert command sent by ManagementSocket

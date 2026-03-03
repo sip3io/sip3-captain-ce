@@ -22,6 +22,7 @@ import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.pipeline.EthernetHandler
 import io.sip3.commons.domain.payload.Encodable
 import io.sip3.commons.vertx.test.VertxTest
+import io.sip3.commons.vertx.util.buffer
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
 import org.junit.jupiter.api.AfterEach
@@ -69,7 +70,7 @@ class PcapEngineTest : VertxTest() {
                 },
                 execute = {
                     vertx.setPeriodic(200) {
-                        vertx.createDatagramSocket().send(MESSAGE, port, loopback.hostAddress) {}
+                        vertx.createDatagramSocket().send(MESSAGE, port, loopback.hostAddress)
                     }
                 },
                 assert = {
@@ -79,7 +80,7 @@ class PcapEngineTest : VertxTest() {
                         context.verify {
                             verify(timeout = 10000) { anyConstructed<EthernetHandler>().handle(any()) }
                             val buffer = (packetSlot.captured.payload as Encodable).encode()
-                            val received = Buffer.buffer(buffer).toString()
+                            val received = Buffer::class.buffer(buffer).toString()
                             assertTrue(received.endsWith(MESSAGE))
                         }
                         context.completeNow()

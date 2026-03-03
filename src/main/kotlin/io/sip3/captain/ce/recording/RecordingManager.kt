@@ -16,6 +16,7 @@
 
 package io.sip3.captain.ce.recording
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.commons.ProtocolCodes
@@ -28,7 +29,6 @@ import io.sip3.commons.util.getBytes
 import io.sip3.commons.vertx.collections.PeriodicallyExpiringHashMap
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
-import mu.KotlinLogging
 import kotlin.math.min
 
 /**

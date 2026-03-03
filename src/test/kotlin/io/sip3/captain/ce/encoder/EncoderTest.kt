@@ -25,6 +25,7 @@ import io.sip3.commons.domain.payload.ByteArrayPayload
 import io.sip3.commons.domain.payload.RawPayload
 import io.sip3.commons.util.getBytes
 import io.sip3.commons.vertx.test.VertxTest
+import io.sip3.commons.vertx.util.byteBuf
 import io.sip3.commons.vertx.util.localSend
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
@@ -98,7 +99,7 @@ class EncoderTest : VertxTest() {
                     context.verify {
                         assertEquals(1, buffers.size)
 
-                        val buffer = buffers[0].byteBuf
+                        val buffer = buffers[0].byteBuf()
 
                         // Capacity
                         assertEquals(486, buffer.writerIndex())
@@ -143,7 +144,7 @@ class EncoderTest : VertxTest() {
                         assertEquals(2, buffers.size)
 
                         // Packet 1
-                        var buffer = buffers[0].byteBuf
+                        var buffer = buffers[0].byteBuf()
 
                         // Capacity
                         assertEquals(326, buffer.writerIndex())
@@ -161,7 +162,7 @@ class EncoderTest : VertxTest() {
                         assertPacketContent(buffer)
 
                         // Packet 2
-                        buffer = buffers[1].byteBuf
+                        buffer = buffers[1].byteBuf()
                         // Capacity
                         assertEquals(166, buffer.writerIndex())
 
@@ -203,7 +204,7 @@ class EncoderTest : VertxTest() {
                         assertEquals(2, buffers.size)
 
                         // Packet 1
-                        var buffer = buffers[0].byteBuf
+                        var buffer = buffers[0].byteBuf()
 
                         // Capacity
                         assertEquals(166, buffer.writerIndex())
@@ -220,7 +221,7 @@ class EncoderTest : VertxTest() {
                         assertPacketContent(buffer)
 
                         // Packet 2
-                        buffer = buffers[1].byteBuf
+                        buffer = buffers[1].byteBuf()
 
                         // Capacity
                         assertEquals(166, buffer.writerIndex())
@@ -263,7 +264,7 @@ class EncoderTest : VertxTest() {
                         assertEquals(2, buffers.size)
 
                         // Packet 1
-                        var buffer = buffers[0].byteBuf
+                        var buffer = buffers[0].byteBuf()
 
                         // Capacity
                         assertEquals(79, buffer.writerIndex())
@@ -282,7 +283,7 @@ class EncoderTest : VertxTest() {
                         }
 
                         // Packet 2
-                        buffer = buffers[0].byteBuf
+                        buffer = buffers[1].byteBuf()
 
                         // Capacity
                         assertEquals(79, buffer.writerIndex())
@@ -321,7 +322,7 @@ class EncoderTest : VertxTest() {
                     context.verify {
                         assertEquals(1, buffers.size)
 
-                        val buffer = buffers[0].byteBuf
+                        val buffer = buffers[0].byteBuf()
 
                         // Capacity
                         assertEquals(141, buffer.writerIndex())

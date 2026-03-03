@@ -19,6 +19,7 @@ package io.sip3.captain.ce
 import io.sip3.captain.ce.encoder.Encoder
 import io.sip3.commons.ProtocolCodes
 import io.sip3.commons.vertx.test.VertxTest
+import io.sip3.commons.vertx.util.byteBuf
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.datagram.datagramSocketOptionsOf
@@ -208,11 +209,11 @@ class BootstrapTest : VertxTest() {
             assert = {
                 vertx.createDatagramSocket()
                     .handler { packet ->
-                        val buffer = packet.data().byteBuf
+                        val buffer = packet.data().byteBuf()
                         context.verify {
                             assertEquals(990, buffer.writerIndex())
                             // Prefix
-                            var prefix = ByteArray(4)
+                            val prefix = ByteArray(4)
                             buffer.readBytes(prefix)
                             assertArrayEquals(Encoder.PREFIX, prefix)
                             // Version
@@ -262,7 +263,7 @@ class BootstrapTest : VertxTest() {
                         }
                         context.completeNow()
                     }
-                    .listen(port, address) {}
+                    .listen(port, address)
             }
         )
     }
