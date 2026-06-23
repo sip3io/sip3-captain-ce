@@ -20,6 +20,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.netty.buffer.ByteBufUtil
 import io.sip3.captain.ce.RoutesCE
 import io.sip3.commons.domain.media.MediaControl
+import io.sip3.commons.util.BootstrapDeployment
 import io.sip3.commons.vertx.annotations.ConditionalOnProperty
 import io.sip3.commons.vertx.annotations.Instance
 import io.sip3.commons.vertx.util.closeAndExitProcess
@@ -167,7 +168,7 @@ open class ManagementSocket : AbstractVerticle() {
             put("type", TYPE_REGISTER)
             put("payload", JsonObject().apply {
                 put("timestamp", System.currentTimeMillis())
-                put("deployment_id", deploymentID())
+                put("deployment_id", BootstrapDeployment.id())
                 put("config", config())
             })
         }
@@ -186,13 +187,13 @@ open class ManagementSocket : AbstractVerticle() {
             }
             TYPE_SHUTDOWN -> {
                 val exitCode = payload.getInteger("exit_code") ?: -1
-                if (payload.getString("deployment_id") == deploymentID()) {
+                if (payload.getString("deployment_id") == BootstrapDeployment.id()) {
                     logger.warn { "Shutting down the process via management socket: $message" }
                     vertx.closeAndExitProcess(exitCode)
                 }
 
                 payload.getString("name")?.let { name ->
-                    if (name == config().getJsonObject("host")?.getString("name") || name == deploymentID()) {
+                    if (name == config().getJsonObject("host")?.getString("name") || name == BootstrapDeployment.id()) {
                         logger.warn { "Shutting down the process via management socket: $message" }
                         vertx.closeAndExitProcess(exitCode)
                     }
