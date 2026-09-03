@@ -16,9 +16,11 @@
 
 package io.sip3.captain.ce.pipeline
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.sip3.captain.ce.domain.Packet
 import io.sip3.captain.ce.util.SipUtil
 import io.sip3.commons.domain.payload.Encodable
+import io.sip3.commons.util.toIntRange
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 
@@ -35,8 +37,13 @@ class UdpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
     private var rtcpEnabled = false
     private var rtpEnabled = false
     private var sipEnabled = true
+    private var ngcpEnabled = false
     private var vxlanEnabled = false
     private var tzspEnabled = false
+
+    private val logger = KotlinLogging.logger {}
+
+    private var ngcpPorts = mutableSetOf<Int>()
 
     private val rtcpHandler: RtcpHandler by lazy {
         RtcpHandler(vertx, config, bulkOperationsEnabled)
@@ -46,6 +53,9 @@ class UdpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
     }
     private val sipHandler: SipHandler by lazy {
         SipHandler(vertx, config, bulkOperationsEnabled)
+    }
+    private val ngcpHandler: NgcpHandler by lazy {
+        NgcpHandler(vertx, config, bulkOperationsEnabled)
     }
     private val vxlanHandler: VxlanHandler by lazy {
         VxlanHandler(vertx, config, bulkOperationsEnabled)
@@ -64,6 +74,20 @@ class UdpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
         config.getJsonObject("sip")?.getBoolean("enabled")?.let {
             sipEnabled = it
         }
+        config.getJsonObject("ngcp")?.let { ngcp ->
+            ngcp.getBoolean("enabled")?.let {
+                ngcpEnabled = it
+            }
+
+            ngcp.getJsonArray("port_ranges")?.forEach { portRange ->
+                when (portRange) {
+                    is Int -> ngcpPorts.add(portRange)
+                    is String -> portRange.toIntRange().forEach { ngcpPorts.add(it) }
+                }
+            }
+        }
+
+        logger.info { "ngcp: $ngcpEnabled, $ngcpPorts" }
         config.getJsonObject("vxlan")?.getBoolean("enabled")?.let {
             vxlanEnabled = it
         }
@@ -122,6 +146,12 @@ class UdpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
                 // Skip ICMP(TZSP) packet
                 if (packet.rejected == null) {
                     tzspHandler.handle(packet)
+                }
+            }
+            // NGCP packet
+            ngcpEnabled && (ngcpPorts.contains(packet.dstPort) || ngcpPorts.contains(packet.srcPort)) -> {
+                if (packet.rejected == null) {
+                    ngcpHandler.handle(packet)
                 }
             }
         }

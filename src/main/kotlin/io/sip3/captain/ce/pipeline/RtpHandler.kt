@@ -62,7 +62,7 @@ class RtpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolea
                 }
             }
 
-            rtpConfig.getJsonArray("port_ranges")?.map { portRange ->
+            rtpConfig.getJsonArray("port_ranges")?.forEach { portRange ->
                 portRange as String
                 portRanges.add(portRange.toIntRange())
             }
