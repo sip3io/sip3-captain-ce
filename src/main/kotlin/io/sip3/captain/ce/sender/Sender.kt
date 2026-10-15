@@ -25,6 +25,7 @@ import io.vertx.core.buffer.Buffer
 import io.vertx.core.datagram.DatagramSocket
 import io.vertx.core.datagram.DatagramSocketOptions
 import io.vertx.core.http.WebSocket
+import io.vertx.core.net.NetClient
 import io.vertx.core.net.NetClientOptions
 import io.vertx.core.net.NetSocket
 import java.net.URI
@@ -42,6 +43,7 @@ open class Sender : AbstractVerticle() {
     var reusePort = true
     private var delimiter = Buffer.buffer("\r\n\r\n3PIS\r\n\r\n")
 
+    var tcpClient: NetClient? = null
     var udp: DatagramSocket? = null
     var tcp: NetSocket? = null
     var ws: WebSocket? = null
@@ -84,8 +86,12 @@ open class Sender : AbstractVerticle() {
     }
 
     open fun openTcpConnection() {
-        val options = tcpConnectionOptions()
-        vertx.createNetClient(options).connect(uri.port, uri.host)
+        if (tcpClient == null) {
+            val options = tcpConnectionOptions()
+            tcpClient = vertx.createNetClient(options)
+        }
+
+        tcpClient!!.connect(uri.port, uri.host)
             .onFailure { t ->
                 logger.error(t) { "Sender 'openTcpConnection()' failed." }
                 tcp = null
@@ -116,13 +122,36 @@ open class Sender : AbstractVerticle() {
         packetsSent.increment(buffers.size.toDouble())
 
         udp?.let { socket ->
-            buffers.forEach { socket.send(it, uri.port, uri.host) }
+            buffers.forEach {
+                socket.send(it, uri.port, uri.host)
+                    .onFailure { t ->
+                        logger.error(t) { "UDP socket 'write()' failed." }
+                    }
+            }
         }
         tcp?.let { socket ->
-            buffers.forEach { socket.write(it.appendBuffer(delimiter)) }
+            buffers.sumOf { it.length() + delimiter.length() }
+                .let { size -> Buffer.buffer(size) }
+                .apply {
+                    buffers.forEach {
+                        appendBuffer(it)
+                        appendBuffer(delimiter)
+                    }
+                }
+                .let {
+                    socket.write(it)
+                        .onFailure { t ->
+                            logger.error(t) { "TCP socket 'write()' failed." }
+                        }
+                }
         }
         ws?.let { socket ->
-            buffers.forEach { socket.write(it)}
+            buffers.forEach { buffer ->
+                socket.writeBinaryMessage(buffer)
+                    .onFailure { t ->
+                        logger.error(t) { "Websocket 'writeBinaryMessage()' failed." }
+                    }
+            }
         }
     }
 }

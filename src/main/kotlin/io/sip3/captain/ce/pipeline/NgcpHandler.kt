@@ -32,8 +32,6 @@ import io.vertx.core.json.JsonObject
  */
 class NgcpHandler(vertx: Vertx, config: JsonObject, bulkOperationsEnabled: Boolean) : Handler(vertx, config, bulkOperationsEnabled) {
 
-    private val logger = KotlinLogging.logger {}
-
     private val packets = mutableListOf<Packet>()
     private var bulkSize = 1
 
