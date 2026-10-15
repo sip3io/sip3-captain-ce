@@ -32,6 +32,7 @@ import io.vertx.core.datagram.DatagramSocketOptions
 import io.vertx.core.http.WebSocket
 import io.vertx.core.internal.buffer.BufferInternal
 import io.vertx.core.json.JsonObject
+import io.vertx.core.net.NetClient
 import io.vertx.core.net.NetClientOptions
 import io.vertx.core.net.NetSocket
 import io.vertx.core.parsetools.RecordParser
@@ -61,6 +62,7 @@ open class ManagementSocket : AbstractVerticle() {
     var reconnectionTimeout = 1000L
     var delimiter = "\r\n\r\n3PIS\r\n\r\n"
 
+    var tcpClient: NetClient? = null
     protected var udp: DatagramSocket? = null
     protected var tcp: NetSocket? = null
     protected var ws: WebSocket? = null
@@ -106,10 +108,14 @@ open class ManagementSocket : AbstractVerticle() {
     }
 
     open fun openTcpConnection() {
-        val options = tcpConnectionOptions()
-        vertx.createNetClient(options).connect(uri.port, uri.host)
+        if (tcpClient == null) {
+            val options = tcpConnectionOptions()
+            tcpClient = vertx.createNetClient(options)
+        }
+
+        tcpClient!!.connect(uri.port, uri.host)
             .onFailure { t ->
-                logger.error(t) { "Failed to connect to $uri" }
+                logger.error(t) { "ManagementSocket 'openTcpConnection()' failed." }
                 tcp = null
                 periodicStream?.let {
                     vertx.cancelTimer(it)
@@ -148,7 +154,7 @@ open class ManagementSocket : AbstractVerticle() {
                 periodicStream = vertx.setPeriodic(0, registerDelay) {
                     sendRegister { buffer ->
                         tcp?.write(buffer.appendString(delimiter))
-                            ?.onFailure { logger.error(it) { "NetSocket 'write()' failed." } }
+                            ?.onFailure { logger.error(it) { "TCP socket 'write()' failed." } }
                             ?: logger.warn { "TCP connection is not opened." }
                     }
                 }
